@@ -7,6 +7,13 @@ console.log("DNS servers:", dns.getServers());
 
 require("dotenv").config();
 
+console.log(
+  "NVIDIA API KEY EXISTS:",
+  !!process.env.NVIDIA_API_KEY
+);
+
+const airoutes = require("./routes/aiRoutes")
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -21,6 +28,8 @@ app.get("/", (req, res) => {
     message: "Welcome to HitMeUp API"
   });
 });
+
+app.use("/api/ai", airoutes)
 
 const PORT = process.env.PORT || 5000;
 

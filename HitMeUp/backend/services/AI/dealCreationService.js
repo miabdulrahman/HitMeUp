@@ -1,49 +1,70 @@
-const openAI = require("openai")
+const OpenAI = require("openai");
 
-const openai = new openAI({
-    apikey: process.env.OPENAI_API_KEY,
-})
+const nvidia = new OpenAI({
+    apiKey: process.env.NVIDIA_API_KEY,
+    baseURL: "https://integrate.api.nvidia.com/v1",
+});
 
 const generateDeal = async ({
     businessName,
     businessType,
-    productOrServices,
+    productOrService,
     originalPrice,
     targetCustomers,
 }) => {
     try {
         const prompt = `
-        You are an AI assistant for HitMeUp, a real-time flash deal marketplace.
+You are an AI assistant for HitMeUp, a real-time flash deal marketplace.
 
-        Create a professional and attractive flash deal based on the following information:
+Create a professional and attractive flash deal based on the following information:
 
-        Business Name: ${businessName}
-        Business Type: ${businessType}
-        Product or Service: ${productOrService}
-        Original Price: ${originalPrice}
-        Target Customers: ${targetCustomers}
+Business Name: ${businessName}
+Business Type: ${businessType}
+Product or Service: ${productOrService}
+Original Price: ${originalPrice}
+Target Customers: ${targetCustomers}
 
-        Return ONLY valid JSON in this format:
+Return ONLY valid JSON in this format:
 
-        {
-          "title": "Deal title",
-          "description": "Short attractive deal description",
-          "suggestedDiscount": "Suggested discount percentage",
-          "marketingMessage": "Short marketing message",
-          "targetCustomer": "Recommended target customer group"
-        }`
+{
+  "title": "Deal title",
+  "description": "Short attractive deal description",
+  "suggestedDiscount": "Suggested discount percentage",
+  "marketingMessage": "Short marketing message",
+  "targetCustomer": "Recommended target customer group"
+}
+`;
 
-        const response = await openai.response.create({
-            model:"gpt-5.6-luna",
-            input:prompt,
-        })
-        return response.output_text;
+        const response = await nvidia.chat.completions.create({
+            model: "nvidia/nemotron-3-super-120b-a12b",
+            messages: [
+                {
+                    role: "system",
+                    content: "You generate marketing deals for the HitMeUp platform.",
+                },
+                {
+                    role: "user",
+                    content: prompt,
+                },
+            ],
+            temperature: 0.7,
+            max_tokens: 1000,
+        });
+
+        const aiResponse = response.choices[0].message.content;
+        const cleanResponse = aiResponse
+            .replace(/```json/g, "")
+            .replace(/```/g,"")
+            .trim();
+
+        const deal = JSON.parse(cleanResponse);
+        return deal;
     } catch (error) {
-        console.log("AI Deal Generation Error", error.message)
-        throw new Error("failed to generate AI deal")
+        console.error("NVIDIA AI Deal Generation Error:", error.message);
+        throw new Error("Failed to generate AI deal");
     }
 };
 
 module.exports = {
     generateDeal,
-}
+};

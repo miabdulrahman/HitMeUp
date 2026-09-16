@@ -1,4 +1,7 @@
+const AIActivityLog =  require("../models/AIActivityLog");
 const { generateDeal } = require("../services/AI/dealCreationService");
+const {recommendDeals} = require("../services/AI/recommandationService");
+
 
 const generateDealController = async (req, res) => {
   try {
@@ -61,6 +64,16 @@ const recommendDealsController = async (req , res) => {
             userPreferences,
             availableDeals,
         });
+
+        await AIActivityLog.create({
+          feature:"deal-recommandation",
+          input:{
+            userPreferences,
+            availableDeals,
+          },
+          output: recommendations,
+          status:"success",
+        })
 
         return res.status(200).json({
             success:true,

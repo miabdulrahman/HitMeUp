@@ -1,7 +1,7 @@
 const OpenAI = require("openai");
 
 const openai = new OpenAI({
-    apikey: process.env.NVIDIA_API_KEY,
+    apiKey: process.env.NVIDIA_API_KEY,
     baseURL: "https://integrate.api.nvidia.com/v1",
 });
 
@@ -36,8 +36,8 @@ const recommendDeals = async ({
         `;
 
         const response = await openai.chat.completions.create({
-            model: "meta/llama-3.1-70b-instruct",
-            message: [
+            model: "nvidia/nemotron-3-super-120b-a12b",
+            messages: [
                 {
                     role: "user",
                     content: prompt,
@@ -53,8 +53,8 @@ const recommendDeals = async ({
         console.error("AI Deal Recommendation Error:", error);
         throw error;
     }
+}
 
-    module.exports = {
-        recommendDeals,
-    }
+module.exports = {
+    recommendDeals,
 }

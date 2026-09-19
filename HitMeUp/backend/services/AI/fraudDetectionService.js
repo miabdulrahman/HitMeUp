@@ -1,16 +1,13 @@
 const OpenAI = require("openai");
-const { modelName } = require("../../models/AIActivityLog");
-const { Messages } = require("openai/resources/chat/completions.js");
 
-const openai = new OpenAI({
-    apikey: process.env.OpenAI,
+
+const  nvidia = new OpenAI({
+    apiKey: process.env.NVIDIA_API_KEY,
     baseURL: "https://integrate.api.nvidia.com/v1",
-    timout: 120000,
-    maxRetries: 2,
 })
 
 const detectFraud = async ({
-    activitiType,
+    activityType,
     activityData,
 }) => {
     try {
@@ -22,7 +19,7 @@ const detectFraud = async ({
         the activity is suspicious.
         
         Activity Type:
-        ${activitiType}
+        ${activityType}
         
         Activity Data:
         ${JSON.stringify(activityData, null, 2)}
@@ -45,17 +42,17 @@ const detectFraud = async ({
         "low", "medium", "high"
     `;
 
-        const response = await openai.chat.completions.create({
+        const response = await nvidia.chat.completions.create({
             model: "nvidia/nemotron-3-super-120b-a12b",
-            Messages: [
+            messages: [
                 {
                     role: "user",
                     content: prompt,
                 }
             ],
-            temparature: 0.1,
+            temperature: 0.1,
             max_tokens: 300,
-            reasoning_effor: "none",
+            reasoning_effort: "none",
         })
 
         const result = response.choices[0].message.content;

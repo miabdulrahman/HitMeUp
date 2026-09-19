@@ -1,6 +1,6 @@
 const AIActivityLog = require("../models/AIActivityLog");
 const FraudFlag = require("../models/froudFlag");
-const foodFlag = require("../models/FoodFlag");
+const FoodFlag = require("../models/FoodFlag");
 
 const { generateDeal } = require("../services/AI/dealCreationService");
 const { recommendDeals } = require("../services/AI/recommandationService");

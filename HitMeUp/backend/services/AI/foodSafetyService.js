@@ -54,8 +54,10 @@ const detectFoodSafety = async ({
             model: "nvidia/nemotron-3-super-120b-a12b",
 
             messages: [
-                role = "user",
-                Content = prompt,
+                {
+                    role: "user",
+                    content: prompt,
+                }
             ],
 
             temperature: 0.1,

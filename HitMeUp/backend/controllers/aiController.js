@@ -1,9 +1,11 @@
 const AIActivityLog = require("../models/AIActivityLog");
 const FraudFlag = require("../models/froudFlag");
+const foodFlag = require("../models/FoodFlag");
 
 const { generateDeal } = require("../services/AI/dealCreationService");
 const { recommendDeals } = require("../services/AI/recommandationService");
 const { detectFraud } = require("../services/AI/fraudDetectionService");
+const {detectFoodSafety} = require ("../services/AI/foodSafetyService");
 
 
 
@@ -114,7 +116,7 @@ const detectFraudController = async (req, res) => {
       activityType,
       activityData,
     });
-    
+
     const fraudfalg = await FraudFlag.create({
       userId: userId || null,
       activityType,
@@ -150,8 +152,52 @@ const detectFraudController = async (req, res) => {
   }
 
 }
+
+const detectFoodSafetyController = async (req, res) =>{
+  try{
+    const{dealId, productName, productDescription} = req.body;
+
+    if(!productName){
+      return res.status(400).json({
+        success:false,
+        message:"Productname is required",
+      })
+    }
+
+    const foodResult = await detectFoodSafety({
+      productName,
+      productDescription,
+    })
+
+    const foodFlag = await FoodFlag.create({
+      dealId,
+      productName,
+      isFood : foodResult.isFood,
+      isPotentiallyUnsafe: foodResult.isPotentiallyUnsafe,
+      riskLevel:foodResult.riskLevel,
+      reason:foodResult.reason,
+      recommendations:foodResult.recommendations,
+    })
+
+    return res.status(201).json({
+      success:true,
+      message: "Food safety analysis completed",
+      result:foodResult,
+      foodFlag,
+    })
+  }catch(error){
+    console.error("Food safety controller error:", error);
+
+    return res.status(500).json({
+      success:false,
+      message:"Food safety detection failed",
+      error:error.message,
+    })
+  }
+}
 module.exports = {
   generateDealController,
   recommendDealsController,
   detectFraudController,
+  detectFoodSafetyController,
 };

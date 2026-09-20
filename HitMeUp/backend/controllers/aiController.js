@@ -159,16 +159,20 @@ const detectFraudController = async (req, res) => {
       reason: fraudResult.reason,
     })
 
-    await AIActivityLog.create({
-      feature: "fraud-detection",
-      userId: userId || null,
+    await logAIActivity({
+      feature: "fraud_detection",
+      userId: req.user?.id || userId,
+
       input: {
+        userId,
         activityType,
         activityData,
       },
+
       output: fraudResult,
+
       status: "success",
-    })
+    });
 
     return res.status(200).json({
       success: true,
@@ -178,6 +182,17 @@ const detectFraudController = async (req, res) => {
     });
   } catch (error) {
     console.error("Fraud Detection Controller Error:", error);
+    await logAIActivity({
+      feature: "fraud_detection",
+      userId: req.user?.id || req.body?.userId || null,
+
+      input: req.body,
+
+      output: {},
+
+      status: "failed",
+      errorMessage: error.message,
+    });
     return res.status(500).json({
       success: false,
       message: "faild to detect fraud",

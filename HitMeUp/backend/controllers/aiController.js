@@ -227,6 +227,19 @@ const detectFoodSafetyController = async (req, res) => {
       recommendations: foodResult.recommendations,
     })
 
+    await logAIActivity({
+      feature: "food_safety",
+      userId: req.user?.id || null,
+
+      input: {
+        dealId, productName, productDescription
+      },
+
+      output: foodResult,
+
+      status: "success",
+    });
+
     return res.status(201).json({
       success: true,
       message: "Food safety analysis completed",
@@ -235,6 +248,17 @@ const detectFoodSafetyController = async (req, res) => {
     })
   } catch (error) {
     console.error("Food safety controller error:", error);
+    await logAIActivity({
+      feature: "food_safety",
+      userId: req.user?.id || null,
+
+      input: req.body,
+
+      output: {},
+
+      status: "failed",
+      errorMessage: error.message,
+    });
 
     return res.status(500).json({
       success: false,
@@ -291,5 +315,5 @@ module.exports = {
   recommendDealsController,
   detectFraudController,
   detectFoodSafetyController,
-  generateTarget,
+  generateTargetingController,
 };

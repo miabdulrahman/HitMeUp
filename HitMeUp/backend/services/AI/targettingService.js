@@ -60,7 +60,7 @@ const generateTarget = async ({
             "reason": "Short explanation of why these customers are suitable"
         }`;
 
-        const response = Nvidia.chat.completions.create({
+        const response = await Nvidia.chat.completions.create({
             model: "nvidia/nemotron-3-super-120b-a12b",
 
             messages: [{

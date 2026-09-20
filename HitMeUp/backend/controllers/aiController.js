@@ -5,10 +5,9 @@ const FoodFlag = require("../models/FoodFlag");
 const { generateDeal } = require("../services/AI/dealCreationService");
 const { recommendDeals } = require("../services/AI/recommandationService");
 const { detectFraud } = require("../services/AI/fraudDetectionService");
-const {detectFoodSafety} = require ("../services/AI/foodSafetyService");
+const { detectFoodSafety } = require("../services/AI/foodSafetyService");
 const { generateTarget } = require("../services/AI/targettingService");
-
-
+const { logAIActivity } = require("../services/AI/aiLogService");
 
 const generateDealController = async (req, res) => {
   try {
@@ -42,6 +41,14 @@ const generateDealController = async (req, res) => {
       targetCustomers,
     });
 
+    await logAIActivity({
+      feature: "deal_generation",
+      userId: req.user?.id || null,
+      input : req.body,
+      output: deal,
+      status: "success",
+    });
+
     res.status(200).json({
       success: true,
       message: "Deal generated successfully",
@@ -49,6 +56,15 @@ const generateDealController = async (req, res) => {
     });
   } catch (error) {
     console.error("Generate deal error:", error);
+
+    await logAIActivity({
+      feature: "deal_generation",
+      userId: req.user?.id || null,
+      input,
+      output: {},
+      status: "failed",
+      errorMessage: error.message,
+    });
 
     res.status(500).json({
       success: false,
@@ -154,14 +170,14 @@ const detectFraudController = async (req, res) => {
 
 }
 
-const detectFoodSafetyController = async (req, res) =>{
-  try{
-    const{dealId, productName, productDescription} = req.body;
+const detectFoodSafetyController = async (req, res) => {
+  try {
+    const { dealId, productName, productDescription } = req.body;
 
-    if(!productName){
+    if (!productName) {
       return res.status(400).json({
-        success:false,
-        message:"Productname is required",
+        success: false,
+        message: "Productname is required",
       })
     }
 
@@ -173,32 +189,32 @@ const detectFoodSafetyController = async (req, res) =>{
     const foodFlag = await FoodFlag.create({
       dealId,
       productName,
-      isFood : foodResult.isFood,
+      isFood: foodResult.isFood,
       isPotentiallyUnsafe: foodResult.isPotentiallyUnsafe,
-      riskLevel:foodResult.riskLevel,
-      reason:foodResult.reason,
-      recommendations:foodResult.recommendations,
+      riskLevel: foodResult.riskLevel,
+      reason: foodResult.reason,
+      recommendations: foodResult.recommendations,
     })
 
     return res.status(201).json({
-      success:true,
+      success: true,
       message: "Food safety analysis completed",
-      result:foodResult,
+      result: foodResult,
       foodFlag,
     })
-  }catch(error){
+  } catch (error) {
     console.error("Food safety controller error:", error);
 
     return res.status(500).json({
-      success:false,
-      message:"Food safety detection failed",
-      error:error.message,
+      success: false,
+      message: "Food safety detection failed",
+      error: error.message,
     })
   }
 }
 
 const generateTargetingController = async (req, res) => {
-  try{
+  try {
     const {
       dealTitle,
       dealDescription,
@@ -207,10 +223,10 @@ const generateTargetingController = async (req, res) => {
       discount,
     } = req.body;
 
-    if(!dealTitle){
+    if (!dealTitle) {
       return res.status(400).json({
-        success:flase,
-        message:"Deal title is required",
+        success: flase,
+        message: "Deal title is required",
       })
     }
 
@@ -223,19 +239,22 @@ const generateTargetingController = async (req, res) => {
     })
 
     return res.status(200).json({
-      success:true,
-      message:"Target audience generated successfully",
-      targetting:targetingResult,
+      success: true,
+      message: "Target audience generated successfully",
+      targetting: targetingResult,
     })
-  }catch(error){
+  } catch (error) {
     console.error("Targetting controller error", error);
     return res.status(500).json({
-      success:false,
-      message:"Targeting generation failed",
-      error:error.message,
+      success: false,
+      message: "Targeting generation failed",
+      error: error.message,
     })
   }
 }
+
+
+
 module.exports = {
   generateDealController,
   recommendDealsController,

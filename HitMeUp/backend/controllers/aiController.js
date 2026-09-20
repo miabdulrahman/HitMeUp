@@ -6,6 +6,7 @@ const { generateDeal } = require("../services/AI/dealCreationService");
 const { recommendDeals } = require("../services/AI/recommandationService");
 const { detectFraud } = require("../services/AI/fraudDetectionService");
 const {detectFoodSafety} = require ("../services/AI/foodSafetyService");
+const { generateTarget } = require("../services/AI/targettingService");
 
 
 
@@ -195,9 +196,50 @@ const detectFoodSafetyController = async (req, res) =>{
     })
   }
 }
+
+const generateTargetingController = async (req, res) => {
+  try{
+    const {
+      dealTitle,
+      dealDescription,
+      category,
+      price,
+      discount,
+    } = req.body;
+
+    if(!dealTitle){
+      return res.status(400).json({
+        success:flase,
+        message:"Deal title is required",
+      })
+    }
+
+    const targetingResult = await generateTarget({
+      dealTitle,
+      dealDescription,
+      category,
+      price,
+      discount,
+    })
+
+    return res.status(200).json({
+      success:true,
+      message:"Target audience generated successfully",
+      targetting:targetingResult,
+    })
+  }catch(error){
+    console.error("Targetting controller error", error);
+    return res.status(500).json({
+      success:false,
+      message:"Targeting generation failed",
+      error:error.message,
+    })
+  }
+}
 module.exports = {
   generateDealController,
   recommendDealsController,
   detectFraudController,
   detectFoodSafetyController,
+  generateTarget,
 };

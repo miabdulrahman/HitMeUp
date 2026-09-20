@@ -44,7 +44,7 @@ const generateDealController = async (req, res) => {
     await logAIActivity({
       feature: "deal_generation",
       userId: req.user?.id || null,
-      input : req.body,
+      input: req.body,
       output: deal,
       status: "success",
     });
@@ -88,15 +88,19 @@ const recommendDealsController = async (req, res) => {
       availableDeals,
     });
 
-    await AIActivityLog.create({
-      feature: "deal-recommandation",
+    await logAIActivity({
+      feature: "recommendation",
+      userId: req.user?.id || null,
+
       input: {
         userPreferences,
         availableDeals,
       },
+
       output: recommendations,
+
       status: "success",
-    })
+    });
 
     return res.status(200).json({
       success: true,
@@ -105,6 +109,18 @@ const recommendDealsController = async (req, res) => {
 
   } catch (error) {
     console.log("Reccomment Deal Error: ", error);
+
+    await logAIActivity({
+      feature: "recommendation",
+      userId: req.user?.id || null,
+
+      input: req.body,
+
+      output: {},
+
+      status: "failed",
+      errorMessage: error.message,
+    });
 
     return res.status(500).json({
       success: false,

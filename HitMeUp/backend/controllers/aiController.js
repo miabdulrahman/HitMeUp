@@ -8,6 +8,7 @@ const { detectFraud } = require("../services/AI/fraudDetectionService");
 const { detectFoodSafety } = require("../services/AI/foodSafetyService");
 const { generateTarget } = require("../services/AI/targettingService");
 const { logAIActivity } = require("../services/AI/aiLogService");
+const { genrateInsights, generateInsights } = require("../services/AI/insightService")
 
 const generateDealController = async (req, res) => {
   try {
@@ -339,6 +340,65 @@ const generateTargetingController = async (req, res) => {
 }
 
 
+const generateInsightsController = async (req, res) => {
+  try {
+    const { totalDeals,
+      totalUsers,
+      totalTransactions,
+      popularCategories,
+      topDeals,
+      fraudStats,
+      foodSafetyStats, } = req.body;
+
+    if(totalDeals === undefined || totalUsers === undefined || totalTransactions === undefined){
+      res.status(400).json({
+        success:false,
+        message:"totalDeals, totalUsers and totalTransactions are required"
+      })
+    }
+
+    const insights = await generateInsights({
+      totalDeals,
+      totalUsers,
+      totalTransactions,
+      popularCategories,
+      topDeals,
+      fraudStats,
+      foodSafetyStats
+    })
+    
+    await logAIActivity({
+      feature:"insights",
+      userId : req.user?.id || null,
+      input: req.body,
+      output:insights,
+      status:"success",
+    })
+
+    return res.status(200).json({
+      success:true,
+      message:"AI insights generated successfully",
+      insights,
+    })
+  } catch (error) {
+    console.error("insights controller error ", error);
+    
+    await logAIActivity ({
+      feature:"insights",
+      userId:req.user?.id || null,
+      input:req.body,
+      output:{},
+      status:"failed",
+      errorMessage:error.message,
+    })
+
+    return res.status(500).json({
+      success:false,
+      message:"Failed to generate AI insights",
+    })
+  }
+}
+
 
 module.exports = {
   generateDealController,
@@ -346,4 +406,5 @@ module.exports = {
   detectFraudController,
   detectFoodSafetyController,
   generateTargetingController,
+  generateInsightsController,
 };

@@ -8,6 +8,7 @@ const { detectFraud } = require("../services/AI/fraudDetectionService");
 const { detectFoodSafety } = require("../services/AI/foodSafetyService");
 const { generateTarget } = require("../services/AI/targettingService");
 const { logAIActivity } = require("../services/AI/aiLogService");
+const { genrateInsights, generateInsights } = require("../services/AI/insightService")
 
 const generateDealController = async (req, res) => {
   try {
@@ -44,7 +45,7 @@ const generateDealController = async (req, res) => {
     await logAIActivity({
       feature: "deal_generation",
       userId: req.user?.id || null,
-      input : req.body,
+      input: req.body,
       output: deal,
       status: "success",
     });
@@ -88,15 +89,19 @@ const recommendDealsController = async (req, res) => {
       availableDeals,
     });
 
-    await AIActivityLog.create({
-      feature: "deal-recommandation",
+    await logAIActivity({
+      feature: "recommendation",
+      userId: req.user?.id || null,
+
       input: {
         userPreferences,
         availableDeals,
       },
+
       output: recommendations,
+
       status: "success",
-    })
+    });
 
     return res.status(200).json({
       success: true,
@@ -105,6 +110,18 @@ const recommendDealsController = async (req, res) => {
 
   } catch (error) {
     console.log("Reccomment Deal Error: ", error);
+
+    await logAIActivity({
+      feature: "recommendation",
+      userId: req.user?.id || null,
+
+      input: req.body,
+
+      output: {},
+
+      status: "failed",
+      errorMessage: error.message,
+    });
 
     return res.status(500).json({
       success: false,
@@ -143,16 +160,20 @@ const detectFraudController = async (req, res) => {
       reason: fraudResult.reason,
     })
 
-    await AIActivityLog.create({
-      feature: "fraud-detection",
-      userId: userId || null,
+    await logAIActivity({
+      feature: "fraud_detection",
+      userId: req.user?.id || userId,
+
       input: {
+        userId,
         activityType,
         activityData,
       },
+
       output: fraudResult,
+
       status: "success",
-    })
+    });
 
     return res.status(200).json({
       success: true,
@@ -162,6 +183,17 @@ const detectFraudController = async (req, res) => {
     });
   } catch (error) {
     console.error("Fraud Detection Controller Error:", error);
+    await logAIActivity({
+      feature: "fraud_detection",
+      userId: req.user?.id || req.body?.userId || null,
+
+      input: req.body,
+
+      output: {},
+
+      status: "failed",
+      errorMessage: error.message,
+    });
     return res.status(500).json({
       success: false,
       message: "faild to detect fraud",
@@ -196,6 +228,19 @@ const detectFoodSafetyController = async (req, res) => {
       recommendations: foodResult.recommendations,
     })
 
+    await logAIActivity({
+      feature: "food_safety",
+      userId: req.user?.id || null,
+
+      input: {
+        dealId, productName, productDescription
+      },
+
+      output: foodResult,
+
+      status: "success",
+    });
+
     return res.status(201).json({
       success: true,
       message: "Food safety analysis completed",
@@ -204,6 +249,17 @@ const detectFoodSafetyController = async (req, res) => {
     })
   } catch (error) {
     console.error("Food safety controller error:", error);
+    await logAIActivity({
+      feature: "food_safety",
+      userId: req.user?.id || null,
+
+      input: req.body,
+
+      output: {},
+
+      status: "failed",
+      errorMessage: error.message,
+    });
 
     return res.status(500).json({
       success: false,
@@ -238,6 +294,23 @@ const generateTargetingController = async (req, res) => {
       discount,
     })
 
+    await logAIActivity({
+      feature: "targeting",
+      userId: req.user?.id || null,
+
+      input: {
+        dealTitle,
+        dealDescription,
+        category,
+        price,
+        discount,
+      },
+
+      output: targetingResult,
+
+      status: "success",
+    });
+
     return res.status(200).json({
       success: true,
       message: "Target audience generated successfully",
@@ -245,6 +318,19 @@ const generateTargetingController = async (req, res) => {
     })
   } catch (error) {
     console.error("Targetting controller error", error);
+
+    await logAIActivity({
+      feature: "targeting",
+      userId: req.user?.id || null,
+
+      input: req.body,
+
+      output: {},
+
+      status: "failed",
+      errorMessage: error.message,
+    });
+
     return res.status(500).json({
       success: false,
       message: "Targeting generation failed",
@@ -254,11 +340,71 @@ const generateTargetingController = async (req, res) => {
 }
 
 
+const generateInsightsController = async (req, res) => {
+  try {
+    const { totalDeals,
+      totalUsers,
+      totalTransactions,
+      popularCategories,
+      topDeals,
+      fraudStats,
+      foodSafetyStats, } = req.body;
+
+    if(totalDeals === undefined || totalUsers === undefined || totalTransactions === undefined){
+      res.status(400).json({
+        success:false,
+        message:"totalDeals, totalUsers and totalTransactions are required"
+      })
+    }
+
+    const insights = await generateInsights({
+      totalDeals,
+      totalUsers,
+      totalTransactions,
+      popularCategories,
+      topDeals,
+      fraudStats,
+      foodSafetyStats
+    })
+    
+    await logAIActivity({
+      feature:"insights",
+      userId : req.user?.id || null,
+      input: req.body,
+      output:insights,
+      status:"success",
+    })
+
+    return res.status(200).json({
+      success:true,
+      message:"AI insights generated successfully",
+      insights,
+    })
+  } catch (error) {
+    console.error("insights controller error ", error);
+    
+    await logAIActivity ({
+      feature:"insights",
+      userId:req.user?.id || null,
+      input:req.body,
+      output:{},
+      status:"failed",
+      errorMessage:error.message,
+    })
+
+    return res.status(500).json({
+      success:false,
+      message:"Failed to generate AI insights",
+    })
+  }
+}
+
 
 module.exports = {
   generateDealController,
   recommendDealsController,
   detectFraudController,
   detectFoodSafetyController,
-  generateTarget,
+  generateTargetingController,
+  generateInsightsController,
 };

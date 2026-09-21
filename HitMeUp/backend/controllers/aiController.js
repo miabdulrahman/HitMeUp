@@ -293,6 +293,23 @@ const generateTargetingController = async (req, res) => {
       discount,
     })
 
+    await logAIActivity({
+      feature: "targeting",
+      userId: req.user?.id || null,
+
+      input: {
+        dealTitle,
+        dealDescription,
+        category,
+        price,
+        discount,
+      },
+
+      output: targetingResult,
+
+      status: "success",
+    });
+
     return res.status(200).json({
       success: true,
       message: "Target audience generated successfully",
@@ -300,6 +317,19 @@ const generateTargetingController = async (req, res) => {
     })
   } catch (error) {
     console.error("Targetting controller error", error);
+
+    await logAIActivity({
+      feature: "targeting",
+      userId: req.user?.id || null,
+
+      input: req.body,
+
+      output: {},
+
+      status: "failed",
+      errorMessage: error.message,
+    });
+
     return res.status(500).json({
       success: false,
       message: "Targeting generation failed",

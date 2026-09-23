@@ -1,0 +1,124 @@
+import {
+  Search,
+  Menu,
+  X,
+} from "lucide-react";
+import { useState } from "react";
+
+function Navbar() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navLinks = [
+    { name: "Home", href: "#home" },
+    { name: "Deals", href: "#deals" },
+    { name: "Categories", href: "#categories" },
+    { name: "How It Works", href: "#how-it-works" },
+    { name: "About", href: "#about" },
+  ];
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
+
+        {/* Logo */}
+        <a
+          href="#home"
+          className="flex items-center gap-2"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF4A2F] text-lg font-black text-white shadow-sm">
+            H
+          </div>
+
+          <span className="text-2xl font-black tracking-tight text-[#141922]">
+            Hit<span className="text-[#FF4A2F]">Me</span>Up
+          </span>
+        </a>
+
+        {/* Desktop Navigation */}
+        <div className="hidden items-center gap-7 lg:flex">
+          {navLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              className="text-sm font-semibold text-[#141922] transition hover:text-[#FF4A2F]"
+            >
+              {link.name}
+            </a>
+          ))}
+        </div>
+
+        {/* Desktop Right */}
+        <div className="hidden items-center gap-2 md:flex">
+
+          <button
+            className="rounded-xl p-3 text-[#141922] transition hover:bg-[#F9F9F9] hover:text-[#FF4A2F]"
+            aria-label="Search"
+          >
+            <Search size={19} />
+          </button>
+
+          <a
+            href="#login"
+            className="rounded-xl px-4 py-2.5 text-sm font-bold text-[#141922] transition hover:text-[#FF4A2F]"
+          >
+            Login
+          </a>
+
+          <a
+            href="#signup"
+            className="rounded-xl bg-[#FF4A2F] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#C72814]"
+          >
+            Sign Up
+          </a>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="rounded-lg p-2 text-[#141922] md:hidden"
+          aria-label="Toggle menu"
+        >
+          {menuOpen ? <X size={25} /> : <Menu size={25} />}
+        </button>
+      </nav>
+
+      {/* Mobile Menu */}
+      {menuOpen && (
+        <div className="border-t border-gray-100 bg-white px-5 py-5 md:hidden">
+          <div className="flex flex-col gap-4">
+
+            {navLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className="font-semibold text-[#141922] hover:text-[#FF4A2F]"
+              >
+                {link.name}
+              </a>
+            ))}
+
+            <div className="mt-2 flex gap-3 border-t border-gray-100 pt-4">
+              <a
+                href="#login"
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-center font-bold"
+              >
+                Login
+              </a>
+
+              <a
+                href="#signup"
+                className="flex-1 rounded-xl bg-[#FF4A2F] px-4 py-3 text-center font-bold text-white"
+              >
+                Sign Up
+              </a>
+            </div>
+
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
+export default Navbar;

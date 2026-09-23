@@ -1,9 +1,9 @@
 import {
-  Facebook,
-  Instagram,
-  Twitter,
-  Linkedin,
-} from "lucide-react";
+  FaFacebook,
+  FaInstagram,
+  FaTwitter,
+  FaLinkedin
+} from "react-icons/fa";
 
 function Footer() {
   return (
@@ -85,28 +85,28 @@ function Footer() {
               href="#facebook"
               className="rounded-xl bg-gray-100 p-3 text-[#141922] hover:bg-[#FF4A2F] hover:text-white"
             >
-              <Facebook size={18} />
+              <FaFacebook size={18} />
             </a>
 
             <a
               href="#instagram"
               className="rounded-xl bg-gray-100 p-3 text-[#141922] hover:bg-[#FF4A2F] hover:text-white"
             >
-              <Instagram size={18} />
+              <FaInstagram size={18} />
             </a>
 
             <a
               href="#twitter"
               className="rounded-xl bg-gray-100 p-3 text-[#141922] hover:bg-[#FF4A2F] hover:text-white"
             >
-              <Twitter size={18} />
+              <FaTwitter size={18} />
             </a>
 
             <a
               href="#linkedin"
               className="rounded-xl bg-gray-100 p-3 text-[#141922] hover:bg-[#FF4A2F] hover:text-white"
             >
-              <Linkedin size={18} />
+              <FaLinkedin size={18} />
             </a>
 
           </div>

@@ -4,23 +4,23 @@ function CategorySection() {
   return (
     <section
       id="categories"
-      className="bg-white py-16"
+      className="bg-white py-20"
     >
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
 
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <p className="text-sm font-bold uppercase tracking-wider text-[#FF4A2F]">
-              Explore
+            <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#ef5738]">
+              Start somewhere
             </p>
 
             <h2 className="mt-2 text-3xl font-black text-[#141922]">
-              Shop by Category
+              Find your kind of good
             </h2>
           </div>
 
-          <button className="hidden font-bold text-[#FF4A2F] sm:block">
-            View All →
+          <button className="hidden font-bold text-[#ef5738] sm:block">
+            All categories →
           </button>
         </div>
 

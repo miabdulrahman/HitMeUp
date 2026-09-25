@@ -5,23 +5,23 @@ function FeaturedDeals() {
   return (
     <section
       id="deals"
-      className="bg-[#F9F9F9] py-16"
+      className="bg-[#f5f2ea] py-20"
     >
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
 
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <p className="text-sm font-bold uppercase tracking-wider text-[#FF4A2F]">
-              Don't Miss Out
+            <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#ef5738]">
+              Live around you
             </p>
 
             <h2 className="mt-2 text-3xl font-black text-[#141922]">
-              Featured Deals
+              Deals worth leaving home for
             </h2>
           </div>
 
-          <button className="font-bold text-[#FF4A2F]">
-            View All Deals →
+          <button className="flex items-center gap-2 font-bold text-[#ef5738]">
+            See all deals <span aria-hidden="true">→</span>
           </button>
         </div>
 

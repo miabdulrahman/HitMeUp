@@ -1,3 +1,4 @@
+require("dotenv").config();
 const Deals = require("../../models/Deal");
 const FoodFlag = require("../../models/FoodFlag");
 const froud = require("../../models/froudFlag");
@@ -73,4 +74,8 @@ const getAnalyticService = async () => {
         console.error("Analytics service error, ", error);
         throw error;
     }
+}
+
+module.exports = {
+    getAnalyticService,
 }

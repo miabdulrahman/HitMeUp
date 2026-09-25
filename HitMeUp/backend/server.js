@@ -15,6 +15,9 @@ console.log(
 const airoutes = require("./routes/aiRoutes")
 //deal added
 const dealRoutes = require("./routes/dealRoutes");
+// Member 1: User & Business Management
+const authRoutes = require("./routes/authRoutes");
+const businessRoutes = require("./routes/businessRoutes");
 
 const express = require("express");
 const cors = require("cors");
@@ -31,6 +34,10 @@ app.get("/", (req, res) => {
     message: "Welcome to HitMeUp API"
   });
 });
+
+// Member 1: Auth & Business Endpoints
+app.use("/api/auth", authRoutes);
+app.use("/api/businesses", businessRoutes);
 
 app.use("/api/ai", airoutes)
 //deal added

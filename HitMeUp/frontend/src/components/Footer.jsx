@@ -1,125 +1,84 @@
-import {
-  FaFacebook,
-  FaInstagram,
-  FaTwitter,
-  FaLinkedin
-} from "react-icons/fa";
-
 function Footer() {
   return (
-    <footer className="bg-white">
+    <footer className="border-t border-[#F0F0F0] bg-white">
+      <div className="mx-auto max-w-[1200px] px-6 py-14">
 
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
 
-        {/* Brand */}
-        <div>
-          <a
-            href="#home"
-            className="flex items-center gap-2"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF4A2F] font-black text-white">
-              H
+          {/* Brand */}
+          <div>
+            <a href="#home" className="text-[20px] font-black tracking-[-0.03em] text-[#1A1A1A]">
+              HitMe<span className="text-[#E8503A]">Up</span>
+            </a>
+
+            <p className="mt-4 max-w-[260px] text-[14px] leading-[1.7] text-[#8A8A8A]">
+              Real-time location-based flash deal marketplace with AI.
+              Built by Group E, Faculty of Technology, Southeastern University of Sri Lanka.
+            </p>
+          </div>
+
+          {/* Explore */}
+          <div>
+            <h4 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-[#8A8A8A]">
+              Explore
+            </h4>
+            <div className="mt-4 flex flex-col gap-3">
+              {["Flash Deals", "Categories", "How It Works", "About"].map((link) => (
+                <a
+                  key={link}
+                  href={`#${link.toLowerCase().replace(/ /g, "-")}`}
+                  className="text-[14px] text-[#4A4A4A] transition-colors duration-200 hover:text-[#1A1A1A]"
+                >
+                  {link}
+                </a>
+              ))}
             </div>
+          </div>
 
-            <span className="text-2xl font-black text-[#141922]">
-              Hit<span className="text-[#FF4A2F]">Me</span>Up
-            </span>
-          </a>
+          {/* Business */}
+          <div>
+            <h4 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-[#8A8A8A]">
+              For Business
+            </h4>
+            <div className="mt-4 flex flex-col gap-3">
+              {["Register", "Create Deals", "AI Deal Creator", "Analytics"].map((link) => (
+                <a
+                  key={link}
+                  href="#for-business"
+                  className="text-[14px] text-[#4A4A4A] transition-colors duration-200 hover:text-[#1A1A1A]"
+                >
+                  {link}
+                </a>
+              ))}
+            </div>
+          </div>
 
-          <p className="mt-4 max-w-xs leading-6 text-gray-500">
-            Local Deals. Big Savings.
-          </p>
+          {/* Legal */}
+          <div>
+            <h4 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-[#8A8A8A]">
+              Legal
+            </h4>
+            <div className="mt-4 flex flex-col gap-3">
+              {["Privacy Policy", "Terms of Service", "Contact"].map((link) => (
+                <a
+                  key={link}
+                  href="#"
+                  className="text-[14px] text-[#4A4A4A] transition-colors duration-200 hover:text-[#1A1A1A]"
+                >
+                  {link}
+                </a>
+              ))}
+            </div>
+          </div>
+
         </div>
 
-        {/* Links */}
-        <div>
-          <h3 className="font-black text-[#141922]">
-            Explore
-          </h3>
-
-          <div className="mt-4 flex flex-col gap-3 text-sm text-gray-500">
-            <a href="#deals" className="hover:text-[#FF4A2F]">
-              Deals
-            </a>
-
-            <a href="#categories" className="hover:text-[#FF4A2F]">
-              Categories
-            </a>
-
-            <a href="#how-it-works" className="hover:text-[#FF4A2F]">
-              How It Works
-            </a>
-          </div>
-        </div>
-
-        {/* Company */}
-        <div>
-          <h3 className="font-black text-[#141922]">
-            Company
-          </h3>
-
-          <div className="mt-4 flex flex-col gap-3 text-sm text-gray-500">
-            <a href="#about" className="hover:text-[#FF4A2F]">
-              About
-            </a>
-
-            <a href="#contact" className="hover:text-[#FF4A2F]">
-              Contact
-            </a>
-
-            <a href="#privacy" className="hover:text-[#FF4A2F]">
-              Privacy Policy
-            </a>
-          </div>
-        </div>
-
-        {/* Social */}
-        <div>
-          <h3 className="font-black text-[#141922]">
-            Follow Us
-          </h3>
-
-          <div className="mt-4 flex gap-3">
-
-            <a
-              href="#facebook"
-              className="rounded-xl bg-gray-100 p-3 text-[#141922] hover:bg-[#FF4A2F] hover:text-white"
-            >
-              <FaFacebook size={18} />
-            </a>
-
-            <a
-              href="#instagram"
-              className="rounded-xl bg-gray-100 p-3 text-[#141922] hover:bg-[#FF4A2F] hover:text-white"
-            >
-              <FaInstagram size={18} />
-            </a>
-
-            <a
-              href="#twitter"
-              className="rounded-xl bg-gray-100 p-3 text-[#141922] hover:bg-[#FF4A2F] hover:text-white"
-            >
-              <FaTwitter size={18} />
-            </a>
-
-            <a
-              href="#linkedin"
-              className="rounded-xl bg-gray-100 p-3 text-[#141922] hover:bg-[#FF4A2F] hover:text-white"
-            >
-              <FaLinkedin size={18} />
-            </a>
-
-          </div>
+        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-[#F0F0F0] pt-6 text-[13px] text-[#CACACA] sm:flex-row">
+          <p>© 2026 HitMeUp. All rights reserved.</p>
+          <p>BICT · Group E · Southeastern University of Sri Lanka</p>
         </div>
 
       </div>
-
-      <div className="border-t border-gray-100">
-        <div className="mx-auto max-w-7xl px-5 py-5 text-center text-sm text-gray-500 lg:px-8">
-          © 2026 HitMeUp. All rights reserved.
-        </div>
-      </div>
-
     </footer>
   );
 }

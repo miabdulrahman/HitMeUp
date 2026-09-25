@@ -1,13 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;1,500;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,500;1,600;1,700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --primary: #EF5738;
-  --primary-dark: #C93E27;
-  --success: #218052;
-  --warning: #B77A16;
-  --ink: #172026;
-  --surface: #F5F2EA;
+  --primary: #E8503A;
+  --primary-hover: #D4402C;
+  --ink: #1A1A1A;
+  --ink-light: #4A4A4A;
+  --ink-muted: #8A8A8A;
+  --surface: #FAFAFA;
+  --surface-warm: #F7F5F2;
+  --white: #FFFFFF;
+  --border: #E8E8E8;
+  --border-light: #F0F0F0;
+  --accent-green: #1B7A4A;
+  --accent-amber: #C17A1A;
 }
 
 * {
@@ -16,36 +22,61 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   margin: 0;
-  background: var(--surface);
+  background: var(--white);
   color: var(--ink);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
-h1,
-h2,
-h3,
-h4,
-button,
-nav {
-  font-family: 'Space Grotesk', 'DM Sans', sans-serif;
+h1, h2, h3, h4 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
-.editorial-display {
+.serif {
   font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
-  letter-spacing: -0.04em;
+  font-weight: 600;
 }
 
-button,
-a {
+button, a {
   -webkit-tap-highlight-color: transparent;
 }
 
 ::selection {
-  background: #FF4A2F;
+  background: var(--primary);
   color: white;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* Reveal animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }

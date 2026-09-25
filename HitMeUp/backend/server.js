@@ -13,12 +13,18 @@ console.log(
 );
 
 const airoutes = require("./routes/aiRoutes")
+//deal added
+const dealRoutes = require("./routes/dealRoutes");
+// Member 1: User & Business Management
+const authRoutes = require("./routes/authRoutes");
+const businessRoutes = require("./routes/businessRoutes");
 
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 
 const app = express();
+
 
 app.use(cors());
 app.use(express.json());
@@ -29,7 +35,13 @@ app.get("/", (req, res) => {
   });
 });
 
+// Member 1: Auth & Business Endpoints
+app.use("/api/auth", authRoutes);
+app.use("/api/businesses", businessRoutes);
+
 app.use("/api/ai", airoutes)
+//deal added
+app.use("/api/deals", dealRoutes);
 
 const PORT = process.env.PORT || 5000;
 

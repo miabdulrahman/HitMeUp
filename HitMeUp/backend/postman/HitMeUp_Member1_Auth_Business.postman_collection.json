@@ -1,0 +1,244 @@
+{
+  "info": {
+    "_postman_id": "hitmeup-member1-auth-business-2026",
+    "name": "HitMeUp - Member 1 (Auth & Business Management)",
+    "description": "Postman API collection for Member 1 (Abdul-Rahman). Includes User Registration, Login, JWT Profile Management, Role-Based Access Control, and Business Profile APIs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "customer_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "business_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "business_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"customer@example.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"customer\",\n  \"phone\": \"+94771234567\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register Business Owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Baker\",\n  \"email\": \"business@example.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"business\",\n  \"phone\": \"+94719876543\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Business Owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"business@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe Updated\",\n  \"phone\": \"+94779876543\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password123!\",\n  \"newPassword\": \"NewSecurePass456!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "change-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Business Management",
+      "item": [
+        {
+          "name": "Create Business Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{business_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ocean Breeze Cafe\",\n  \"category\": \"Cafe\",\n  \"description\": \"Coastal specialty coffee and artisan breakfast\",\n  \"phone\": \"+94112345678\",\n  \"email\": \"info@oceanbreeze.lk\",\n  \"address\": {\n    \"street\": \"45 Marine Drive\",\n    \"city\": \"Colombo\",\n    \"state\": \"Western Province\",\n    \"postalCode\": \"00300\",\n    \"country\": \"Sri Lanka\"\n  },\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [79.8529, 6.9034]\n  },\n  \"openingHours\": \"07:30 AM - 10:00 PM\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/businesses",
+              "host": ["{{base_url}}"],
+              "path": ["businesses"]
+            }
+          }
+        },
+        {
+          "name": "Get My Business Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{business_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/businesses/my-business",
+              "host": ["{{base_url}}"],
+              "path": ["businesses", "my-business"]
+            }
+          }
+        },
+        {
+          "name": "Update My Business Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{business_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"openingHours\": \"07:00 AM - 11:00 PM\",\n  \"description\": \"Updated description: Award-winning coastal specialty coffee and organic breakfast\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/businesses/my-business",
+              "host": ["{{base_url}}"],
+              "path": ["businesses", "my-business"]
+            }
+          }
+        },
+        {
+          "name": "Get Business By ID (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/businesses/{{business_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["businesses", "{{business_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get All Businesses (Public Search & Filter)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/businesses?category=Cafe&city=Colombo",
+              "host": ["{{base_url}}"],
+              "path": ["businesses"],
+              "query": [
+                { "key": "category", "value": "Cafe" },
+                { "key": "city", "value": "Colombo" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

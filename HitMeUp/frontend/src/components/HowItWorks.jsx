@@ -32,22 +32,22 @@ function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="bg-[#F9F9F9] py-20"
+      className="bg-[#172026] py-20"
     >
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
 
         <div className="text-center">
-          <p className="text-sm font-bold uppercase tracking-wider text-[#FF4A2F]">
-            Simple Process
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#ff9b7e]">
+            The HitMeUp loop
           </p>
 
-          <h2 className="mt-3 text-4xl font-black text-[#141922]">
-            How It Works
+          <h2 className="mt-3 text-4xl font-black text-white">
+            From nearby to redeemed
           </h2>
 
-          <p className="mx-auto mt-4 max-w-xl text-gray-600">
-            Getting amazing deals is easy. Just follow these
-            simple steps and start saving today.
+          <p className="mx-auto mt-4 max-w-xl text-[#aab5b6]">
+            Find a live offer, claim it before the clock runs out, and show
+            your voucher when you arrive.
           </p>
         </div>
 
@@ -59,21 +59,21 @@ function HowItWorks() {
             return (
               <div
                 key={step.number}
-                className="relative rounded-2xl bg-white p-8 text-center shadow-sm"
+                className="relative rounded-2xl border border-white/10 bg-white/10 p-8 text-center backdrop-blur-sm"
               >
-                <div className="absolute right-6 top-5 text-5xl font-black text-orange-100">
+                <div className="absolute right-6 top-5 text-5xl font-black text-white/10">
                   {step.number}
                 </div>
 
-                <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FF4A2F] text-white">
+                <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#ef5738] text-white">
                   <Icon size={28} />
                 </div>
 
-                <h3 className="mt-6 text-xl font-black text-[#141922]">
+                <h3 className="mt-6 text-xl font-black text-white">
                   {step.title}
                 </h3>
 
-                <p className="mt-3 leading-7 text-gray-500">
+                <p className="mt-3 leading-7 text-[#aab5b6]">
                   {step.description}
                 </p>
               </div>

@@ -17,7 +17,7 @@ function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-[#dcd8ca] bg-[#f5f2ea]/95 backdrop-blur">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
 
         {/* Logo */}
@@ -25,12 +25,12 @@ function Navbar() {
           href="#home"
           className="flex items-center gap-2"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF4A2F] text-lg font-black text-white shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#172026] text-lg font-black text-[#f5f2ea] shadow-sm">
             H
           </div>
 
-          <span className="text-2xl font-black tracking-tight text-[#141922]">
-            Hit<span className="text-[#FF4A2F]">Me</span>Up
+          <span className="text-2xl font-black tracking-tight text-[#172026]">
+            Hit<span className="text-[#ef5738]">Me</span>Up
           </span>
         </a>
 
@@ -40,7 +40,7 @@ function Navbar() {
             <a
               key={link.name}
               href={link.href}
-              className="text-sm font-semibold text-[#141922] transition hover:text-[#FF4A2F]"
+              className="text-sm font-semibold text-[#172026] transition hover:text-[#ef5738]"
             >
               {link.name}
             </a>
@@ -51,7 +51,7 @@ function Navbar() {
         <div className="hidden items-center gap-2 md:flex">
 
           <button
-            className="rounded-xl p-3 text-[#141922] transition hover:bg-[#F9F9F9] hover:text-[#FF4A2F]"
+            className="rounded-xl p-3 text-[#172026] transition hover:bg-white/60 hover:text-[#ef5738]"
             aria-label="Search"
           >
             <Search size={19} />
@@ -59,14 +59,14 @@ function Navbar() {
 
           <a
             href="#login"
-            className="rounded-xl px-4 py-2.5 text-sm font-bold text-[#141922] transition hover:text-[#FF4A2F]"
+            className="rounded-xl px-4 py-2.5 text-sm font-bold text-[#172026] transition hover:text-[#ef5738]"
           >
             Login
           </a>
 
           <a
             href="#signup"
-            className="rounded-xl bg-[#FF4A2F] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#C72814]"
+            className="rounded-xl bg-[#172026] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#ef5738]"
           >
             Sign Up
           </a>

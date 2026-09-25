@@ -10,7 +10,7 @@ import Footer from "../components/Footer";
 
 function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#F9F9F9]">
+    <div className="min-h-screen bg-[#f5f2ea]">
 
       <Navbar />
 

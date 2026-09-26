@@ -1,32 +1,39 @@
+import { ArrowRight } from "lucide-react";
+
 function CTA() {
   return (
-    <section
-      id="signup"
-      className="relative overflow-hidden bg-[#ef5738] py-20"
-    >
-      <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#ffb49d]/30 blur-3xl" />
-      <div className="absolute -bottom-32 left-20 h-72 w-72 rounded-full bg-[#c93e27]/30 blur-3xl" />
+    <section id="signup" className="bg-[#1A1A1A] py-24">
+      <div className="mx-auto max-w-[1200px] px-6">
 
-      <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-5 text-center md:flex-row md:px-8 md:text-left">
-
-        <div>
-          <p className="text-sm font-bold uppercase tracking-wider text-[#ffe4d8]">
-            Your next good find
-          </p>
-
-          <h2 className="mt-3 text-4xl font-black text-white">
-            Something good is nearby.
+        <div className="mx-auto max-w-[620px] text-center">
+          <h2 className="text-[clamp(1.8rem,4vw,2.5rem)] font-extrabold leading-[1.15] tracking-[-0.03em] text-white">
+            Start finding deals
+            <br />
+            <span className="serif text-[#E8503A]">in your neighbourhood.</span>
           </h2>
 
-          <p className="mt-4 max-w-xl text-white/75">
-            Join HitMeUp and turn an ordinary day into a better one with
-            limited-time deals from places around you.
+          <p className="mx-auto mt-5 max-w-[460px] text-[15px] leading-[1.7] text-[#6A6A6A]">
+            Whether you're hunting for savings or filling your store,
+            HitMeUp brings the right people together at the right time.
           </p>
-        </div>
 
-        <button className="shrink-0 rounded-xl bg-white px-8 py-4 font-black text-[#c93e27] transition hover:bg-[#fff4ed]">
-          Start exploring →
-        </button>
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a
+              href="#signup"
+              className="group flex items-center gap-2 rounded-lg bg-[#E8503A] px-7 py-3.5 text-[15px] font-semibold text-white transition-all duration-200 hover:bg-[#D4402C]"
+            >
+              Get started free
+              <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+            </a>
+
+            <a
+              href="#for-business"
+              className="rounded-lg border border-white/15 px-7 py-3.5 text-[15px] font-semibold text-white transition-all duration-200 hover:border-white/30 hover:bg-white/5"
+            >
+              I'm a business owner
+            </a>
+          </div>
+        </div>
 
       </div>
     </section>

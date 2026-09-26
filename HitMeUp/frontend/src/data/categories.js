@@ -11,43 +11,35 @@ import {
 
 export const categories = [
   {
-    name: "Food & Beverage",
+    name: "Food",
     icon: Utensils,
-    color: "bg-orange-50",
   },
   {
     name: "Fashion",
     icon: Shirt,
-    color: "bg-purple-50",
   },
   {
     name: "Electronics",
     icon: Headphones,
-    color: "bg-blue-50",
   },
   {
-    name: "Home & Living",
+    name: "Home",
     icon: Home,
-    color: "bg-yellow-50",
   },
   {
-    name: "Beauty & Health",
+    name: "Health",
     icon: HeartPulse,
-    color: "bg-pink-50",
   },
   {
-    name: "Sports & Outdoor",
+    name: "Sports",
     icon: Dumbbell,
-    color: "bg-green-50",
   },
   {
     name: "Services",
     icon: Scissors,
-    color: "bg-cyan-50",
   },
   {
-    name: "Toys & Games",
+    name: "Games",
     icon: Gamepad2,
-    color: "bg-indigo-50",
   },
 ];

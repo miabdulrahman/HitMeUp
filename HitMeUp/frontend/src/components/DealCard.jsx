@@ -6,75 +6,72 @@ import {
 
 function DealCard({ deal }) {
   return (
-    <article className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+    <article className="group overflow-hidden rounded-xl border border-[#F0F0F0] bg-white transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
 
       {/* Image */}
-      <div className="relative h-52 overflow-hidden">
-
+      <div className="relative h-48 overflow-hidden">
         <img
           src={deal.image}
           alt={deal.title}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
         />
 
-        <div className="absolute left-3 top-3 rounded-lg bg-[#FF4A2F] px-3 py-1.5 text-xs font-black text-white">
+        <div className="absolute left-3 top-3 rounded-md bg-[#1A1A1A] px-2.5 py-1 text-[11px] font-bold text-white">
           {deal.discount}
         </div>
 
         <button
-          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 shadow-md transition hover:text-[#FF4A2F]"
-          aria-label="Add to wishlist"
+          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#8A8A8A] backdrop-blur-sm transition-colors duration-200 hover:text-[#E8503A]"
+          aria-label="Save deal"
         >
-          <Heart size={18} />
+          <Heart size={15} />
         </button>
       </div>
 
       {/* Content */}
       <div className="p-5">
 
-        <span className="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-bold text-[#FF4A2F]">
-          {deal.category}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded bg-[#F7F5F2] px-2 py-0.5 text-[11px] font-semibold text-[#4A4A4A]">
+            {deal.category}
+          </span>
+        </div>
 
-        <h3 className="mt-3 text-lg font-black text-[#141922]">
+        <h3 className="mt-3 text-[16px] font-bold text-[#1A1A1A]">
           {deal.title}
         </h3>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-[13px] text-[#8A8A8A]">
           {deal.business}
         </p>
 
-        <div className="mt-3 flex flex-wrap gap-3 text-xs text-gray-500">
-
+        <div className="mt-3 flex items-center gap-4 text-[12px] text-[#8A8A8A]">
           <span className="flex items-center gap-1">
-            <MapPin size={14} className="text-[#1FA061]" />
+            <MapPin size={12} />
             {deal.distance}
           </span>
 
           <span className="flex items-center gap-1">
-            <Clock3 size={14} className="text-[#FF4A2F]" />
-            Ends in {deal.time}
+            <Clock3 size={12} />
+            {deal.time}
           </span>
-
         </div>
 
-        <div className="mt-4 flex items-end justify-between">
-
-          <div>
-            <span className="text-2xl font-black text-[#FF4A2F]">
+        <div className="mt-4 flex items-end justify-between border-t border-[#F0F0F0] pt-4">
+          <div className="whitespace-nowrap">
+            <span className="text-[20px] font-extrabold text-[#1A1A1A]">
               {deal.price}
             </span>
-
-            <span className="ml-2 text-sm text-gray-400 line-through">
+            <span className="ml-2 text-[13px] text-[#CACACA] line-through">
               {deal.oldPrice}
             </span>
           </div>
 
+          <button className="rounded-lg bg-[#1A1A1A] px-4 py-2 text-[13px] font-semibold text-white transition-all duration-200 hover:bg-[#E8503A]">
+            Grab deal
+          </button>
         </div>
-
-        <button className="mt-4 w-full rounded-xl bg-[#FF4A2F] py-3 font-bold text-white transition hover:bg-[#C72814]">
-          Grab Deal
-        </button>
 
       </div>
     </article>

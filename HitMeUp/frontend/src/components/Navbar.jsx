@@ -5,7 +5,10 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { useNavigate, Link } from "react-router-dom";
+
 function Navbar() {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
@@ -57,19 +60,17 @@ function Navbar() {
             <Search size={19} />
           </button>
 
-          <a
-            href="#login"
+          <Link to="/login"
             className="rounded-xl px-4 py-2.5 text-sm font-bold text-[#172026] transition hover:text-[#ef5738]"
           >
             Login
-          </a>
+          </Link>
 
-          <a
-            href="#signup"
+          <Link to="/register"
             className="rounded-xl bg-[#172026] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#ef5738]"
           >
             Sign Up
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
@@ -99,19 +100,17 @@ function Navbar() {
             ))}
 
             <div className="mt-2 flex gap-3 border-t border-gray-100 pt-4">
-              <a
-                href="#login"
+              <Link to="/login"
                 className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-center font-bold"
               >
                 Login
-              </a>
+              </Link>
 
-              <a
-                href="#signup"
+              <Link to="/register"
                 className="flex-1 rounded-xl bg-[#FF4A2F] px-4 py-3 text-center font-bold text-white"
               >
                 Sign Up
-              </a>
+              </Link>
             </div>
 
           </div>

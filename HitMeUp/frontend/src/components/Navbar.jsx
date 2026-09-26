@@ -1,7 +1,10 @@
 import { Search, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 
+import { useNavigate, Link } from "react-router-dom";
+
 function Navbar() {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -46,20 +49,27 @@ function Navbar() {
           ))}
         </div>
 
-        <div className="hidden items-center gap-3 lg:flex">
-          <a
-            href="#login"
-            className={`rounded-lg px-4 py-2 text-[14px] font-semibold transition-colors duration-200 ${scrolled ? "text-[#1A1A1A] hover:bg-[#F0F0F0]" : "text-white hover:bg-white/10"}`}
-          >
-            Log in
-          </a>
+        {/* Desktop Right */}
+        <div className="hidden items-center gap-2 md:flex">
 
-          <a
-            href="#signup"
-            className={`rounded-lg px-5 py-2.5 text-[14px] font-semibold text-white transition-all duration-200 ${scrolled ? "bg-[#1A1A1A] hover:bg-[#333]" : "bg-white/15 backdrop-blur-sm hover:bg-white/25"}`}
+          <button
+            className="rounded-xl p-3 text-[#172026] transition hover:bg-white/60 hover:text-[#ef5738]"
+            aria-label="Search"
           >
-            Get started
-          </a>
+            <Search size={19} />
+          </button>
+
+          <Link to="/login"
+            className="rounded-xl px-4 py-2.5 text-sm font-bold text-[#172026] transition hover:text-[#ef5738]"
+          >
+            Login
+          </Link>
+
+          <Link to="/register"
+            className="rounded-xl bg-[#172026] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#ef5738]"
+          >
+            Sign Up
+          </Link>
         </div>
 
         <button
@@ -85,19 +95,18 @@ function Navbar() {
               </a>
             ))}
 
-            <div className="mt-3 flex gap-3 border-t border-[#F0F0F0] pt-5">
-              <a
-                href="#login"
-                className="flex-1 rounded-lg border border-[#E8E8E8] py-3 text-center text-[14px] font-semibold"
+            <div className="mt-2 flex gap-3 border-t border-gray-100 pt-4">
+              <Link to="/login"
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-center font-bold"
               >
-                Log in
-              </a>
-              <a
-                href="#signup"
-                className="flex-1 rounded-lg bg-[#1A1A1A] py-3 text-center text-[14px] font-semibold text-white"
+                Login
+              </Link>
+
+              <Link to="/register"
+                className="flex-1 rounded-xl bg-[#FF4A2F] px-4 py-3 text-center font-bold text-white"
               >
-                Get started
-              </a>
+                Sign Up
+              </Link>
             </div>
           </div>
         </div>

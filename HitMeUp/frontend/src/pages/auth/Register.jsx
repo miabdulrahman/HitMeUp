@@ -9,7 +9,7 @@ const Register = () => {
         email: "",
         password: "",
         phone: "",
-        role: "customer",
+        role: "",
     });
 
     const [message, setMessage] = useState("");
@@ -58,7 +58,19 @@ const Register = () => {
             setMessage("Account created successfully!");
 
             // Customer dashboard
-            navigate("/customer/dashboard");
+            if (data.user.role === "seller") {
+                navigate("/seller/dashboard", {
+                    state: {
+                        user: data.user,
+                    }
+                });
+            } else {
+                navigate("/customer/dashboard", {
+                    state: {
+                        user: data.user,
+                    }
+                })
+            }
 
         } catch (error) {
             console.error("Registration error:", error);
@@ -173,6 +185,22 @@ const Register = () => {
                                 onChange={handleChange}
                                 required
                             />
+                        </div>
+
+                        <div className="mb-4">
+                            <label htmlFor="role">
+                                Role
+                            </label>
+                            <select id="role"
+                                name="role"
+                                className="form-select"
+                                value={formData.role}
+                                onChange={handleChange}
+                                required>
+                                <option value="">Select a role</option>
+                                <option value="seller">Seller</option>
+                                <option value="buyer">Buyer</option>
+                            </select>
                         </div>
 
                         <button

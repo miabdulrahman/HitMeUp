@@ -42,7 +42,14 @@ const register = async (req, res) => {
     }
 
     // Disallow registering directly as admin through public registration
-    const userRole = role === "business" ? "business" : "customer";
+    if (role !== "seller" && role !== "buyer") {
+      return res.status(400).json({
+        success: false,
+        message: "Role must be either seller or buyer"
+      });
+    }
+
+    const userRole = role;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
@@ -123,7 +130,7 @@ const login = async (req, res) => {
     }
 
     // If business user doesn't have businessId linked yet, check if one exists
-    if (user.role === "business" && !user.businessId) {
+    if (user.role === "seller" && !user.businessId) {
       const business = await Business.findOne({ ownerId: user._id });
       if (business) {
         user.businessId = business._id;

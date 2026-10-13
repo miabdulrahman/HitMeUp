@@ -15,8 +15,8 @@ router.get("/", getAllBusinesses);
 router.get("/:id", getBusinessById);
 
 // Protected routes for business owners and administrators
-router.post("/", protect, authorizeRoles("business", "admin"), createBusinessProfile);
-router.get("/my-business", protect, authorizeRoles("business", "admin"), getMyBusiness);
-router.put("/my-business", protect, authorizeRoles("business", "admin"), updateMyBusiness);
+router.post("/", protect, authorizeRoles("seller", "admin"), createBusinessProfile);
+router.get("/my-business", protect, authorizeRoles("seller", "admin"), getMyBusiness);
+router.put("/my-business", protect, authorizeRoles("seller", "admin"), updateMyBusiness);
 
 module.exports = router;

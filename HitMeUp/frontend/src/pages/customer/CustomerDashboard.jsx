@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 import {
     Home,
     ShoppingBag,
@@ -10,6 +11,14 @@ import {
 } from "lucide-react";
 
 const CustomerDashBoard = () => {
+    const location = useLocation();
+    
+    const user = location.state?.user;
+
+    if (!user) {
+        return <p>User information is unavailable. Please log in again.</p>;
+    }
+
     return (
         <div>
             <aside>
@@ -52,10 +61,10 @@ const CustomerDashBoard = () => {
                         <div>
                             <div>
                                 <div>
-                                    Prabhath
+                                    {user.name}
                                 </div>
                                 <small>
-                                    Customer
+                                    {user.role}
                                 </small>
                             </div>
                             <div>

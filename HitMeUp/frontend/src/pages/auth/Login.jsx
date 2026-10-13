@@ -13,7 +13,7 @@ const Login = () => {
 
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-
+    
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -58,10 +58,18 @@ const Login = () => {
             );
 
             // Decide dashboard based on role
-            if (data.user.role === "business") {
-                navigate("/seller/dashboard");
+            if (data.user.role === "seller") {
+                navigate("/seller/dashboard", {
+                    state:{
+                        user:data.user,
+                    }
+                });
             } else {
-                navigate("/customer/dashboard");
+                navigate("/customer/dashboard", {
+                    state: {
+                        user: data.user,
+                    },
+                });
             }
 
         } catch (error) {

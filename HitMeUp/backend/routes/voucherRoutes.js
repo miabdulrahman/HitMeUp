@@ -6,7 +6,7 @@ const {
   redeemVoucher
 } = require("../controllers/voucherController");
 
-const protect = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 

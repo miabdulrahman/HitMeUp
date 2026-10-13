@@ -8,7 +8,7 @@ const {
 
 // CHANGE THIS PATH IF YOUR TEAM'S AUTH MIDDLEWARE
 // HAS A DIFFERENT FILE NAME.
-const protect = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 

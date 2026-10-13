@@ -19,6 +19,11 @@ const dealRoutes = require("./routes/dealRoutes");
 const authRoutes = require("./routes/authRoutes");
 const businessRoutes = require("./routes/businessRoutes");
 
+// Member 4: Orders, Payments and Vouchers
+const orderRoutes = require("./routes/orderRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const voucherRoutes = require("./routes/voucherRoutes");
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -42,6 +47,12 @@ app.use("/api/businesses", businessRoutes);
 app.use("/api/ai", airoutes)
 //deal added
 app.use("/api/deals", dealRoutes);
+
+// Member 4: Orders, Payments and Vouchers
+
+app.use("/api/orders", orderRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/vouchers", voucherRoutes);
 
 const PORT = process.env.PORT || 5000;
 

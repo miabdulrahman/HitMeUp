@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Business = require("../models/Business");
-const User = require("../models/User");
+const User = require("../models/user");
 
 /**
  * @desc    Create a business profile (for business user)

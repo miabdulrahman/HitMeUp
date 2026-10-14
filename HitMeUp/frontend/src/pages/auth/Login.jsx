@@ -30,6 +30,32 @@ const Login = () => {
     try {
       const user = await login(formData.email, formData.password);
 
+      if (user?.role === "business") {
+        navigate("/seller/dashboard");
+      } else {
+        navigate("/customer/dashboard");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(error.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    return (
+        <div
+            className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
+        >
+
+            <div
+                className="card border-0 shadow-sm"
+                style={{
+                    width: "400px",
+                    borderRadius: "16px",
+                }}
+            >
+
       // Decide dashboard based on role
       if (user.role === "seller") {
         navigate("/seller/dashboard");

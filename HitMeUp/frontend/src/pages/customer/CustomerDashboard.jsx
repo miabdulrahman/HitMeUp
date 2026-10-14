@@ -21,6 +21,7 @@ import { voucherApi, orderApi } from "../../services/api";
 const CustomerDashboard = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout, loading: authLoading } = useAuth();
+
   const [activeTab, setActiveTab] = useState("overview");
   const [vouchers, setVouchers] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -33,14 +34,19 @@ const CustomerDashboard = () => {
     setErrorMsg("");
 
     try {
-      const [vouchersRes, ordersRes] = await Promise.all([
+      const [vouchersRes, ordersRes] = await Promise.allSettled([
         voucherApi.getMyVouchers(),
         orderApi.getMyOrders(),
       ]);
-      setVouchers(vouchersRes?.vouchers || vouchersRes?.data || []);
-      setOrders(ordersRes?.orders || ordersRes?.data || []);
-    } catch (error) {
-      console.error("Dashboard data load error:", error);
+
+      if (vouchersRes.status === "fulfilled") {
+        setVouchers(vouchersRes.value?.vouchers || vouchersRes.value?.data || []);
+      }
+      if (ordersRes.status === "fulfilled") {
+        setOrders(ordersRes.value?.orders || ordersRes.value?.data || []);
+      }
+    } catch (err) {
+      console.error("Dashboard data load error:", err);
       setErrorMsg("Failed to synchronize with server. Please refresh.");
     } finally {
       setLoadingData(false);
@@ -52,8 +58,10 @@ const CustomerDashboard = () => {
       navigate("/login");
       return;
     }
-    if (isAuthenticated) fetchData();
-  }, [authLoading, isAuthenticated]);
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [isAuthenticated, authLoading]);
 
   const handleLogout = () => {
     logout();

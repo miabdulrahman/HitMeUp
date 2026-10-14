@@ -6,6 +6,16 @@ import SellerDashboard from "./pages/sellers/SellerDashboard";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 
+const DashboardRedirect = () => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === "business") {
+    return <Navigate to="/seller/dashboard" replace />;
+  }
+  return <Navigate to="/customer/dashboard" replace />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -16,6 +26,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/customer/dashboard" element={<CustomerDashBoard />} />
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
+          <Route path="/dashboard" element={<DashboardRedirect />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

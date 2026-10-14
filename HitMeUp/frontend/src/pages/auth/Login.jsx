@@ -27,53 +27,21 @@ const Login = () => {
     setError("");
     setLoading(true);
 
-        try {
+    try {
+      const user = await login(formData.email, formData.password);
 
-            const response = await fetch(
-                "http://localhost:5000/api/auth/login",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(formData),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Login failed");
-            }
-
-            console.log("Login response:", data);
-
-            // Save token
-            localStorage.setItem("token", data.token);
-
-            // Save logged-in user
-            localStorage.setItem(
-                "user",
-                JSON.stringify(data.user)
-            );
-
-            // Decide dashboard based on role
-            if (data.user.role === "business") {
-                navigate("/seller/dashboard");
-            } else {
-                navigate("/customer/dashboard");
-            }
-
-        } catch (error) {
-
-            console.error("Login error:", error);
-
-            setError(error.message);
-
-        } finally {
-            setLoading(false);
-        }
-    };
+      if (user?.role === "business") {
+        navigate("/seller/dashboard");
+      } else {
+        navigate("/customer/dashboard");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(error.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
     return (
         <div

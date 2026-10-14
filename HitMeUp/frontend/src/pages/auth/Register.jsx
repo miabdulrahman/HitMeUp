@@ -32,40 +32,19 @@ const Register = () => {
         setError("");
 
         try {
-            const response = await fetch(
-                "http://localhost:5000/api/auth/register",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(formData),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Registration failed");
-            }
-
-            console.log("Registered user:", data);
-
-            // Save user and token
-            localStorage.setItem("token", data.token);
-            localStorage.setItem(
-                "user",
-                JSON.stringify(data.user)
-            );
+            const user = await register(formData);
 
             setMessage("Account created successfully!");
 
-            // Customer dashboard
-            navigate("/customer/dashboard");
+            if (user?.role === "business") {
+                navigate("/seller/dashboard");
+            } else {
+                navigate("/customer/dashboard");
+            }
 
         } catch (error) {
             console.error("Registration error:", error);
-            setError(error.message);
+            setError(error.message || "Registration failed");
         }
     };
 

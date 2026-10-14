@@ -10,7 +10,7 @@ require("dotenv").config({ path: __dirname + "/.env" });
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 
-const User = require("./models/User");
+const User = require("./models/user");
 const Business = require("./models/Business");
 const {
   register,

@@ -15,8 +15,60 @@ import {
   ShieldCheck,
   AlertCircle
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { voucherApi, orderApi } from "../../services/api";
 
-const CustomerDashBoard = () => {
+const CustomerDashboard = () => {
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout, loading: authLoading } = useAuth();
+
+  const [activeTab, setActiveTab] = useState("overview");
+  const [vouchers, setVouchers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [loadingData, setLoadingData] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const fetchData = async () => {
+    if (!isAuthenticated) return;
+    setLoadingData(true);
+    setErrorMsg("");
+
+    try {
+      const [vouchersRes, ordersRes] = await Promise.allSettled([
+        voucherApi.getMyVouchers(),
+        orderApi.getMyOrders(),
+      ]);
+
+      if (vouchersRes.status === "fulfilled") {
+        setVouchers(vouchersRes.value?.vouchers || vouchersRes.value?.data || []);
+      }
+      if (ordersRes.status === "fulfilled") {
+        setOrders(ordersRes.value?.orders || ordersRes.value?.data || []);
+      }
+    } catch (err) {
+      console.error("Dashboard data load error:", err);
+      setErrorMsg("Failed to synchronize with server. Please refresh.");
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [isAuthenticated, authLoading]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F7F5F2]">
         <div className="flex flex-col items-center gap-3">
@@ -208,23 +260,14 @@ const CustomerDashBoard = () => {
                             Status: <span className="uppercase font-semibold text-emerald-600">{voucher.status || "ACTIVE"}</span>
                           </p>
                         </div>
-                        <div>
-                            <div>
-                                <div>
-                                    Prabhath
-                                </div>
-                                <small>
-                                    Customer
-                                </small>
-                            </div>
-                            <div>
-                                <User size={20} />
-                            </div>
-                        </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-600">
+                          {voucher.discountPercentage ? `${voucher.discountPercentage}% OFF` : "Active"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

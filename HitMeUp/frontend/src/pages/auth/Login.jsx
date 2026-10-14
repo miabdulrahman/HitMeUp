@@ -12,8 +12,8 @@ const Login = () => {
     password: "",
   });
 
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -56,114 +56,145 @@ const Login = () => {
                 }}
             >
 
-                <div className="card-body p-4">
+      // Decide dashboard based on role
+      if (user.role === "seller") {
+        navigate("/seller/dashboard");
+      } else {
+        navigate("/customer/dashboard");
+      }
 
-                    {/* Logo */}
-                    <div className="text-center mb-4">
+    } catch (error) {
 
-                        <h2
-                            className="fw-bold"
-                            style={{ color: "#FF4A2F" }}
-                        >
-                            HitMeUp
-                        </h2>
+      console.error("Login error:", error);
 
-                        <p className="text-secondary mb-0">
-                            Welcome back
-                        </p>
+      setError(error.message);
 
-                    </div>
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                    {/* Error */}
-                    {error && (
-                        <div className="alert alert-danger">
-                            {error}
-                        </div>
-                    )}
+  return (
+    <div
+      className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
+    >
 
-                    <form onSubmit={handleLogin}>
+      <div
+        className="card border-0 shadow-sm"
+        style={{
+          width: "400px",
+          borderRadius: "16px",
+        }}
+      >
 
-                        {/* Email */}
-                        <div className="mb-3">
+        <div className="card-body p-4">
 
-                            <label className="form-label fw-semibold">
-                                Email
-                            </label>
+          {/* Logo */}
+          <div className="text-center mb-4">
 
-                            <div className="input-group">
+            <h2
+              className="fw-bold"
+              style={{ color: "#FF4A2F" }}
+            >
+              HitMeUp
+            </h2>
 
-                                <span className="input-group-text">
-                                    <Mail size={18} />
-                                </span>
+            <p className="text-secondary mb-0">
+              Welcome back
+            </p>
 
-                                <input
-                                    type="email"
-                                    name="email"
-                                    className="form-control"
-                                    placeholder="Enter your email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    required
-                                />
+          </div>
 
-                            </div>
+          {/* Error */}
+          {error && (
+            <div className="alert alert-danger">
+              {error}
+            </div>
+          )}
 
-                        </div>
+          <form onSubmit={handleLogin}>
 
-                        {/* Password */}
-                        <div className="mb-4">
+            {/* Email */}
+            <div className="mb-3">
 
-                            <label className="form-label fw-semibold">
-                                Password
-                            </label>
+              <label className="form-label fw-semibold">
+                Email
+              </label>
 
-                            <div className="input-group">
+              <div className="input-group">
 
-                                <span className="input-group-text">
-                                    <Lock size={18} />
-                                </span>
+                <span className="input-group-text">
+                  <Mail size={18} />
+                </span>
 
-                                <input
-                                    type="password"
-                                    name="password"
-                                    className="form-control"
-                                    placeholder="Enter your password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    required
-                                />
+                <input
+                  type="email"
+                  name="email"
+                  className="form-control"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
 
-                            </div>
-
-                        </div>
-
-                        {/* Login button */}
-                        <button
-                            type="submit"
-                            className="btn w-100 d-flex align-items-center justify-content-center gap-2"
-                            disabled={loading}
-                            style={{
-                                backgroundColor: "#FF4A2F",
-                                color: "white",
-                                borderRadius: "9px",
-                                padding: "10px",
-                            }}
-                        >
-
-                            <LogIn size={18} />
-
-                            {loading ? "Logging in..." : "Login"}
-
-                        </button>
-
-                    </form>
-
-                </div>
+              </div>
 
             </div>
 
+            {/* Password */}
+            <div className="mb-4">
+
+              <label className="form-label fw-semibold">
+                Password
+              </label>
+
+              <div className="input-group">
+
+                <span className="input-group-text">
+                  <Lock size={18} />
+                </span>
+
+                <input
+                  type="password"
+                  name="password"
+                  className="form-control"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+
+              </div>
+
+            </div>
+
+            {/* Login button */}
+            <button
+              type="submit"
+              className="btn w-100 d-flex align-items-center justify-content-center gap-2"
+              disabled={loading}
+              style={{
+                backgroundColor: "#FF4A2F",
+                color: "white",
+                borderRadius: "9px",
+                padding: "10px",
+              }}
+            >
+
+              <LogIn size={18} />
+
+              {loading ? "Logging in..." : "Login"}
+
+            </button>
+
+          </form>
+
         </div>
-    );
+
+      </div>
+
+    </div>
+  );
 };
 
 export default Login;

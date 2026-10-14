@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mail, Lock, LogIn, ArrowLeft } from "lucide-react";
+import { Mail, Lock, LogIn, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const Login = () => {
@@ -12,6 +12,7 @@ const Login = () => {
     password: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,169 +31,145 @@ const Login = () => {
     try {
       const user = await login(formData.email, formData.password);
 
-      if (user?.role === "business") {
+      if (user?.role === "business" || user?.role === "seller") {
         navigate("/seller/dashboard");
       } else {
         navigate("/customer/dashboard");
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      setError(error.message || "Login failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-    return (
-        <div
-            className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
-        >
-
-            <div
-                className="card border-0 shadow-sm"
-                style={{
-                    width: "400px",
-                    borderRadius: "16px",
-                }}
-            >
-
-      // Decide dashboard based on role
-      if (user.role === "seller") {
-        navigate("/seller/dashboard");
-      } else {
-        navigate("/customer/dashboard");
-      }
-
-    } catch (error) {
-
-      console.error("Login error:", error);
-
-      setError(error.message);
-
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err.message || "Invalid email or password");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
-    >
+    <div className="login-page">
+      {/* Decorative ambient blobs */}
+      <div className="login-decoration login-decoration-one" />
+      <div className="login-decoration login-decoration-two" />
 
-      <div
-        className="card border-0 shadow-sm"
-        style={{
-          width: "400px",
-          borderRadius: "16px",
-        }}
-      >
+      <div className="login-shell">
+        {/* Left Brand Panel */}
+        <div className="login-brand-panel">
+          <Link to="/" className="login-brand-mark" title="HitMeUp Home">
+            ⚡
+          </Link>
 
-        <div className="card-body p-4">
+          <p className="login-eyebrow">WELCOME BACK</p>
+          <h1>
+            HitMe<span>Up</span>
+          </h1>
 
-          {/* Logo */}
-          <div className="text-center mb-4">
+          <p className="login-brand-copy">
+            Log in to manage your purchased vouchers, redeem live store discounts, or view your store analytics.
+          </p>
 
-            <h2
-              className="fw-bold"
-              style={{ color: "#FF4A2F" }}
-            >
-              HitMeUp
-            </h2>
-
-            <p className="text-secondary mb-0">
-              Welcome back
-            </p>
-
+          <div className="login-brand-pills">
+            <span>Instant QR Vouchers</span>
+            <span>Real-time Deals</span>
+            <span>Local Verified Stores</span>
           </div>
 
-          {/* Error */}
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white transition-colors mt-auto pt-8"
+          >
+            <ArrowLeft size={14} />
+            Back to homepage
+          </Link>
+        </div>
+
+        {/* Right Form Panel */}
+        <div className="login-form-panel">
+          <div className="login-heading">
+            <h2>Sign in</h2>
+            <p>Enter your credentials to access your dashboard</p>
+          </div>
+
           {error && (
-            <div className="alert alert-danger">
+            <div className="login-error" role="alert">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin}>
-
-            {/* Email */}
-            <div className="mb-3">
-
-              <label className="form-label fw-semibold">
-                Email
-              </label>
-
-              <div className="input-group">
-
-                <span className="input-group-text">
-                  <Mail size={18} />
-                </span>
-
+          <form onSubmit={handleLogin} className="login-form">
+            {/* Email Field */}
+            <div className="login-field">
+              <label htmlFor="login-email">Email address</label>
+              <div className="login-input-wrap">
+                <Mail size={16} />
                 <input
+                  id="login-email"
                   type="email"
                   name="email"
-                  className="form-control"
-                  placeholder="Enter your email"
+                  placeholder="name@example.com"
                   value={formData.email}
                   onChange={handleChange}
                   required
                 />
-
               </div>
-
             </div>
 
-            {/* Password */}
-            <div className="mb-4">
-
-              <label className="form-label fw-semibold">
-                Password
-              </label>
-
-              <div className="input-group">
-
-                <span className="input-group-text">
-                  <Lock size={18} />
-                </span>
-
+            {/* Password Field */}
+            <div className="login-field">
+              <div className="login-label-row">
+                <label htmlFor="login-password">Password</label>
+                <Link to="#" className="text-xs text-[#E8503A] hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="login-input-wrap">
+                <Lock size={16} />
                 <input
-                  type="password"
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
-                  className="form-control"
-                  placeholder="Enter your password"
+                  placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
                   required
                 />
-
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="login-password-toggle"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
-
             </div>
 
-            {/* Login button */}
+            {/* Submit Button */}
             <button
               type="submit"
-              className="btn w-100 d-flex align-items-center justify-content-center gap-2"
+              className="login-submit"
               disabled={loading}
-              style={{
-                backgroundColor: "#FF4A2F",
-                color: "white",
-                borderRadius: "9px",
-                padding: "10px",
-              }}
             >
-
-              <LogIn size={18} />
-
-              {loading ? "Logging in..." : "Login"}
-
+              {loading ? (
+                <>
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn size={16} />
+                  <span>Sign In</span>
+                </>
+              )}
             </button>
-
           </form>
 
+          <p className="login-signup">
+            Don't have an account?{" "}
+            <Link to="/register">
+              Create an account &rarr;
+            </Link>
+          </p>
         </div>
-
       </div>
-
     </div>
   );
 };

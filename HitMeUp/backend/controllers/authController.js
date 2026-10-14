@@ -41,15 +41,16 @@ const register = async (req, res) => {
       });
     }
 
-    // Disallow registering directly as admin through public registration
-    if (role !== "seller" && role !== "buyer") {
+    // Allow both customer/buyer and business/seller roles
+    const normalizedRole = (role || "").toLowerCase();
+    if (!["seller", "buyer", "business", "customer"].includes(normalizedRole)) {
       return res.status(400).json({
         success: false,
-        message: "Role must be either seller or buyer"
+        message: "Role must be either customer (buyer) or business (seller)"
       });
     }
 
-    const userRole = role;
+    const userRole = normalizedRole;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });

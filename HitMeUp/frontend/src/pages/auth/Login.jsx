@@ -12,7 +12,6 @@ const Login = () => {
     password: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -44,73 +43,128 @@ const Login = () => {
     }
   };
 
+    return (
+        <div
+            className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
+        >
+
+            <div
+                className="card border-0 shadow-sm"
+                style={{
+                    width: "400px",
+                    borderRadius: "16px",
+                }}
+            >
+
+      // Decide dashboard based on role
+      if (user.role === "seller") {
+        navigate("/seller/dashboard");
+      } else {
+        navigate("/customer/dashboard");
+      }
+
+    } catch (error) {
+
+      console.error("Login error:", error);
+
+      setError(error.message);
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="login-page">
-      {/* Decorative ambient blobs */}
-      <div className="login-decoration login-decoration-one" />
-      <div className="login-decoration login-decoration-two" />
+    <div
+      className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
+    >
 
-      <div className="login-shell">
-        {/* Left Brand Panel */}
-        <div className="login-brand-panel">
-          <Link to="/" className="login-brand-mark" title="HitMeUp Home">
-            ⚡
-          </Link>
+      <div
+        className="card border-0 shadow-sm"
+        style={{
+          width: "400px",
+          borderRadius: "16px",
+        }}
+      >
 
-          <p className="login-eyebrow">WELCOME BACK</p>
-          <h1>
-            HitMe<span>Up</span>
-          </h1>
+        <div className="card-body p-4">
 
-          <p className="login-brand-copy">
-            Log in to manage your purchased vouchers, redeem live store discounts, or view your store analytics.
-          </p>
+          {/* Logo */}
+          <div className="text-center mb-4">
 
-          <div className="login-brand-pills">
-            <span>Instant QR Vouchers</span>
-            <span>Real-time Deals</span>
-            <span>Local Verified Stores</span>
+            <h2
+              className="fw-bold"
+              style={{ color: "#FF4A2F" }}
+            >
+              HitMeUp
+            </h2>
+
+            <p className="text-secondary mb-0">
+              Welcome back
+            </p>
+
           </div>
 
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white transition-colors mt-auto pt-8"
-          >
-            <ArrowLeft size={14} />
-            Back to homepage
-          </Link>
-        </div>
-
-        {/* Right Form Panel */}
-        <div className="login-form-panel">
-          <div className="login-heading">
-            <h2>Sign in</h2>
-            <p>Enter your credentials to access your dashboard</p>
-          </div>
-
+          {/* Error */}
           {error && (
-            <div className="login-error" role="alert">
+            <div className="alert alert-danger">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="login-form">
-            {/* Email Field */}
-            <div className="login-field">
-              <label htmlFor="login-email">Email address</label>
-              <div className="login-input-wrap">
-                <Mail size={16} />
+          <form onSubmit={handleLogin}>
+
+            {/* Email */}
+            <div className="mb-3">
+
+              <label className="form-label fw-semibold">
+                Email
+              </label>
+
+              <div className="input-group">
+
+                <span className="input-group-text">
+                  <Mail size={18} />
+                </span>
+
                 <input
-                  id="login-email"
                   type="email"
                   name="email"
-                  placeholder="name@example.com"
+                  className="form-control"
+                  placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleChange}
                   required
                 />
+
               </div>
+
             </div>
+
+            {/* Password */}
+            <div className="mb-4">
+
+              <label className="form-label fw-semibold">
+                Password
+              </label>
+
+              <div className="input-group">
+
+                <span className="input-group-text">
+                  <Lock size={18} />
+                </span>
+
+                <input
+                  type="password"
+                  name="password"
+                  className="form-control"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+
+              </div>
 
             {/* Password Field */}
             <div className="login-field">
@@ -142,34 +196,31 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Login button */}
             <button
               type="submit"
-              className="login-submit"
+              className="btn w-100 d-flex align-items-center justify-content-center gap-2"
               disabled={loading}
+              style={{
+                backgroundColor: "#FF4A2F",
+                color: "white",
+                borderRadius: "9px",
+                padding: "10px",
+              }}
             >
-              {loading ? (
-                <>
-                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  <span>Signing in...</span>
-                </>
-              ) : (
-                <>
-                  <LogIn size={16} />
-                  <span>Sign In</span>
-                </>
-              )}
+
+              <LogIn size={18} />
+
+              {loading ? "Logging in..." : "Login"}
+
             </button>
+
           </form>
 
-          <p className="login-signup">
-            Don't have an account?{" "}
-            <Link to="/register">
-              Create an account &rarr;
-            </Link>
-          </p>
         </div>
+
       </div>
+
     </div>
   );
 };

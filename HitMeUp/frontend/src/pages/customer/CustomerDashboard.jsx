@@ -15,8 +15,52 @@ import {
   ShieldCheck,
   AlertCircle
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { voucherApi, orderApi } from "../../services/api";
 
-const CustomerDashBoard = () => {
+const CustomerDashboard = () => {
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout, loading: authLoading } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [vouchers, setVouchers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [loadingData, setLoadingData] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const fetchData = async () => {
+    if (!isAuthenticated) return;
+    setLoadingData(true);
+    setErrorMsg("");
+
+    try {
+      const [vouchersRes, ordersRes] = await Promise.all([
+        voucherApi.getMyVouchers(),
+        orderApi.getMyOrders(),
+      ]);
+      setVouchers(vouchersRes?.vouchers || vouchersRes?.data || []);
+      setOrders(ordersRes?.orders || ordersRes?.data || []);
+    } catch (error) {
+      console.error("Dashboard data load error:", error);
+      setErrorMsg("Failed to synchronize with server. Please refresh.");
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (isAuthenticated) fetchData();
+  }, [authLoading, isAuthenticated]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F7F5F2]">
         <div className="flex flex-col items-center gap-3">
@@ -208,23 +252,14 @@ const CustomerDashBoard = () => {
                             Status: <span className="uppercase font-semibold text-emerald-600">{voucher.status || "ACTIVE"}</span>
                           </p>
                         </div>
-                        <div>
-                            <div>
-                                <div>
-                                    Prabhath
-                                </div>
-                                <small>
-                                    Customer
-                                </small>
-                            </div>
-                            <div>
-                                <User size={20} />
-                            </div>
-                        </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-600">
+                          {voucher.discountPercentage ? `${voucher.discountPercentage}% OFF` : "Active"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -262,13 +297,12 @@ const CustomerDashBoard = () => {
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
-                                order.status === "PAID" || order.status === "COMPLETED"
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : order.status === "PENDING"
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${order.status === "PAID" || order.status === "COMPLETED"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : order.status === "PENDING"
                                   ? "bg-amber-50 text-amber-700"
                                   : "bg-red-50 text-red-700"
-                              }`}
+                                }`}
                             >
                               {order.status || "PENDING"}
                             </span>
@@ -343,11 +377,10 @@ const CustomerDashBoard = () => {
 const SidebarBtn = ({ icon, label, badge = null, active = false, onClick }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-      active
-        ? "bg-[#FF4A2F]/10 text-[#FF4A2F]"
-        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-    }`}
+    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${active
+      ? "bg-[#FF4A2F]/10 text-[#FF4A2F]"
+      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+      }`}
   >
     <div className="flex items-center gap-3">
       {icon}
@@ -355,9 +388,8 @@ const SidebarBtn = ({ icon, label, badge = null, active = false, onClick }) => (
     </div>
     {badge !== null && (
       <span
-        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-          active ? "bg-[#FF4A2F] text-white" : "bg-gray-200 text-gray-700"
-        }`}
+        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${active ? "bg-[#FF4A2F] text-white" : "bg-gray-200 text-gray-700"
+          }`}
       >
         {badge}
       </span>
@@ -368,9 +400,8 @@ const SidebarBtn = ({ icon, label, badge = null, active = false, onClick }) => (
 const MobileTabBtn = ({ label, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-      active ? "bg-[#FF4A2F] text-white" : "bg-gray-100 text-gray-700"
-    }`}
+    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${active ? "bg-[#FF4A2F] text-white" : "bg-gray-100 text-gray-700"
+      }`}
   >
     {label}
   </button>

@@ -12,8 +12,8 @@ const Login = () => {
     password: "",
   });
 
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -27,175 +27,148 @@ const Login = () => {
     setError("");
     setLoading(true);
 
-        try {
+    try {
+      const user = await login(formData.email, formData.password);
 
-            const response = await fetch(
-                "http://localhost:5000/api/auth/login",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(formData),
-                }
-            );
+      // Decide dashboard based on role
+      if (user.role === "seller") {
+        navigate("/seller/dashboard");
+      } else {
+        navigate("/customer/dashboard");
+      }
 
-            const data = await response.json();
+    } catch (error) {
 
-            if (!response.ok) {
-                throw new Error(data.message || "Login failed");
-            }
+      console.error("Login error:", error);
 
-            console.log("Login response:", data);
+      setError(error.message);
 
-            // Save token
-            localStorage.setItem("token", data.token);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            // Save logged-in user
-            localStorage.setItem(
-                "user",
-                JSON.stringify(data.user)
-            );
+  return (
+    <div
+      className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
+    >
 
-            // Decide dashboard based on role
-            if (data.user.role === "business") {
-                navigate("/seller/dashboard");
-            } else {
-                navigate("/customer/dashboard");
-            }
+      <div
+        className="card border-0 shadow-sm"
+        style={{
+          width: "400px",
+          borderRadius: "16px",
+        }}
+      >
 
-        } catch (error) {
+        <div className="card-body p-4">
 
-            console.error("Login error:", error);
+          {/* Logo */}
+          <div className="text-center mb-4">
 
-            setError(error.message);
-
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div
-            className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
-        >
-
-            <div
-                className="card border-0 shadow-sm"
-                style={{
-                    width: "400px",
-                    borderRadius: "16px",
-                }}
+            <h2
+              className="fw-bold"
+              style={{ color: "#FF4A2F" }}
             >
+              HitMeUp
+            </h2>
 
-                <div className="card-body p-4">
+            <p className="text-secondary mb-0">
+              Welcome back
+            </p>
 
-                    {/* Logo */}
-                    <div className="text-center mb-4">
+          </div>
 
-                        <h2
-                            className="fw-bold"
-                            style={{ color: "#FF4A2F" }}
-                        >
-                            HitMeUp
-                        </h2>
+          {/* Error */}
+          {error && (
+            <div className="alert alert-danger">
+              {error}
+            </div>
+          )}
 
-                        <p className="text-secondary mb-0">
-                            Welcome back
-                        </p>
+          <form onSubmit={handleLogin}>
 
-                    </div>
+            {/* Email */}
+            <div className="mb-3">
 
-                    {/* Error */}
-                    {error && (
-                        <div className="alert alert-danger">
-                            {error}
-                        </div>
-                    )}
+              <label className="form-label fw-semibold">
+                Email
+              </label>
 
-                    <form onSubmit={handleLogin}>
+              <div className="input-group">
 
-                        {/* Email */}
-                        <div className="mb-3">
+                <span className="input-group-text">
+                  <Mail size={18} />
+                </span>
 
-                            <label className="form-label fw-semibold">
-                                Email
-                            </label>
+                <input
+                  type="email"
+                  name="email"
+                  className="form-control"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
 
-                            <div className="input-group">
-
-                                <span className="input-group-text">
-                                    <Mail size={18} />
-                                </span>
-
-                                <input
-                                    type="email"
-                                    name="email"
-                                    className="form-control"
-                                    placeholder="Enter your email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    required
-                                />
-
-                            </div>
-
-                        </div>
-
-                        {/* Password */}
-                        <div className="mb-4">
-
-                            <label className="form-label fw-semibold">
-                                Password
-                            </label>
-
-                            <div className="input-group">
-
-                                <span className="input-group-text">
-                                    <Lock size={18} />
-                                </span>
-
-                                <input
-                                    type="password"
-                                    name="password"
-                                    className="form-control"
-                                    placeholder="Enter your password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    required
-                                />
-
-                            </div>
-
-                        </div>
-
-                        {/* Login button */}
-                        <button
-                            type="submit"
-                            className="btn w-100 d-flex align-items-center justify-content-center gap-2"
-                            disabled={loading}
-                            style={{
-                                backgroundColor: "#FF4A2F",
-                                color: "white",
-                                borderRadius: "9px",
-                                padding: "10px",
-                            }}
-                        >
-
-                            <LogIn size={18} />
-
-                            {loading ? "Logging in..." : "Login"}
-
-                        </button>
-
-                    </form>
-
-                </div>
+              </div>
 
             </div>
 
+            {/* Password */}
+            <div className="mb-4">
+
+              <label className="form-label fw-semibold">
+                Password
+              </label>
+
+              <div className="input-group">
+
+                <span className="input-group-text">
+                  <Lock size={18} />
+                </span>
+
+                <input
+                  type="password"
+                  name="password"
+                  className="form-control"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+
+              </div>
+
+            </div>
+
+            {/* Login button */}
+            <button
+              type="submit"
+              className="btn w-100 d-flex align-items-center justify-content-center gap-2"
+              disabled={loading}
+              style={{
+                backgroundColor: "#FF4A2F",
+                color: "white",
+                borderRadius: "9px",
+                padding: "10px",
+              }}
+            >
+
+              <LogIn size={18} />
+
+              {loading ? "Logging in..." : "Login"}
+
+            </button>
+
+          </form>
+
         </div>
-    );
+
+      </div>
+
+    </div>
+  );
 };
 
 export default Login;

@@ -1,10 +1,9 @@
-import { Search, Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
+import { Search, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function Navbar() {
-  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -21,15 +20,12 @@ function Navbar() {
     { name: "About", href: "#about" },
   ];
 
-  const dashboardPath = user?.role === "business" ? "/seller/dashboard" : "/customer/dashboard";
-
   return (
     <header
-      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/90 shadow-[0_1px_0_rgba(0,0,0,0.06)] backdrop-blur-xl"
-          : "bg-transparent"
-      }`}
+      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${scrolled
+        ? "bg-white/90 shadow-[0_1px_0_rgba(0,0,0,0.06)] backdrop-blur-xl"
+        : "bg-transparent"
+        }`}
     >
       <nav className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-4">
 
@@ -37,7 +33,7 @@ function Navbar() {
           <span className={`text-[22px] font-black tracking-[-0.04em] transition-colors duration-300 ${scrolled ? "text-[#1A1A1A]" : "text-white"}`}>
             HitMe<span className="text-[#E8503A]">Up</span>
           </span>
-        </Link>
+        </a>
 
         <div className="hidden items-center gap-1 rounded-full border border-white/10 bg-black/10 p-1 backdrop-blur-md lg:flex">
           {navLinks.map((link) => (
@@ -76,9 +72,8 @@ function Navbar() {
 
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className={`rounded-lg p-2 lg:hidden transition-colors duration-300 ${
-            scrolled ? "text-[#1A1A1A]" : "text-white"
-          }`}
+          className={`rounded-lg p-2 lg:hidden transition-colors duration-300 ${scrolled ? "text-[#1A1A1A]" : "text-white"
+            }`}
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
         >

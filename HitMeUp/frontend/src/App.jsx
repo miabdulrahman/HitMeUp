@@ -10,7 +10,7 @@ const DashboardRedirect = () => {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === "business") {
+  if (user.role === "seller") {
     return <Navigate to="/seller/dashboard" replace />;
   }
   return <Navigate to="/customer/dashboard" replace />;

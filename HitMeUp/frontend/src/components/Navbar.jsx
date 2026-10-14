@@ -1,5 +1,4 @@
 import { Search, Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
-import { Search, Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -22,6 +21,8 @@ function Navbar() {
     { name: "For Business", href: "#for-business" },
     { name: "About", href: "#about" },
   ];
+
+  const dashboardPath = user?.role === "seller" ? "/seller/dashboard" : "/customer/dashboard";
 
   return (
     <header

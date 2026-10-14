@@ -3,26 +3,40 @@ const axios = require("axios");
 const Voucher = require("../models/Voucher");
 const Order = require("../models/Order");
 const Redemption = require("../models/Redemption");
+const Deal = require("../models/Deal");
 
-const DEAL_SERVICE_URL =
-  process.env.DEAL_SERVICE_URL ||
-  "http://localhost:5000/api/deals";
+const DEAL_SERVICE_URL = process.env.DEAL_SERVICE_URL;
 
 async function getDeal(dealId) {
-  try {
-    const response = await axios.get(
-      `${DEAL_SERVICE_URL}/${dealId}`
-    );
+  if (DEAL_SERVICE_URL && !DEAL_SERVICE_URL.includes("localhost:5000")) {
+    try {
+      const baseUrl = DEAL_SERVICE_URL.endsWith("/")
+        ? DEAL_SERVICE_URL
+        : `${DEAL_SERVICE_URL}/`;
+      const targetUrl = new URL(dealId, baseUrl);
+      const response = await axios.get(targetUrl.toString());
 
-    return (
-      response.data.data ||
-      response.data.deal ||
-      response.data
-    );
+      return (
+        response.data.data ||
+        response.data.deal ||
+        response.data
+      );
+    } catch (error) {
+      console.warn(
+        "External deal service call failed, falling back to database:",
+        error.message
+      );
+    }
+  }
+
+  try {
+    const deal = await Deal.findById(dealId);
+    if (!deal) {
+      throw new Error("Deal not found");
+    }
+    return deal;
   } catch (error) {
-    throw new Error(
-      "Unable to retrieve deal information"
-    );
+    throw new Error("Unable to retrieve deal information");
   }
 }
 

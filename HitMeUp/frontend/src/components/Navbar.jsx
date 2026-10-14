@@ -1,9 +1,10 @@
-import { ArrowRight, Search, Menu, X } from "lucide-react";
+import { Search, Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
 import { useState, useEffect } from "react";
 
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Navbar() {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -20,6 +21,8 @@ function Navbar() {
     { name: "About", href: "#about" },
   ];
 
+  const dashboardPath = user?.role === "business" ? "/seller/dashboard" : "/customer/dashboard";
+
   return (
     <header
       className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
@@ -28,23 +31,20 @@ function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <nav className="mx-auto flex max-w-[1200px] items-center justify-between px-5 py-3.5 sm:px-6">
+      <nav className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-4">
 
-        <a href="#home" className="group flex items-center gap-2" aria-label="HitMeUp home">
-          <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#E8503A] text-sm font-black text-white shadow-sm transition-transform duration-200 group-hover:rotate-[-6deg]">
-            H
-          </span>
-          <span className={`text-[21px] font-black tracking-[-0.05em] transition-colors duration-300 ${scrolled ? "text-[#1A1A1A]" : "text-white"}`}>
+        <a href="#home" className="flex items-center gap-0.5">
+          <span className={`text-[22px] font-black tracking-[-0.04em] transition-colors duration-300 ${scrolled ? "text-[#1A1A1A]" : "text-white"}`}>
             HitMe<span className="text-[#E8503A]">Up</span>
           </span>
-        </a>
+        </Link>
 
         <div className="hidden items-center gap-1 rounded-full border border-white/10 bg-black/10 p-1 backdrop-blur-md lg:flex">
           {navLinks.map((link) => (
             <a
               key={link.name}
               href={link.href}
-              className={`rounded-full px-4 py-2 text-[13px] font-semibold transition-colors duration-200 ${scrolled ? "text-[#4A4A4A] hover:bg-[#F7F5F2] hover:text-[#1A1A1A]" : "text-white/70 hover:bg-white/10 hover:text-white"}`}
+              className={`text-[14px] font-medium transition-colors duration-200 ${scrolled ? "text-[#4A4A4A] hover:text-[#1A1A1A]" : "text-white/70 hover:text-white"}`}
             >
               {link.name}
             </a>
@@ -52,35 +52,33 @@ function Navbar() {
         </div>
 
         {/* Desktop Right */}
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center gap-2 md:flex">
 
-          <a
-            href="#deals"
-            className={`rounded-xl p-3 transition ${scrolled ? "text-[#172026] hover:bg-[#F7F5F2] hover:text-[#ef5738]" : "text-white/80 hover:bg-white/10 hover:text-white"}`}
-            aria-label="Browse deals"
+          <button
+            className="rounded-xl p-3 text-[#172026] transition hover:bg-white/60 hover:text-[#ef5738]"
+            aria-label="Search"
           >
             <Search size={19} />
-          </a>
+          </button>
 
           <Link to="/login"
-            onClick={() => setMenuOpen(false)}
-            className={`rounded-xl px-4 py-2.5 text-sm font-bold transition ${scrolled ? "text-[#172026] hover:text-[#ef5738]" : "text-white hover:text-white/70"}`}
+            className="rounded-xl px-4 py-2.5 text-sm font-bold text-[#172026] transition hover:text-[#ef5738]"
           >
             Login
           </Link>
 
           <Link to="/register"
-            onClick={() => setMenuOpen(false)}
-            className="group flex items-center gap-2 rounded-xl bg-[#E8503A] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#E8503A]/20 transition hover:bg-[#D4402C]"
+            className="rounded-xl bg-[#172026] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#ef5738]"
           >
-            Get started
-            <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+            Sign Up
           </Link>
         </div>
 
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className={`rounded-lg p-2 lg:hidden transition-colors duration-300 ${scrolled ? "text-[#1A1A1A]" : "text-white"}`}
+          className={`rounded-lg p-2 lg:hidden transition-colors duration-300 ${
+            scrolled ? "text-[#1A1A1A]" : "text-white"
+          }`}
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
         >
@@ -104,14 +102,12 @@ function Navbar() {
 
             <div className="mt-2 flex gap-3 border-t border-gray-100 pt-4">
               <Link to="/login"
-                onClick={() => setMenuOpen(false)}
                 className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-center font-bold"
               >
                 Login
               </Link>
 
               <Link to="/register"
-                onClick={() => setMenuOpen(false)}
                 className="flex-1 rounded-xl bg-[#FF4A2F] px-4 py-3 text-center font-bold text-white"
               >
                 Sign Up

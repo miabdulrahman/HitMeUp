@@ -113,9 +113,9 @@ const optionalAuth = async (req, res, next) => {
   next();
 };
 
-module.exports = {
-  protect,
-  authorizeRoles,
-  optionalAuth,
-  JWT_SECRET
-};
+protect.protect = protect;
+protect.authorizeRoles = authorizeRoles;
+protect.optionalAuth = optionalAuth;
+protect.JWT_SECRET = JWT_SECRET;
+
+module.exports = protect;

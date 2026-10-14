@@ -38,6 +38,52 @@ const createDeal = async (req, res) => {
   }
 };
 
+const getDeals = async (req, res) => {
+  try {
+    const { category, search, status } = req.query;
+    const query = {};
+    if (status) {
+      query.status = status;
+    }
+    const deals = await Deal.find(query).sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      count: deals.length,
+      deals
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch deals",
+      error: error.message
+    });
+  }
+};
+
+const getDealById = async (req, res) => {
+  try {
+    const deal = await Deal.findById(req.params.id);
+    if (!deal) {
+      return res.status(404).json({
+        success: false,
+        message: "Deal not found"
+      });
+    }
+    res.status(200).json({
+      success: true,
+      deal
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch deal",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
-  createDeal
+  createDeal,
+  getDeals,
+  getDealById
 };

@@ -36,56 +36,44 @@ const Login = () => {
       } else {
         navigate("/customer/dashboard");
       }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError(err.message || "Invalid email or password");
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(error.message || "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
+
   return (
-    <div className="login-page">
-      {/* Decorative ambient blobs */}
-      <div className="login-decoration login-decoration-one" />
-      <div className="login-decoration login-decoration-two" />
+    <div
+      className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
+    >
 
-      <div className="login-shell">
-        {/* Left Brand Panel */}
-        <div className="login-brand-panel">
-          <Link to="/" className="login-brand-mark" title="HitMeUp Home">
-            ⚡
-          </Link>
+      <div
+        className="card border-0 shadow-sm"
+        style={{
+          width: "400px",
+          borderRadius: "16px",
+        }}
+      >
 
-          <p className="login-eyebrow">WELCOME BACK</p>
-          <h1>
-            HitMe<span>Up</span>
-          </h1>
+        <div className="card-body p-4">
 
-          <p className="login-brand-copy">
-            Log in to manage your purchased vouchers, redeem live store discounts, or view your store analytics.
-          </p>
+          {/* Logo */}
+          <div className="text-center mb-4">
 
-          <div className="login-brand-pills">
-            <span>Instant QR Vouchers</span>
-            <span>Real-time Deals</span>
-            <span>Local Verified Stores</span>
-          </div>
+            <h2
+              className="fw-bold"
+              style={{ color: "#FF4A2F" }}
+            >
+              HitMeUp
+            </h2>
 
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white transition-colors mt-auto pt-8"
-          >
-            <ArrowLeft size={14} />
-            Back to homepage
-          </Link>
-        </div>
+            <p className="text-secondary mb-0">
+              Welcome back
+            </p>
 
-        {/* Right Form Panel */}
-        <div className="login-form-panel">
-          <div className="login-heading">
-            <h2>Sign in</h2>
-            <p>Enter your credentials to access your dashboard</p>
           </div>
 
           {error && (

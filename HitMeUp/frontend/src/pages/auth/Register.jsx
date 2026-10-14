@@ -41,78 +41,46 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    setMessage("");
     setError("");
-    setLoading(true);
 
     try {
       const user = await register(formData);
 
-      if (user?.role === "business" || user?.role === "seller") {
+      setMessage("Account created successfully!");
+
+      if (user?.role === "business") {
         navigate("/seller/dashboard");
       } else {
         navigate("/customer/dashboard");
       }
-    } catch (err) {
-      console.error("Registration error:", err);
-      setError(err.message || "Failed to create account. Please check your information.");
-    } finally {
-      setLoading(false);
+
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError(error.message || "Registration failed");
     }
   };
 
   return (
-    <div className="register-page">
-      {/* Background ambient accents */}
-      <div className="register-decoration register-decoration-one" />
-      <div className="register-decoration register-decoration-two" />
+    <div className="min-vh-100 bg-light d-flex align-items-center justify-content-center">
 
-      <div className="register-shell">
-        {/* Left Informational & Value Panel */}
-        <div className="register-info-panel">
-          <Link to="/" className="register-brand">
-            <span>⚡</span>
-            HitMe<strong className="register-brand-accent">Up</strong>
-          </Link>
+      <div
+        className="card shadow-sm border-0"
+        style={{
+          width: "420px",
+          borderRadius: "16px",
+        }}
+      >
+        <div className="card-body p-4">
+          <div className="text-center mb-4">
+            <h2 className="fw-bold" style={{ color: "#FF4A2F" }}>
+              HitMeUp
+            </h2>
 
-          <div className="register-info-content">
-            <p className="register-eyebrow">EXCLUSIVE PERKS & DEALS</p>
-            <h1>
-              Start saving <span>on local favorites.</span>
-            </h1>
-            <p>
-              Join thousands of smart shoppers grabbing instant discounts, QR vouchers, and flash promotions across top spots.
+            <p className="text-secondary">
+              Create your customer account
             </p>
-
-            <div className="register-benefits">
-              <div>
-                <Sparkles size={16} className="text-[#ffd19a] flex-shrink-0" />
-                <span>Instant digital vouchers delivered directly to your dashboard</span>
-              </div>
-              <div>
-                <Ticket size={16} className="text-[#ffd19a] flex-shrink-0" />
-                <span>Exclusive discounts up to 70% off across popular brands</span>
-              </div>
-              <div>
-                <ShieldCheck size={16} className="text-[#ffd19a] flex-shrink-0" />
-                <span>Secure checkouts and verified store promotions</span>
-              </div>
-            </div>
-          </div>
-
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white transition-colors mt-auto pt-6"
-          >
-            <ArrowLeft size={14} />
-            Back to deals catalog
-          </Link>
-        </div>
-
-        {/* Right Form Panel */}
-        <div className="register-form-panel">
-          <div className="register-heading">
-            <h2>Create account</h2>
-            <p>Sign up in seconds. No credit card required.</p>
           </div>
 
           {error && (
@@ -257,7 +225,8 @@ const Register = () => {
           </p>
         </div>
       </div>
-    </div>
+
+    </div >
   );
 };
 

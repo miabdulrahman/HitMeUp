@@ -305,12 +305,13 @@ const CustomerDashboard = () => {
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${order.status === "PAID" || order.status === "COMPLETED"
-                                ? "bg-emerald-50 text-emerald-700"
-                                : order.status === "PENDING"
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                                order.status === "PAID" || order.status === "COMPLETED"
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : order.status === "PENDING"
                                   ? "bg-amber-50 text-amber-700"
                                   : "bg-red-50 text-red-700"
-                                }`}
+                              }`}
                             >
                               {order.status || "PENDING"}
                             </span>
@@ -385,10 +386,11 @@ const CustomerDashboard = () => {
 const SidebarBtn = ({ icon, label, badge = null, active = false, onClick }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${active
-      ? "bg-[#FF4A2F]/10 text-[#FF4A2F]"
-      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-      }`}
+    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+      active
+        ? "bg-[#FF4A2F]/10 text-[#FF4A2F]"
+        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+    }`}
   >
     <div className="flex items-center gap-3">
       {icon}
@@ -396,8 +398,9 @@ const SidebarBtn = ({ icon, label, badge = null, active = false, onClick }) => (
     </div>
     {badge !== null && (
       <span
-        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${active ? "bg-[#FF4A2F] text-white" : "bg-gray-200 text-gray-700"
-          }`}
+        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+          active ? "bg-[#FF4A2F] text-white" : "bg-gray-200 text-gray-700"
+        }`}
       >
         {badge}
       </span>
@@ -408,8 +411,9 @@ const SidebarBtn = ({ icon, label, badge = null, active = false, onClick }) => (
 const MobileTabBtn = ({ label, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${active ? "bg-[#FF4A2F] text-white" : "bg-gray-100 text-gray-700"
-      }`}
+    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+      active ? "bg-[#FF4A2F] text-white" : "bg-gray-100 text-gray-700"
+    }`}
   >
     {label}
   </button>

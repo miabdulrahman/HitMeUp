@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, LogIn } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Eye, EyeOff, Lock, LogIn, Mail } from "lucide-react";
 
 const Login = () => {
 
@@ -13,7 +14,8 @@ const Login = () => {
 
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    
+    const [showPassword, setShowPassword] = useState(false);
+
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -60,8 +62,8 @@ const Login = () => {
             // Decide dashboard based on role
             if (data.user.role === "seller") {
                 navigate("/seller/dashboard", {
-                    state:{
-                        user:data.user,
+                    state: {
+                        user: data.user,
                     }
                 });
             } else {
@@ -84,125 +86,95 @@ const Login = () => {
     };
 
     return (
-        <div
-            className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
-        >
+        <main className="login-page">
+            <div className="login-decoration login-decoration-one" />
+            <div className="login-decoration login-decoration-two" />
 
-            <div
-                className="card border-0 shadow-sm"
-                style={{
-                    width: "400px",
-                    borderRadius: "16px",
-                }}
-            >
+            <section className="login-shell">
+                <div className="login-brand-panel">
+                    <div className="login-brand-mark">H</div>
+                    <p className="login-eyebrow">WELCOME TO HITMEUP</p>
+                    <h1>Good deals.<br /><span>Good moments.</span></h1>
+                    <p className="login-brand-copy">
+                        Discover local offers and connect with businesses you love.
+                    </p>
+                    <div className="login-brand-pills">
+                        <span>Local offers</span>
+                        <span>Easy savings</span>
+                    </div>
+                </div>
 
-                <div className="card-body p-4">
-
-                    {/* Logo */}
-                    <div className="text-center mb-4">
-
-                        <h2
-                            className="fw-bold"
-                            style={{ color: "#FF4A2F" }}
-                        >
-                            HitMeUp
-                        </h2>
-
-                        <p className="text-secondary mb-0">
-                            Welcome back
-                        </p>
-
+                <div className="login-form-panel">
+                    <div className="login-heading">
+                        <p className="login-eyebrow">YOUR ACCOUNT</p>
+                        <h2>Welcome back</h2>
+                        <p>Sign in to continue your HitMeUp journey.</p>
                     </div>
 
-                    {/* Error */}
                     {error && (
-                        <div className="alert alert-danger">
+                        <div className="login-error" role="alert">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleLogin}>
-
-                        {/* Email */}
-                        <div className="mb-3">
-
-                            <label className="form-label fw-semibold">
-                                Email
-                            </label>
-
-                            <div className="input-group">
-
-                                <span className="input-group-text">
-                                    <Mail size={18} />
-                                </span>
-
+                    <form onSubmit={handleLogin} className="login-form">
+                        <div className="login-field">
+                            <label htmlFor="email">Email address</label>
+                            <div className="login-input-wrap">
+                                <Mail size={18} aria-hidden="true" />
                                 <input
+                                    id="email"
                                     type="email"
                                     name="email"
-                                    className="form-control"
-                                    placeholder="Enter your email"
+                                    placeholder="you@example.com"
                                     value={formData.email}
                                     onChange={handleChange}
+                                    autoComplete="email"
                                     required
                                 />
-
                             </div>
-
                         </div>
 
-                        {/* Password */}
-                        <div className="mb-4">
-
-                            <label className="form-label fw-semibold">
-                                Password
-                            </label>
-
-                            <div className="input-group">
-
-                                <span className="input-group-text">
-                                    <Lock size={18} />
-                                </span>
-
+                        <div className="login-field">
+                            <div className="login-label-row">
+                                <label htmlFor="password">Password</label>
+                                <span>Keep it secure</span>
+                            </div>
+                            <div className="login-input-wrap">
+                                <Lock size={18} aria-hidden="true" />
                                 <input
-                                    type="password"
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
                                     name="password"
-                                    className="form-control"
                                     placeholder="Enter your password"
                                     value={formData.password}
                                     onChange={handleChange}
+                                    autoComplete="current-password"
                                     required
                                 />
-
+                                <button
+                                    type="button"
+                                    className="login-password-toggle"
+                                    onClick={() => setShowPassword((visible) => !visible)}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
                             </div>
-
                         </div>
 
-                        {/* Login button */}
-                        <button
-                            type="submit"
-                            className="btn w-100 d-flex align-items-center justify-content-center gap-2"
-                            disabled={loading}
-                            style={{
-                                backgroundColor: "#FF4A2F",
-                                color: "white",
-                                borderRadius: "9px",
-                                padding: "10px",
-                            }}
-                        >
-
-                            <LogIn size={18} />
-
-                            {loading ? "Logging in..." : "Login"}
-
+                        <button type="submit" className="login-submit" disabled={loading}>
+                            <span>{loading ? "Signing you in..." : "Sign in"}</span>
+                            <LogIn size={18} aria-hidden="true" />
                         </button>
-
                     </form>
 
+                    <p className="login-signup">
+                        New to HitMeUp? <Link to="/register">Create an account</Link>
+                    </p>
                 </div>
-
-            </div>
-
-        </div>
+            </section>
+        </main>
     );
 };
 

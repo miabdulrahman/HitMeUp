@@ -1,5 +1,6 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowRight, MapPin, Sparkles } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 
 function Hero() {
   const revealRefs = useRef([]);
@@ -45,46 +46,48 @@ function Hero() {
           aria-hidden="true"
         />
         {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-[#1A1A1A]/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#111827]/80 via-[#1A1A1A]/65 to-[#1A1A1A]/80" />
         {/* Subtle gradient at bottom for section transition */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
       </div>
 
       {/* Content */}
-      <div className="relative mx-auto max-w-[1200px] px-6 pb-24 pt-36 lg:pb-32 lg:pt-44">
+      <div className="relative mx-auto flex min-h-screen max-w-[1200px] flex-col justify-center px-6 pb-28 pt-32 lg:pb-32 lg:pt-36">
 
         <div
           ref={addRef}
           className="reveal mx-auto max-w-[720px] text-center"
         >
-          <p className="mb-5 inline-block rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[12px] font-semibold uppercase tracking-[0.15em] text-white backdrop-blur-sm">
+          <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-white backdrop-blur-sm">
+            <Sparkles size={13} className="text-[#FFD19A]" />
             Flash deal marketplace
           </p>
 
-          <h1 className="text-[clamp(2.5rem,6vw,4.8rem)] font-black leading-[1.05] tracking-[-0.04em] text-white">
-            Discover deals nearby.
+          <h1 className="text-[clamp(2.65rem,6vw,5rem)] font-black leading-[1.02] tracking-[-0.055em] text-white">
+            Your next great deal
             <br />
-            <span className="serif text-[#E8503A]">Redeem instantly.</span>
+            <span className="serif text-[#FF8C73]">is closer than you think.</span>
           </h1>
 
-          <p className="mx-auto mt-6 max-w-[520px] text-[17px] leading-[1.7] text-white/70">
-            HitMeUp connects you with limited-time offers from local businesses.
-            Purchase deals, get digital vouchers, and redeem with QR — all in real time.
+          <p className="mx-auto mt-7 max-w-[560px] text-[16px] leading-[1.75] text-white/75 sm:text-[17px]">
+            Discover limited-time offers from local businesses, save more on
+            what you love, and redeem your digital voucher in seconds.
           </p>
 
-          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a
-              href="#signup"
-              className="group flex items-center gap-2 rounded-lg bg-[#E8503A] px-7 py-3.5 text-[15px] font-semibold text-white transition-all duration-200 hover:bg-[#D4402C] hover:shadow-lg hover:shadow-[#E8503A]/25"
+          <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+            <Link
+              to="/register"
+              className="group flex items-center justify-center gap-2 rounded-xl bg-[#E8503A] px-7 py-3.5 text-[15px] font-bold text-white transition-all duration-200 hover:bg-[#D4402C] hover:shadow-lg hover:shadow-[#E8503A]/25"
             >
               Start exploring
               <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
-            </a>
+            </Link>
 
             <a
               href="#for-business"
-              className="rounded-lg border border-white/20 bg-white/10 px-7 py-3.5 text-[15px] font-semibold text-white backdrop-blur-sm transition-all duration-200 hover:border-white/40 hover:bg-white/15"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-7 py-3.5 text-[15px] font-bold text-white backdrop-blur-sm transition-all duration-200 hover:border-white/40 hover:bg-white/15"
             >
+              <MapPin size={16} />
               List your business
             </a>
           </div>
@@ -93,17 +96,17 @@ function Hero() {
         {/* Stats strip */}
         <div
           ref={addRef}
-          className="reveal mx-auto mt-20 max-w-[640px] rounded-2xl border border-white/10 bg-white/10 px-8 py-6 backdrop-blur-md"
+          className="reveal mx-auto mt-16 w-full max-w-[680px] rounded-2xl border border-white/15 bg-white/10 px-5 py-5 backdrop-blur-md sm:px-8 sm:py-6"
           style={{ transitionDelay: "0.15s" }}
         >
-          <div className="flex items-center justify-center gap-10 sm:gap-16">
+          <div className="grid grid-cols-3 divide-x divide-white/15">
             {[
               { value: "500+", label: "Active deals" },
               { value: "200+", label: "Businesses" },
               { value: "10K+", label: "Happy users" },
             ].map((stat, i) => (
               <div key={i} className="text-center">
-                <p className="text-[26px] font-black tracking-[-0.02em] text-white">
+                <p className="text-[24px] font-black tracking-[-0.02em] text-white sm:text-[28px]">
                   {stat.value}
                 </p>
                 <p className="mt-0.5 text-[13px] text-white/50">{stat.label}</p>
@@ -111,6 +114,14 @@ function Hero() {
             ))}
           </div>
         </div>
+
+        <a
+          href="#categories"
+          className="absolute bottom-7 left-1/2 hidden -translate-x-1/2 items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/55 transition hover:text-white sm:flex"
+        >
+          Explore nearby
+          <ArrowDown size={14} className="animate-bounce" />
+        </a>
 
       </div>
     </section>

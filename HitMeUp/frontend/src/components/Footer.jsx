@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Footer() {
   return (
     <footer className="border-t border-[#F0F0F0] bg-white">
@@ -23,13 +25,13 @@ function Footer() {
               Explore
             </h4>
             <div className="mt-4 flex flex-col gap-3">
-              {["Flash Deals", "Categories", "How It Works", "About"].map((link) => (
+              {[["Flash Deals", "#deals"], ["Categories", "#categories"], ["How It Works", "#how-it-works"], ["About", "#about"]].map(([label, href]) => (
                 <a
-                  key={link}
-                  href={`#${link.toLowerCase().replace(/ /g, "-")}`}
+                  key={label}
+                  href={href}
                   className="text-[14px] text-[#4A4A4A] transition-colors duration-200 hover:text-[#1A1A1A]"
                 >
-                  {link}
+                  {label}
                 </a>
               ))}
             </div>
@@ -42,13 +44,13 @@ function Footer() {
             </h4>
             <div className="mt-4 flex flex-col gap-3">
               {["Register", "Create Deals", "AI Deal Creator", "Analytics"].map((link) => (
-                <a
+                <Link
                   key={link}
-                  href="#for-business"
+                  to="/register"
                   className="text-[14px] text-[#4A4A4A] transition-colors duration-200 hover:text-[#1A1A1A]"
                 >
                   {link}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -62,7 +64,7 @@ function Footer() {
               {["Privacy Policy", "Terms of Service", "Contact"].map((link) => (
                 <a
                   key={link}
-                  href="#"
+                  href="#about"
                   className="text-[14px] text-[#4A4A4A] transition-colors duration-200 hover:text-[#1A1A1A]"
                 >
                   {link}

@@ -26,9 +26,16 @@
       }
     },
     {
-      "source": "/(.*)",
+      "source": "/(.*\\.(?:js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|json|map))",
       "destination": {
         "service": "frontend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend",
+        "path": "/index.html"
       }
     }
   ]

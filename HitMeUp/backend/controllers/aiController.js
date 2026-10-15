@@ -8,7 +8,9 @@ const { detectFraud } = require("../services/AI/fraudDetectionService");
 const { detectFoodSafety } = require("../services/AI/foodSafetyService");
 const { generateTarget } = require("../services/AI/targettingService");
 const { logAIActivity } = require("../services/AI/aiLogService");
-const { genrateInsights, generateInsights } = require("../services/AI/insightService")
+const { generateInsights } = require("../services/AI/insightService");
+const { getAnalyticService } = require("../services/AI/analyticsService");
+
 
 const generateDealController = async (req, res) => {
   try {
@@ -342,59 +344,40 @@ const generateTargetingController = async (req, res) => {
 
 const generateInsightsController = async (req, res) => {
   try {
-    const { totalDeals,
-      totalUsers,
-      totalTransactions,
-      popularCategories,
-      topDeals,
-      fraudStats,
-      foodSafetyStats, } = req.body;
+    const analytics = await getAnalyticService();
 
-    if(totalDeals === undefined || totalUsers === undefined || totalTransactions === undefined){
-      res.status(400).json({
-        success:false,
-        message:"totalDeals, totalUsers and totalTransactions are required"
-      })
-    }
+    console.log("analytics data", analytics);
+    const insights = await generateInsights(analytics);
 
-    const insights = await generateInsights({
-      totalDeals,
-      totalUsers,
-      totalTransactions,
-      popularCategories,
-      topDeals,
-      fraudStats,
-      foodSafetyStats
-    })
-    
     await logAIActivity({
-      feature:"insights",
-      userId : req.user?.id || null,
-      input: req.body,
-      output:insights,
-      status:"success",
+      feature: "insights",
+      userId: req.user?.id || null,
+      input: analytics,
+      output: insights,
+      status: "success",
     })
 
     return res.status(200).json({
-      success:true,
-      message:"AI insights generated successfully",
+      success: true,
+      message: "AI insights generated successfully",
+      analytics,
       insights,
     })
   } catch (error) {
     console.error("insights controller error ", error);
-    
-    await logAIActivity ({
-      feature:"insights",
-      userId:req.user?.id || null,
-      input:req.body,
-      output:{},
-      status:"failed",
-      errorMessage:error.message,
+
+    await logAIActivity({
+      feature: "insights",
+      userId: req.user?.id || null,
+      input: {},
+      output: {},
+      status: "failed",
+      errorMessage: error.message,
     })
 
     return res.status(500).json({
-      success:false,
-      message:"Failed to generate AI insights",
+      success: false,
+      message: "Failed to generate AI insights",
     })
   }
 }

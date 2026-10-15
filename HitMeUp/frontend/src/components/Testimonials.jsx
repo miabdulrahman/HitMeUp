@@ -1,93 +1,85 @@
-import { Star } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 function Testimonials() {
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   const testimonials = [
     {
+      text: "Found a 40% dinner deal two blocks from my apartment. The QR voucher made it seamless — just walked in and scanned.",
       name: "Sarah M.",
-      role: "Happy Customer",
-      text: "HitMeUp helps me find amazing deals near my area. I save money and discover new places!",
-      image:
-        "https://i.pravatar.cc/100?img=47",
+      role: "Customer",
+      image: "https://i.pravatar.cc/100?img=47",
     },
     {
-      name: "John D.",
-      role: "Happy Customer",
-      text: "The best platform for local deals! The interface is simple and easy to use.",
-      image:
-        "https://i.pravatar.cc/100?img=12",
+      text: "Our Tuesday evenings used to be dead. HitMeUp's AI suggested a student deal that actually brought people in. Revenue is up 35%.",
+      name: "Rizwan K.",
+      role: "Restaurant Owner",
+      image: "https://i.pravatar.cc/100?img=68",
     },
     {
+      text: "I check HitMeUp every morning before heading out. The location-based deals are genuinely useful — not just spam offers.",
       name: "Emily R.",
-      role: "Happy Customer",
-      text: "I love the flash deals! I've saved a lot while supporting local businesses.",
-      image:
-        "https://i.pravatar.cc/100?img=32",
+      role: "Customer",
+      image: "https://i.pravatar.cc/100?img=32",
     },
   ];
 
   return (
-    <section className="bg-white py-20">
-      <div className="mx-auto max-w-7xl px-5 lg:px-8">
+    <section className="border-t border-[#F0F0F0] bg-white py-24">
+      <div
+        ref={sectionRef}
+        className="reveal mx-auto max-w-[1200px] px-6"
+      >
+        <p className="text-[13px] font-semibold uppercase tracking-[0.15em] text-[#E8503A]">
+          What people say
+        </p>
 
-        <div className="mb-10">
-          <p className="text-sm font-bold uppercase tracking-wider text-[#FF4A2F]">
-            Testimonials
-          </p>
+        <h2 className="mt-3 text-[32px] font-extrabold tracking-[-0.03em] text-[#1A1A1A]">
+          Real stories, real savings
+        </h2>
 
-          <h2 className="mt-3 text-4xl font-black text-[#141922]">
-            What Our Users Say
-          </h2>
-
-          <p className="mt-3 text-gray-600">
-            Real people. Real savings. See what our community has to say.
-          </p>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-3">
-
-          {testimonials.map((testimonial) => (
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {testimonials.map((t) => (
             <div
-              key={testimonial.name}
-              className="rounded-2xl border border-gray-100 bg-[#F9F9F9] p-7"
+              key={t.name}
+              className="flex flex-col justify-between rounded-xl border border-[#F0F0F0] bg-[#FAFAFA] p-7"
             >
-              <div className="flex gap-1 text-[#F5A719]">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    size={17}
-                    fill="currentColor"
-                  />
-                ))}
-              </div>
-
-              <p className="mt-5 leading-7 text-gray-600">
-                "{testimonial.text}"
+              <p className="text-[15px] leading-[1.75] text-[#4A4A4A]">
+                "{t.text}"
               </p>
 
-              <div className="mt-6 flex items-center gap-3">
-
+              <div className="mt-8 flex items-center gap-3 border-t border-[#F0F0F0] pt-5">
                 <img
-                  src={testimonial.image}
-                  alt={testimonial.name}
-                  className="h-11 w-11 rounded-full object-cover"
+                  src={t.image}
+                  alt={t.name}
+                  className="h-10 w-10 rounded-full object-cover"
+                  loading="lazy"
                 />
-
                 <div>
-                  <p className="font-bold text-[#141922]">
-                    {testimonial.name}
-                  </p>
-
-                  <p className="text-sm text-gray-500">
-                    {testimonial.role}
-                  </p>
+                  <p className="text-[14px] font-semibold text-[#1A1A1A]">{t.name}</p>
+                  <p className="text-[12px] text-[#8A8A8A]">{t.role}</p>
                 </div>
-
               </div>
             </div>
           ))}
-
         </div>
-
       </div>
     </section>
   );

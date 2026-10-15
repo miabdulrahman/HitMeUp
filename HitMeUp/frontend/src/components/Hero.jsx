@@ -1,164 +1,127 @@
-import {
-  Search,
-  MapPin,
-  Clock3,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowDown, ArrowRight, MapPin, Sparkles } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 
 function Hero() {
+  const revealRefs = useRef([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    revealRefs.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const addRef = (el) => {
+    if (el && !revealRefs.current.includes(el)) {
+      revealRefs.current.push(el);
+    }
+  };
+
   return (
     <section
       id="home"
-      className="overflow-hidden bg-[#F9F9F9]"
+      className="relative min-h-screen overflow-hidden"
     >
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 lg:grid-cols-2 lg:px-8 lg:py-24">
+      {/* Full-bleed background image */}
+      <div className="absolute inset-0">
+        <img
+          src="/hero-cover.jpg"
+          alt=""
+          className="h-full w-full object-cover"
+          loading="eager"
+          aria-hidden="true"
+        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#111827]/80 via-[#1A1A1A]/65 to-[#1A1A1A]/80" />
+        {/* Subtle gradient at bottom for section transition */}
 
-        {/* Left */}
-        <div>
+      </div>
 
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-2 text-sm font-bold text-[#FF4A2F]">
-            <span>🔥</span>
-            Great Deals, Right Now!
-          </div>
+      {/* Content */}
+      <div className="relative mx-auto flex min-h-screen max-w-[1200px] flex-col justify-center px-6 pb-28 pt-32 lg:pb-32 lg:pt-36">
 
-          <h1 className="max-w-2xl text-5xl font-black leading-[1.05] tracking-tight text-[#141922] sm:text-6xl lg:text-7xl">
-            Big Savings,
-            <br />
-            <span className="text-[#FF4A2F]">
-              Local Deals!
-            </span>
-          </h1>
-
-          <p className="mt-6 max-w-xl text-lg leading-8 text-gray-600">
-            Discover amazing deals from your favorite local
-            businesses. Save more, do more!
+        <div
+          ref={addRef}
+          className="reveal mx-auto max-w-[720px] text-center"
+        >
+          <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-white backdrop-blur-sm">
+            <Sparkles size={13} className="text-[#FFD19A]" />
+            Flash deal marketplace
           </p>
 
-          {/* Search */}
-          <div className="mt-8 flex max-w-2xl flex-col gap-2 rounded-2xl bg-white p-2 shadow-lg ring-1 ring-gray-100 sm:flex-row">
+          <h1 className="text-[clamp(2.65rem,6vw,5rem)] font-black leading-[1.02] tracking-[-0.055em] text-white">
+            Your next great deal
+            <br />
+            <span className="serif text-[#FF8C73]">is closer than you think.</span>
+          </h1>
 
-            <div className="flex flex-1 items-center gap-3 px-4">
-              <Search
-                size={21}
-                className="text-gray-400"
-              />
+          <p className="mx-auto mt-7 max-w-[560px] text-[16px] leading-[1.75] text-white/75 sm:text-[17px]">
+            Discover limited-time offers from local businesses, save more on
+            what you love, and redeem your digital voucher in seconds.
+          </p>
 
-              <input
-                type="text"
-                placeholder="Search deals, restaurants, shops..."
-                className="w-full bg-transparent py-3 text-sm outline-none"
-              />
-            </div>
+          <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+            <Link
+              to="/register"
+              className="group flex items-center justify-center gap-2 rounded-xl bg-[#E8503A] px-7 py-3.5 text-[15px] font-bold text-white transition-all duration-200 hover:bg-[#D4402C] hover:shadow-lg hover:shadow-[#E8503A]/25"
+            >
+              Start exploring
+              <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+            </Link>
 
-            <button className="rounded-xl bg-[#FF4A2F] px-7 py-3 font-bold text-white transition hover:bg-[#C72814]">
-              Search
-            </button>
-          </div>
-
-          {/* Features */}
-          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
-
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-[#1FA061]">
-                <ShieldCheck size={20} />
-              </div>
-
-              <div>
-                <p className="text-sm font-bold text-[#141922]">
-                  Save Money
-                </p>
-                <p className="text-xs text-gray-500">
-                  Get the best deals
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-[#FF4A2F]">
-                <MapPin size={20} />
-              </div>
-
-              <div>
-                <p className="text-sm font-bold text-[#141922]">
-                  Support Local
-                </p>
-                <p className="text-xs text-gray-500">
-                  Shop local, grow local
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-yellow-100 text-[#F5A719]">
-                <Clock3 size={20} />
-              </div>
-
-              <div>
-                <p className="text-sm font-bold text-[#141922]">
-                  Limited Time
-                </p>
-                <p className="text-xs text-gray-500">
-                  Don't miss out
-                </p>
-              </div>
-            </div>
-
+            <a
+              href="#for-business"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-7 py-3.5 text-[15px] font-bold text-white backdrop-blur-sm transition-all duration-200 hover:border-white/40 hover:bg-white/15"
+            >
+              <MapPin size={16} />
+              List your business
+            </a>
           </div>
         </div>
 
-        {/* Right */}
-        <div className="relative hidden lg:block">
-
-          <div className="absolute right-5 top-5 z-10 rotate-6 rounded-full bg-[#FF4A2F] px-7 py-5 text-center font-black text-white shadow-xl">
-            <div className="text-sm">UP TO</div>
-            <div className="text-3xl leading-none">50%</div>
-            <div className="text-sm">OFF</div>
-          </div>
-
-          <div className="relative overflow-hidden rounded-[40px]">
-            <img
-              src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1000&q=85"
-              alt="Delicious burger deal"
-              className="h-[500px] w-full object-cover"
-            />
-
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-
-            <div className="absolute bottom-6 left-6 right-6 rounded-2xl bg-white p-5 shadow-2xl">
-
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-[#FF4A2F]">
-                    Food & Beverage
-                  </span>
-
-                  <h3 className="mt-3 text-xl font-black text-[#141922]">
-                    Chicken Burger
-                  </h3>
-
-                  <p className="mt-1 text-sm text-gray-500">
-                    Burger House
-                  </p>
-                </div>
-
-                <div className="text-right">
-                  <p className="text-2xl font-black text-[#FF4A2F]">
-                    $4.99
-                  </p>
-
-                  <p className="text-sm text-gray-400 line-through">
-                    $8.00
-                  </p>
-                </div>
+        {/* Stats strip */}
+        <div
+          ref={addRef}
+          className="reveal mx-auto mt-16 w-full max-w-[680px] rounded-2xl border border-white/15 bg-white/10 px-5 py-5 backdrop-blur-md sm:px-8 sm:py-6"
+          style={{ transitionDelay: "0.15s" }}
+        >
+          <div className="grid grid-cols-3 divide-x divide-white/15">
+            {[
+              { value: "500+", label: "Active deals" },
+              { value: "200+", label: "Businesses" },
+              { value: "10K+", label: "Happy users" },
+            ].map((stat, i) => (
+              <div key={i} className="text-center">
+                <p className="text-[24px] font-black tracking-[-0.02em] text-white sm:text-[28px]">
+                  {stat.value}
+                </p>
+                <p className="mt-0.5 text-[13px] text-white/50">{stat.label}</p>
               </div>
-
-              <button className="mt-4 w-full rounded-xl bg-[#FF4A2F] py-3 font-bold text-white hover:bg-[#C72814]">
-                Grab Deal
-              </button>
-
-            </div>
+            ))}
           </div>
         </div>
+
+        <a
+          href="#categories"
+          className="absolute bottom-7 left-1/2 hidden -translate-x-1/2 items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/55 transition hover:text-white sm:flex"
+        >
+          Explore nearby
+          <ArrowDown size={14} className="animate-bounce" />
+        </a>
 
       </div>
     </section>

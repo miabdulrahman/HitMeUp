@@ -1,39 +1,145 @@
-import { deals } from "../data/deals";
+import { useState, useEffect, useRef } from "react";
+import { deals as initialMockDeals } from "../data/deals";
 import DealCard from "./DealCard";
+import { dealApi } from "../services/api";
+import { Flame, Sparkles, Filter } from "lucide-react";
 
 function FeaturedDeals() {
+  const sectionRef = useRef(null);
+  const [dealsList, setDealsList] = useState(initialMockDeals);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.05 }
+    );
+
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Fetch backend deals if available
+  useEffect(() => {
+    let isMounted = true;
+    const fetchDeals = async () => {
+      setLoading(true);
+      try {
+        const response = await dealApi.getDeals();
+        const liveDeals = response.deals || response.data || [];
+
+        if (isMounted && Array.isArray(liveDeals) && liveDeals.length > 0) {
+          const formattedDeals = liveDeals.map((d, index) => ({
+            id: d._id || index + 1,
+            title: d.title,
+            business: d.businessName || "Partner Store",
+            category: d.category || "Special Offer",
+            price: `Rs. ${d.discountedPrice?.toLocaleString() || d.price || "0"}`,
+            oldPrice: `Rs. ${d.originalPrice?.toLocaleString() || d.oldPrice || "0"}`,
+            discount: `${d.discountPercentage || 0}% OFF`,
+            image:
+              d.image ||
+              initialMockDeals[index % initialMockDeals.length]?.image ||
+              "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=80",
+            time: "Limited time",
+            distance: d.distance || "Nearby",
+          }));
+          setDealsList(formattedDeals);
+        }
+      } catch (err) {
+        console.info("Using featured deals catalog:", err.message);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchDeals();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const categories = ["All", "Food & Beverage", "Coffee & Drinks", "Fashion", "Electronics"];
+
+  const filteredDeals =
+    selectedCategory === "All"
+      ? dealsList
+      : dealsList.filter(
+          (d) =>
+            d.category?.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+            selectedCategory.toLowerCase().includes(d.category?.toLowerCase())
+        );
+
   return (
-    <section
-      id="deals"
-      className="bg-[#F9F9F9] py-16"
-    >
-      <div className="mx-auto max-w-7xl px-5 lg:px-8">
-
-        <div className="mb-8 flex items-end justify-between">
+    <section id="deals" className="bg-[#F7F5F2] py-24">
+      <div ref={sectionRef} className="reveal mx-auto max-w-[1240px] px-6">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
           <div>
-            <p className="text-sm font-bold uppercase tracking-wider text-[#FF4A2F]">
-              Don't Miss Out
-            </p>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm border border-gray-100">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-[11px] font-black uppercase tracking-[0.15em] text-[#E8503A]">
+                Live Now
+              </span>
+            </div>
 
-            <h2 className="mt-2 text-3xl font-black text-[#141922]">
-              Featured Deals
+            <h2 className="mt-3 text-[32px] sm:text-[38px] font-black tracking-[-0.03em] text-[#1A1A1A] leading-tight">
+              Deals near you
             </h2>
+            <p className="mt-2 text-sm text-gray-500 max-w-xl">
+              Limited-time discounts from top-rated restaurants, boutiques, and tech shops.
+            </p>
           </div>
 
-          <button className="font-bold text-[#FF4A2F]">
-            View All Deals →
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-gray-400 hidden sm:inline">
+              Showing {filteredDeals.length} active deals
+            </span>
+            <button className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 shadow-sm hover:border-gray-300 hover:text-gray-900 transition-colors">
+              <span>View All Deals</span>
+              <span>&rarr;</span>
+            </button>
+          </div>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {deals.map((deal) => (
-            <DealCard
-              key={deal.id}
-              deal={deal}
-            />
+        {/* Filter Pills */}
+        <div className="mt-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          {categories.map((cat) => {
+            const active = selectedCategory === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                  active
+                    ? "bg-[#172026] text-white shadow-sm"
+                    : "bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200/80"
+                }`}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Deals Cards Grid */}
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+          {filteredDeals.map((deal) => (
+            <DealCard key={deal.id} deal={deal} />
           ))}
         </div>
-
       </div>
     </section>
   );

@@ -1,10 +1,16 @@
+require("dotenv").config();
 const Deals = require("../../models/Deal");
 const FoodFlag = require("../../models/FoodFlag");
 const froud = require("../../models/froudFlag");
+const User = require("../../models/user");
+const Transaction = require("../../models/Transaction");
+
 
 const getAnalyticService = async () => {
     try {
         const totalDeals = await Deals.countDocuments();
+        const totalUsers = await User.countDocuments();
+        const totalTransactions = await Transaction.countDocuments();
 
         const popularCategories = await Deals.aggregate([
             {
@@ -65,6 +71,8 @@ const getAnalyticService = async () => {
             totalDeals,
             popularCategories,
             topDeals,
+            totalUsers,
+            totalTransactions,
             froudSts,
             foodSafetyStats,
         }
@@ -73,4 +81,8 @@ const getAnalyticService = async () => {
         console.error("Analytics service error, ", error);
         throw error;
     }
+}
+
+module.exports = {
+    getAnalyticService,
 }

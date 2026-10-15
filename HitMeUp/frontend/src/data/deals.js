@@ -1,12 +1,12 @@
 export const deals = [
   {
     id: 1,
-    title: "Chicken Burger",
-    business: "Burger House",
+    title: "Chicken Burger Combo",
+    business: "ABC Restaurant",
     category: "Food & Beverage",
-    price: "$4.99",
-    oldPrice: "$8.00",
-    discount: "40% OFF",
+    price: "Rs. 840",
+    oldPrice: "Rs. 1,200",
+    discount: "30% OFF",
     image:
       "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=80",
     time: "02 : 14 : 35",
@@ -17,8 +17,8 @@ export const deals = [
     title: "Cappuccino + Pastry",
     business: "The Coffee Club",
     category: "Coffee & Drinks",
-    price: "$3.49",
-    oldPrice: "$5.00",
+    price: "Rs. 490",
+    oldPrice: "Rs. 700",
     discount: "30% OFF",
     image:
       "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80",
@@ -30,8 +30,8 @@ export const deals = [
     title: "Men's Casual Shirt",
     business: "Urban Wear",
     category: "Fashion",
-    price: "$12.99",
-    oldPrice: "$26.99",
+    price: "Rs. 1,750",
+    oldPrice: "Rs. 3,500",
     discount: "50% OFF",
     image:
       "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=900&q=80",
@@ -43,8 +43,8 @@ export const deals = [
     title: "Wireless Earbuds",
     business: "TechWorld",
     category: "Electronics",
-    price: "$19.99",
-    oldPrice: "$39.00",
+    price: "Rs. 3,900",
+    oldPrice: "Rs. 6,000",
     discount: "35% OFF",
     image:
       "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=900&q=80",

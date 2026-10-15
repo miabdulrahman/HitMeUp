@@ -48,7 +48,7 @@ function Hero() {
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#111827]/80 via-[#1A1A1A]/65 to-[#1A1A1A]/80" />
         {/* Subtle gradient at bottom for section transition */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
+
       </div>
 
       {/* Content */}

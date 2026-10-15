@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import LandingPage from "./pages/LandingPage";
 
 function App() {
@@ -7,3 +8,5 @@ function App() {
 }
 
 export default App;
+=======
+>>>>>>> main

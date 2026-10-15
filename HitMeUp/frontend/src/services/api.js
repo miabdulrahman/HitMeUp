@@ -110,12 +110,34 @@ export const dealApi = {
 
   getDealById: (id) => apiRequest(`/deals/${id}`),
 
+  getMyDeals: () => apiRequest("/deals/business/my-deals"),
+
+  getDealsByBusiness: (businessId) => apiRequest(`/deals/business/${businessId}`),
+
   createDeal: (dealData) =>
     apiRequest("/deals", {
       method: "POST",
       body: dealData,
     }),
+
+  updateDeal: (id, dealData) =>
+    apiRequest(`/deals/${id}`, {
+      method: "PUT",
+      body: dealData,
+    }),
+
+  updateDealStatus: (id, status) =>
+    apiRequest(`/deals/${id}/status`, {
+      method: "PATCH",
+      body: { status },
+    }),
+
+  deleteDeal: (id) =>
+    apiRequest(`/deals/${id}`, {
+      method: "DELETE",
+    }),
 };
+
 
 // ----------------------------------------------------------------------
 // Orders Endpoints (Member 4)

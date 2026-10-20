@@ -181,14 +181,20 @@ export const paymentApi = {
 // Vouchers Endpoints (Member 4)
 // ----------------------------------------------------------------------
 export const voucherApi = {
+  claimVoucher: ({ dealId }) =>
+    apiRequest("/vouchers/claim", {
+      method: "POST",
+      body: { dealId },
+    }),
+
   getMyVouchers: () => apiRequest("/vouchers"),
 
   getVoucherById: (id) => apiRequest(`/vouchers/${id}`),
 
-  redeemVoucher: ({ voucherCode, businessId }) =>
+  redeemVoucher: ({ voucherCode, code, businessId }) =>
     apiRequest("/vouchers/redeem", {
       method: "POST",
-      body: { voucherCode, businessId },
+      body: { voucherCode: voucherCode || code, code: voucherCode || code, businessId },
     }),
 };
 

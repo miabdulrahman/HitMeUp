@@ -1,6 +1,7 @@
 const express = require("express");
 
 const {
+  claimVoucher,
   getMyVouchers,
   getVoucherById,
   redeemVoucher
@@ -10,11 +11,15 @@ const protect = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+// Claim a flash deal voucher (decrements stock & generates QR voucher)
+// POST /api/vouchers/claim
+router.post("/claim", protect, claimVoucher);
+
 // Get logged-in customer's vouchers
 // GET /api/vouchers
 router.get("/", protect, getMyVouchers);
 
-// Redeem voucher
+// Redeem voucher (POS merchant check)
 // POST /api/vouchers/redeem
 router.post("/redeem", protect, redeemVoucher);
 

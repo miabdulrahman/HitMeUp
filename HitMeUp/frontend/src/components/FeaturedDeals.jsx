@@ -4,7 +4,6 @@ import { normalizeCategory, getCategorySlug } from "../data/categories";
 import DealCard from "./DealCard";
 import DealDetailModal from "./DealDetailModal";
 import { dealApi } from "../services/api";
-import { Flame, Sparkles, Filter } from "lucide-react";
 
 function FeaturedDeals() {
   const sectionRef = useRef(null);
@@ -145,7 +144,7 @@ function FeaturedDeals() {
 
           <div className="flex items-center gap-3">
             <span className="text-xs font-semibold text-gray-400 hidden sm:inline">
-              Showing {filteredDeals.length} active deals
+              {loading ? "Loading live deals..." : `Showing ${filteredDeals.length} active deals`}
             </span>
             <button
               onClick={() => navigate("/deals")}

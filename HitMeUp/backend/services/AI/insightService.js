@@ -1,10 +1,4 @@
-require("dotenv").config();
-const OpenAI = require("openai");
-
-const Nvidia = new OpenAI({
-    apiKey: process.env.NVIDIA_API_KEY,
-    baseURL: "https://integrate.api.nvidia.com/v1",
-})
+const { getNvidiaClient, getNvidiaModel } = require("./nvidiaClient");
 
 const generateInsights = async ({
     totalDeals,
@@ -78,8 +72,8 @@ const generateInsights = async ({
             ]
         }`;
 
-        const response = await Nvidia.chat.completions.create({
-            model: "nvidia/nemotron-3-super-120b-a12b",
+        const response = await getNvidiaClient().chat.completions.create({
+            model: getNvidiaModel("AI insights"),
             messages: [{
                 role: "user",
                 content: prompt,

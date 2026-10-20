@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import { useAuth } from "./context/useAuth";
 import LandingPage from "./pages/LandingPage";
 import CategoryPage from "./pages/CategoryPage";
 import CustomerDashBoard from "./pages/customer/CustomerDashboard";

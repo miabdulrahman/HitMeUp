@@ -60,18 +60,22 @@ const generateDealController = async (req, res) => {
   } catch (error) {
     console.error("Generate deal error:", error);
 
-    await logAIActivity({
-      feature: "deal_generation",
-      userId: req.user?.id || null,
-      input,
-      output: {},
-      status: "failed",
-      errorMessage: error.message,
-    });
+    try {
+      await logAIActivity({
+        feature: "deal_generation",
+        userId: req.user?.id || null,
+        input: req.body,
+        output: {},
+        status: "failed",
+        errorMessage: error.message,
+      });
+    } catch (loggingError) {
+      console.error("Failed to log AI deal generation error:", loggingError);
+    }
 
-    res.status(500).json({
+    res.status(error.status >= 400 && error.status < 600 ? error.status : 502).json({
       success: false,
-      message: "Failed to generate deal",
+      message: error.message || "Failed to generate deal",
     });
   }
 };

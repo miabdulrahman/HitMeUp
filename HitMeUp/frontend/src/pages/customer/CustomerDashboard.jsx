@@ -1,21 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Home,
   ShoppingBag,
   Ticket,
-  CreditCard,
   User,
   LogOut,
   RefreshCw,
-  CheckCircle2,
-  Clock,
   Sparkles,
   ArrowRight,
   ShieldCheck,
   AlertCircle
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { voucherApi, orderApi } from "../../services/api";
 
 const CustomerDashboard = () => {
@@ -28,7 +25,7 @@ const CustomerDashboard = () => {
   const [loadingData, setLoadingData] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoadingData(true);
     setErrorMsg("");
@@ -51,7 +48,7 @@ const CustomerDashboard = () => {
     } finally {
       setLoadingData(false);
     }
-  };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -59,9 +56,9 @@ const CustomerDashboard = () => {
       return;
     }
     if (isAuthenticated) {
-      fetchData();
+      void Promise.resolve().then(() => fetchData());
     }
-  }, [isAuthenticated, authLoading]);
+  }, [authLoading, fetchData, isAuthenticated, navigate]);
 
   const handleLogout = () => {
     logout();
@@ -317,7 +314,9 @@ const CustomerDashboard = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-gray-500">
-                            {new Date(order.createdAt || Date.now()).toLocaleDateString()}
+                            {order.createdAt
+                              ? new Date(order.createdAt).toLocaleDateString()
+                              : "—"}
                           </td>
                         </tr>
                       ))}

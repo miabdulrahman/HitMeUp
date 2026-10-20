@@ -1,10 +1,4 @@
-const OpenAI = require("openai");
-const { Content } = require("openai/resources/skills/content.js");
-
-const Nvidia = new OpenAI({
-    apiKey: process.env.NVIDIA_API_KEY,
-    baseURL: "https://integrate.api.nvidia.com/v1",
-})
+const { getNvidiaClient, getNvidiaModel } = require("./nvidiaClient");
 
 const detectFoodSafety = async ({
     productName,
@@ -50,8 +44,8 @@ const detectFoodSafety = async ({
         "low", "medium", "high"
     `;
 
-        const response = await Nvidia.chat.completions.create({
-            model: "nvidia/nemotron-3-super-120b-a12b",
+        const response = await getNvidiaClient().chat.completions.create({
+            model: getNvidiaModel("food safety checks"),
 
             messages: [
                 {

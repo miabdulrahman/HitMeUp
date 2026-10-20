@@ -23,7 +23,7 @@ const aiActivityLogSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ["success", "Failed"],
+        enum: ["success", "failed"],
         default: "success",
     },
 
@@ -40,4 +40,3 @@ module.exports = mongoose.model(
     "AIActivityLog",
     aiActivityLogSchema
 )
-

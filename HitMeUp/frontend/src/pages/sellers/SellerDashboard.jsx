@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { dealApi } from "../../services/api";
+import { generateDeals } from "../../services/aiService";
 import {
   LogOut,
   ArrowLeft,
@@ -54,6 +55,9 @@ const SellerDashboard = () => {
     terms: "Valid during store operating hours. One voucher per customer."
   };
   const [formData, setFormData] = useState(initialFormState);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiProduct, setAiProduct] = useState("");
+  const [aiTargetCustomer, setAiTargetCustomer] = useState("");
 
   // Fetch Business Deals
   const fetchMyDeals = async () => {
@@ -145,6 +149,78 @@ const SellerDashboard = () => {
     setIsModalOpen(true);
   };
 
+  const handleGenerateAIDeal = async () => {
+    const productName = aiProduct.trim();
+    const originalPrice = Number.parseFloat(formData.originalPrice);
+
+    if (!productName) {
+      setFormError("Enter a product or service name first");
+      return;
+    }
+
+    if (!Number.isFinite(originalPrice) || originalPrice <= 0) {
+      setFormError("Enter a valid original price before generating the deal");
+      return;
+    }
+
+    setAiLoading(true);
+    setFormError("");
+
+    try {
+      const response = await generateDeals({
+        businessName: user.businessName || user.name,
+        businessType: formData.category,
+        productOrService: productName,
+        originalPrice,
+        targetCustomers: aiTargetCustomer || "General Customers",
+      })
+
+      console.log("AI deal response: ", response);
+
+      const generated = response.deal || response.result || response;
+
+      if (!generated || typeof generated !== "object" || Array.isArray(generated)) {
+        throw new Error("Invalid AI deal response");
+      }
+
+      const updates = {};
+
+      if (typeof generated.title === "string") {
+        updates.title = generated.title;
+      }
+
+      if (typeof generated.description === "string") {
+        updates.description = generated.description;
+      }
+
+      const discount = Number(
+        generated.discountPercentage ??
+        generated.discount ??
+        generated.suggestedDiscount
+      )
+
+      if (Number.isFinite(discount) && discount >= 1 && discount <= 99) {
+        updates.discountPercentage = discount;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        throw new Error("AI response does not contain recognized deal fields");
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        ...updates,
+      }));
+
+      showToast("AI suggestions added! Review before publishing.");
+    } catch (error) {
+      console.error("AI deal generation Error: ", error);
+      setFormError(error.message || "Failed to generate AI deals");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   // Submit Deal (Create or Update)
   const handleSubmitDeal = async (e) => {
     e.preventDefault();
@@ -227,7 +303,7 @@ const SellerDashboard = () => {
       searchQuery.trim() === ""
         ? true
         : deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          deal.category?.toLowerCase().includes(searchQuery.toLowerCase());
+        deal.category?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -387,11 +463,10 @@ const SellerDashboard = () => {
                   <button
                     key={tab}
                     onClick={() => setActiveFilter(tab)}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg capitalize transition-all cursor-pointer ${
-                      activeFilter === tab
-                        ? "bg-white text-gray-900 shadow-xs"
-                        : "text-gray-500 hover:text-gray-900"
-                    }`}
+                    className={`px-3 py-1 text-xs font-bold rounded-lg capitalize transition-all cursor-pointer ${activeFilter === tab
+                      ? "bg-white text-gray-900 shadow-xs"
+                      : "text-gray-500 hover:text-gray-900"
+                      }`}
                   >
                     {tab}
                   </button>
@@ -456,15 +531,14 @@ const SellerDashboard = () => {
                           {deal.category || "General"}
                         </span>
                         <span
-                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${
-                            isActive
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : isDraft
+                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${isActive
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : isDraft
                               ? "bg-amber-50 text-amber-700 border border-amber-200"
                               : isExpired
-                              ? "bg-gray-100 text-gray-500 border border-gray-200"
-                              : "bg-red-50 text-red-700 border border-red-200"
-                          }`}
+                                ? "bg-gray-100 text-gray-500 border border-gray-200"
+                                : "bg-red-50 text-red-700 border border-red-200"
+                            }`}
                         >
                           {deal.status}
                         </span>
@@ -505,11 +579,10 @@ const SellerDashboard = () => {
                     <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
                       <button
                         onClick={() => handleToggleStatus(deal)}
-                        className={`flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                          isActive
-                            ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
-                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                        }`}
+                        className={`flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${isActive
+                          ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                          : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          }`}
                       >
                         {isActive ? <Pause size={13} /> : <Play size={13} />}
                         <span>{isActive ? "Pause" : "Publish"}</span>
@@ -571,6 +644,71 @@ const SellerDashboard = () => {
 
             {/* Deal Form */}
             <form onSubmit={handleSubmitDeal} className="mt-5 space-y-4">
+
+              {/* AI Deal Generator */}
+              {!editingDeal && (
+                <div className="rounded-2xl border border-orange-200 bg-orange-50/50 p-4 space-y-3">
+
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={18} className="text-[#E8503A]" />
+                    <h4 className="text-sm font-extrabold text-gray-900">
+                      AI Deal Assistant
+                    </h4>
+                  </div>
+
+                  <p className="text-xs text-gray-500">
+                    Let AI suggest a title, description and discount for your flash deal.
+                  </p>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Product or Service
+                    </label>
+
+                    <input
+                      type="text"
+                      value={aiProduct}
+                      onChange={(e) => setAiProduct(e.target.value)}
+                      placeholder="e.g. Chicken Burger"
+                      className="w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Target Customers
+                    </label>
+
+                    <input
+                      type="text"
+                      value={aiTargetCustomer}
+                      onChange={(e) => setAiTargetCustomer(e.target.value)}
+                      placeholder="e.g. University Students"
+                      className="w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs"
+                    />
+                  </div>
+
+                  <p className="text-[11px] text-gray-500">
+                    Uses the original price and category entered in the form below.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={handleGenerateAIDeal}
+                    disabled={
+                      aiLoading ||
+                      !aiProduct.trim() ||
+                      !Number.isFinite(Number.parseFloat(formData.originalPrice)) ||
+                      Number.parseFloat(formData.originalPrice) <= 0
+                    }
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#E8503A] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#D43A26] disabled:opacity-60"
+                  >
+                    <Sparkles size={15} />
+                    {aiLoading ? "AI is generating..." : "Generate with AI"}
+                  </button>
+                </div>
+              )}
+
               {/* Title */}
               <div className="space-y-1">
                 <label className="block text-xs font-bold text-gray-700">Deal Title</label>
@@ -692,11 +830,10 @@ const SellerDashboard = () => {
                         key={dur.val}
                         type="button"
                         onClick={() => setFormData((prev) => ({ ...prev, durationHours: dur.val }))}
-                        className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                          formData.durationHours === dur.val
-                            ? "bg-[#E8503A] text-white border-[#E8503A]"
-                            : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
-                        }`}
+                        className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-colors cursor-pointer ${formData.durationHours === dur.val
+                          ? "bg-[#E8503A] text-white border-[#E8503A]"
+                          : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
+                          }`}
                       >
                         {dur.label}
                       </button>

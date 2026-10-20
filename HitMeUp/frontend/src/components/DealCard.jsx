@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Heart, MapPin, Clock3, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
-function DealCard({ deal, onGrab }) {
+function DealCard({ deal }) {
   const [isFavorite, setIsFavorite] = useState(false);
 
   return (

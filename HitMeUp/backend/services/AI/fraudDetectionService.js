@@ -1,10 +1,4 @@
-const OpenAI = require("openai");
-
-
-const  nvidia = new OpenAI({
-    apiKey: process.env.NVIDIA_API_KEY,
-    baseURL: "https://integrate.api.nvidia.com/v1",
-})
+const { getNvidiaClient, getNvidiaModel } = require("./nvidiaClient");
 
 const detectFraud = async ({
     activityType,
@@ -42,8 +36,8 @@ const detectFraud = async ({
         "low", "medium", "high"
     `;
 
-        const response = await nvidia.chat.completions.create({
-            model: "nvidia/nemotron-3-super-120b-a12b",
+        const response = await getNvidiaClient().chat.completions.create({
+            model: getNvidiaModel("fraud detection"),
             messages: [
                 {
                     role: "user",

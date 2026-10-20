@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { deals as initialMockDeals } from "../data/deals";
 import DealCard from "./DealCard";
 import { dealApi } from "../services/api";
-import { Flame, Sparkles, Filter } from "lucide-react";
 
 function FeaturedDeals() {
   const sectionRef = useRef(null);
@@ -105,7 +104,7 @@ function FeaturedDeals() {
 
           <div className="flex items-center gap-3">
             <span className="text-xs font-semibold text-gray-400 hidden sm:inline">
-              Showing {filteredDeals.length} active deals
+              {loading ? "Loading live deals..." : `Showing ${filteredDeals.length} active deals`}
             </span>
             <button className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 shadow-sm hover:border-gray-300 hover:text-gray-900 transition-colors">
               <span>View All Deals</span>

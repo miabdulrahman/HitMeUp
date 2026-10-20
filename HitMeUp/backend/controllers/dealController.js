@@ -1,7 +1,7 @@
 const Deal = require("../models/Deal");
 const Business = require("../models/Business");
 
-const User = require("../models/User");
+const User = require("../models/user");
 
 // Taxonomy mappings between platform categories and merchant business types
 const CATEGORY_MAP = {

@@ -1,4 +1,8 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const rawBaseUrl = import.meta.env.VITE_API_URL || "/api";
+const trimmedBase = rawBaseUrl.replace(/\/+$/, "");
+const API_BASE_URL = (!trimmedBase.startsWith("/") && !trimmedBase.endsWith("/api"))
+  ? `${trimmedBase}/api`
+  : trimmedBase;
 
 /**
  * Universal API Client with automatic JSON parsing and JWT token injection

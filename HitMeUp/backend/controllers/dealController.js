@@ -1,6 +1,64 @@
 const Deal = require("../models/Deal");
 const Business = require("../models/Business");
 
+const User = require("../models/User");
+
+// Taxonomy mappings between platform categories and merchant business types
+const CATEGORY_MAP = {
+  food: ["food", "restaurant", "cafe", "dining", "bakery", "groceries", "beverage", "beverages", "dessert", "kottu", "burger", "pizza", "meal"],
+  fashion: ["fashion", "clothing", "apparel", "retail", "footwear", "accessories", "shoes", "wear"],
+  electronics: ["electronics", "tech", "gadget", "gadgets", "computer", "computers", "phone", "phones", "audio", "headphone"],
+  home: ["home", "furniture", "decor", "appliances", "cleaning", "living", "kitchen"],
+  health: ["health", "beauty", "salon", "spa", "fitness", "wellness", "medical", "clinic", "dental"],
+  sports: ["sports", "fitness", "gym", "athletics", "outdoor", "workout", "training"],
+  services: ["services", "automotive", "repair", "cleaning", "maintenance", "consulting", "photography", "salon", "service"],
+  games: ["games", "gaming", "arcade", "entertainment", "esports", "board game"]
+};
+
+const DEFAULT_CATEGORY_IMAGES = {
+  food: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+  fashion: "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=900&q=80",
+  electronics: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
+  home: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=900&q=80",
+  health: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=900&q=80",
+  sports: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=80",
+  services: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80",
+  games: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=900&q=80"
+};
+
+const getCategoryFallbackImage = (category) => {
+  const cat = (category || "").toLowerCase();
+  for (const [key, synonyms] of Object.entries(CATEGORY_MAP)) {
+    if (key === cat || synonyms.some((s) => cat.includes(s))) {
+      return DEFAULT_CATEGORY_IMAGES[key];
+    }
+  }
+  return DEFAULT_CATEGORY_IMAGES.food;
+};
+
+const buildCategoryRegex = (catInput) => {
+  if (!catInput || catInput.toLowerCase() === "all") return null;
+  const lower = catInput.trim().toLowerCase();
+  
+  const matchedTerms = new Set([lower]);
+  
+  if (CATEGORY_MAP[lower]) {
+    CATEGORY_MAP[lower].forEach((t) => matchedTerms.add(t));
+  }
+  
+  for (const [mainCat, synonyms] of Object.entries(CATEGORY_MAP)) {
+    if (synonyms.some((s) => lower.includes(s) || s.includes(lower))) {
+      matchedTerms.add(mainCat);
+      synonyms.forEach((t) => matchedTerms.add(t));
+    }
+  }
+  
+  const pattern = Array.from(matchedTerms)
+    .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("|");
+  return new RegExp(pattern, "i");
+};
+
 /**
  * Helper to resolve the Business document for a user
  */
@@ -8,7 +66,7 @@ const resolveBusinessForUser = async (user, requestedBusinessId) => {
   // If admin, they can manage any business if provided
   if (user.role === "admin" && requestedBusinessId) {
     const business = await Business.findById(requestedBusinessId);
-    return business;
+    if (business) return business;
   }
 
   // If user has a direct businessId on their model
@@ -18,7 +76,27 @@ const resolveBusinessForUser = async (user, requestedBusinessId) => {
   }
 
   // Lookup business owned by this user
-  const business = await Business.findOne({ ownerId: user._id });
+  let business = await Business.findOne({ ownerId: user._id });
+  if (business) return business;
+
+  // Auto-heal fallback: if user is seller or business, create a default Business doc
+  if (user.role === "seller" || user.role === "business" || user.role === "admin") {
+    try {
+      business = await Business.create({
+        name: user.name ? `${user.name}'s Business` : "Partner Store",
+        ownerId: user._id,
+        category: "Restaurant",
+        phone: user.phone || "0770000000",
+        address: { city: "Colombo", country: "Sri Lanka" },
+        status: "active"
+      });
+      await User.findByIdAndUpdate(user._id, { businessId: business._id });
+      return business;
+    } catch (e) {
+      console.error("Auto-heal business record error:", e);
+    }
+  }
+
   return business;
 };
 
@@ -129,18 +207,24 @@ const createDeal = async (req, res) => {
       });
     }
 
+    const resolvedCategory = category?.trim() || business.category || "Food";
+    const resolvedImageUrl =
+      (imageUrl && imageUrl.trim()) ||
+      business.coverImageUrl ||
+      getCategoryFallbackImage(resolvedCategory);
+
     const deal = new Deal({
       title: title.trim(),
       description: description.trim(),
       businessId: business._id,
-      category: category || business.category || "General",
+      category: resolvedCategory,
       originalPrice: pricing.originalPrice,
       discountPercentage: pricing.discountPercentage,
       discountedPrice: pricing.discountedPrice,
       startDate: start,
       endDate: end,
       status: status || "active",
-      imageUrl: imageUrl || business.coverImageUrl || "",
+      imageUrl: resolvedImageUrl,
       availableQuantity: availableQuantity !== undefined ? Number(availableQuantity) : 50,
       claimedQuantity: 0,
       terms: terms || "Valid during store operating hours. One voucher per customer."
@@ -192,7 +276,10 @@ const getDeals = async (req, res) => {
     }
 
     if (category && category !== "All") {
-      query.category = new RegExp(category, "i");
+      const catRegex = buildCategoryRegex(category);
+      if (catRegex) {
+        query.category = catRegex;
+      }
     }
 
     if (businessId) {
@@ -429,7 +516,9 @@ const updateDeal = async (req, res) => {
     if (title) deal.title = title.trim();
     if (description) deal.description = description.trim();
     if (category) deal.category = category.trim();
-    if (imageUrl !== undefined) deal.imageUrl = imageUrl;
+    if (imageUrl !== undefined) {
+      deal.imageUrl = imageUrl.trim() || getCategoryFallbackImage(deal.category);
+    }
     if (availableQuantity !== undefined) deal.availableQuantity = Number(availableQuantity);
     if (terms !== undefined) deal.terms = terms;
 

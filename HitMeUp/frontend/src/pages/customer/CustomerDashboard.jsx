@@ -59,9 +59,13 @@ const CustomerDashboard = () => {
       return;
     }
     if (isAuthenticated) {
+      if (user?.role === "seller" || user?.role === "business") {
+        navigate("/seller/dashboard", { replace: true });
+        return;
+      }
       fetchData();
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, user, navigate]);
 
   const handleLogout = () => {
     logout();

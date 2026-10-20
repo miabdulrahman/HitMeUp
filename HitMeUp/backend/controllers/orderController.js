@@ -19,11 +19,29 @@ async function getDeal(dealId) {
       `${DEAL_SERVICE_URL}/${dealId}`
     );
 
-    return response.data.data || response.data.deal || response.data;
+    return (
+      response.data.deal ||
+      response.data.data ||
+      response.data
+    );
+
   } catch (error) {
-    throw new Error("Unable to retrieve deal information");
+    // The requested deal does not exist.
+    if (error.response?.status === 404) {
+      return null;
+    }
+
+    console.error(
+      "Deal API Error:",
+      error.response?.data || error.message
+    );
+
+    throw new Error(
+      "Unable to retrieve deal information"
+    );
   }
 }
+
 
 // CREATE ORDER
 const createOrder = async (req, res) => {

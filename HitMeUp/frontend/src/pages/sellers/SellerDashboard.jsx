@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { dealApi, businessApi, voucherApi } from "../../services/api";
@@ -31,7 +31,11 @@ import {
   RefreshCw,
   LayoutGrid,
   List,
-  Building2
+  Building2,
+  TrendingUp,
+  Flame,
+  Share2,
+  DollarSign
 } from "lucide-react";
 
 const SellerDashboard = () => {
@@ -70,11 +74,12 @@ const SellerDashboard = () => {
 
   // Deals State
   const [deals, setDeals] = useState([]);
-  const [metrics, setMetrics] = useState({ total: 0, active: 0, draft: 0, expired: 0, cancelled: 0 });
+  const [rawMetrics, setRawMetrics] = useState({ total: 0, active: 0, draft: 0, expired: 0, cancelled: 0 });
   const [loadingDeals, setLoadingDeals] = useState(true);
   const [activeFilter, setActiveFilter] = useState("all"); // all, active, draft, expired
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid"); // grid or table
+  const [lastSynced, setLastSynced] = useState(null);
 
   // Deal Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -83,11 +88,6 @@ const SellerDashboard = () => {
   const [formError, setFormError] = useState("");
   const [toastMessage, setToastMessage] = useState("");
   const [copiedId, setCopiedId] = useState(null);
-
-  // AI Deal Generation State
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
-  const [showAiHelper, setShowAiHelper] = useState(false);
 
   // Voucher POS Quick-Redeem State
   const [voucherCodeInput, setVoucherCodeInput] = useState("");
@@ -107,9 +107,12 @@ const SellerDashboard = () => {
     terms: "Valid during store operating hours. One voucher per customer."
   };
   const [formData, setFormData] = useState(initialFormState);
-  const [aiLoading, setAiLoading] = useState(false);
+
+  // AI Deal Generation State
   const [aiProduct, setAiProduct] = useState("");
   const [aiTargetCustomer, setAiTargetCustomer] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showAiHelper, setShowAiHelper] = useState(false);
 
   // Fetch Business Profile
   const fetchBusinessProfile = async () => {
@@ -129,7 +132,7 @@ const SellerDashboard = () => {
         });
       }
     } catch (err) {
-      console.info("Business profile not yet set up or using default:", err.message);
+      console.info("Business profile not yet set up or using default:", err?.message);
     } finally {
       setLoadingBusiness(false);
     }
@@ -140,10 +143,12 @@ const SellerDashboard = () => {
     try {
       setLoadingDeals(true);
       const response = await dealApi.getMyDeals();
-      setDeals(response.deals || []);
+      const loadedDeals = response.deals || [];
+      setDeals(loadedDeals);
       if (response.metrics) {
-        setMetrics(response.metrics);
+        setRawMetrics(response.metrics);
       }
+      setLastSynced(new Date());
     } catch (err) {
       console.error("Failed to fetch business deals:", err);
     } finally {
@@ -152,11 +157,34 @@ const SellerDashboard = () => {
   };
 
   useEffect(() => {
-    if (user && (user.role === "seller" || user.role === "business")) {
+    if (user && (user.role === "seller" || user.role === "business" || user.role === "admin")) {
       fetchBusinessProfile();
       fetchMyDeals();
     }
   }, [user]);
+
+  // Dynamic Calculated Metrics (Combines backend metrics with live deals data fallback)
+  const metrics = useMemo(() => {
+    const totalCount = deals.length;
+    const activeCount = deals.filter((d) => d.status === "active").length;
+    const draftCount = deals.filter((d) => d.status === "draft").length;
+    const expiredCount = deals.filter(
+      (d) => d.status === "expired" || (d.endDate && new Date(d.endDate) < new Date())
+    ).length;
+    const totalVouchersPool = deals.reduce((acc, d) => acc + (Number(d.availableQuantity) || 0), 0);
+    const avgDiscountRate = totalCount > 0
+      ? Math.round(deals.reduce((acc, d) => acc + (Number(d.discountPercentage) || 0), 0) / totalCount)
+      : 0;
+
+    return {
+      total: rawMetrics.total || totalCount,
+      active: rawMetrics.active !== undefined && rawMetrics.active > 0 ? rawMetrics.active : activeCount,
+      draft: rawMetrics.draft !== undefined && rawMetrics.draft > 0 ? rawMetrics.draft : draftCount,
+      expired: rawMetrics.expired !== undefined && rawMetrics.expired > 0 ? rawMetrics.expired : expiredCount,
+      totalVouchersPool,
+      avgDiscountRate
+    };
+  }, [deals, rawMetrics]);
 
   const handleLogout = () => {
     logout();
@@ -193,6 +221,8 @@ const SellerDashboard = () => {
       ...initialFormState,
       category: businessProfile?.category || "Restaurant"
     });
+    setAiProduct("");
+    setAiTargetCustomer("");
     setFormError("");
     setShowAiHelper(false);
     setIsModalOpen(true);
@@ -202,32 +232,33 @@ const SellerDashboard = () => {
   const handleOpenEdit = (deal) => {
     setEditingDeal(deal);
     setFormData({
-      title: deal.title,
-      description: deal.description,
-      category: deal.category || "General",
-      originalPrice: deal.originalPrice,
-      discountPercentage: deal.discountPercentage,
+      title: deal.title || "",
+      description: deal.description || "",
+      category: deal.category || businessProfile?.category || "Restaurant",
+      originalPrice: deal.originalPrice || "",
+      discountPercentage: deal.discountPercentage || 30,
       durationHours: 24,
-      availableQuantity: deal.availableQuantity || 50,
+      availableQuantity: deal.availableQuantity || 30,
       status: deal.status || "active",
-      terms: deal.terms || ""
+      terms: deal.terms || "Valid during store operating hours. One voucher per customer."
     });
     setFormError("");
     setShowAiHelper(false);
     setIsModalOpen(true);
   };
 
+  // AI Deal Generation Trigger
   const handleGenerateAIDeal = async () => {
     const productName = aiProduct.trim();
     const originalPrice = Number.parseFloat(formData.originalPrice);
 
     if (!productName) {
-      setFormError("Enter a product or service name first");
+      setFormError("Enter a product or service name for AI deal generation (e.g. 'Crispy Chicken Burger').");
       return;
     }
 
     if (!Number.isFinite(originalPrice) || originalPrice <= 0) {
-      setFormError("Enter a valid original price before generating the deal");
+      setFormError("Enter a valid original price in the pricing field first.");
       return;
     }
 
@@ -236,43 +267,37 @@ const SellerDashboard = () => {
 
     try {
       const response = await generateDeals({
-        businessName: user.businessName || user.name,
-        businessType: formData.category,
+        businessName: businessProfile?.name || user?.businessName || user?.name || "Merchant Store",
+        businessType: formData.category || "Restaurant",
         productOrService: productName,
         originalPrice,
-        targetCustomers: aiTargetCustomer || "General Customers",
-      })
-
-      console.log("AI deal response: ", response);
+        targetCustomers: aiTargetCustomer.trim() || "General Shoppers",
+      });
 
       const generated = response.deal || response.result || response;
 
-      if (!generated || typeof generated !== "object" || Array.isArray(generated)) {
-        throw new Error("Invalid AI deal response");
+      if (!generated || typeof generated !== "object") {
+        throw new Error("Invalid AI deal response format");
       }
 
       const updates = {};
-
-      if (typeof generated.title === "string") {
-        updates.title = generated.title;
+      if (typeof generated.title === "string" && generated.title.trim()) {
+        updates.title = generated.title.trim();
       }
-
-      if (typeof generated.description === "string") {
-        updates.description = generated.description;
+      if (typeof generated.description === "string" && generated.description.trim()) {
+        updates.description = generated.description.trim();
       }
-
       const discount = Number(
         generated.discountPercentage ??
         generated.discount ??
         generated.suggestedDiscount
-      )
-
+      );
       if (Number.isFinite(discount) && discount >= 1 && discount <= 99) {
         updates.discountPercentage = discount;
       }
 
       if (Object.keys(updates).length === 0) {
-        throw new Error("AI response does not contain recognized deal fields");
+        throw new Error("AI did not return readable deal fields. Try a different prompt.");
       }
 
       setFormData((prev) => ({
@@ -280,16 +305,14 @@ const SellerDashboard = () => {
         ...updates,
       }));
 
-      showToast("AI suggestions added! Review before publishing.");
+      showToast("NVIDIA AI suggestions applied! Review and launch your flash deal.");
     } catch (error) {
-      console.error("AI deal generation Error: ", error);
-      setFormError(error.message || "Failed to generate AI deals");
+      console.error("AI deal generation Error:", error);
+      setFormError(error.message || "Failed to generate AI deal recommendations");
     } finally {
       setAiLoading(false);
     }
   };
-
-  const handleGenerateAiDeal = handleGenerateAIDeal;
 
   // Submit Deal (Create or Update)
   const handleSubmitDeal = async (e) => {
@@ -300,8 +323,8 @@ const SellerDashboard = () => {
     try {
       if (editingDeal) {
         await dealApi.updateDeal(editingDeal._id, {
-          title: formData.title,
-          description: formData.description,
+          title: formData.title.trim(),
+          description: formData.description.trim(),
           category: formData.category,
           originalPrice: Number(formData.originalPrice),
           discountPercentage: Number(formData.discountPercentage),
@@ -309,11 +332,11 @@ const SellerDashboard = () => {
           status: formData.status,
           terms: formData.terms
         });
-        showToast("Deal updated successfully!");
+        showToast("Flash deal updated successfully!");
       } else {
         await dealApi.createDeal({
-          title: formData.title,
-          description: formData.description,
+          title: formData.title.trim(),
+          description: formData.description.trim(),
           category: formData.category,
           originalPrice: Number(formData.originalPrice),
           discountPercentage: Number(formData.discountPercentage),
@@ -322,14 +345,14 @@ const SellerDashboard = () => {
           status: formData.status,
           terms: formData.terms
         });
-        showToast("Flash deal launched successfully!");
+        showToast("Flash deal launched to marketplace!");
       }
 
       setIsModalOpen(false);
       fetchMyDeals();
     } catch (err) {
       console.error("Save deal error:", err);
-      setFormError(err.message || "Failed to save deal");
+      setFormError(err.message || "Failed to save flash deal");
     } finally {
       setFormLoading(false);
     }
@@ -340,7 +363,7 @@ const SellerDashboard = () => {
     const nextStatus = deal.status === "active" ? "draft" : "active";
     try {
       await dealApi.updateDealStatus(deal._id, nextStatus);
-      showToast(`Deal ${nextStatus === "active" ? "published" : "paused"}!`);
+      showToast(`Deal switched to ${nextStatus === "active" ? "Live" : "Paused"}!`);
       fetchMyDeals();
     } catch (err) {
       console.error("Toggle status error:", err);
@@ -350,12 +373,12 @@ const SellerDashboard = () => {
 
   // Delete Deal
   const handleDeleteDeal = async (dealId) => {
-    if (!window.confirm("Are you sure you want to permanently delete this flash deal?")) {
+    if (!window.confirm("Are you sure you want to permanently delete this flash promotion?")) {
       return;
     }
     try {
       await dealApi.deleteDeal(dealId);
-      showToast("Deal deleted successfully.");
+      showToast("Deal permanently removed.");
       fetchMyDeals();
     } catch (err) {
       console.error("Delete error:", err);
@@ -368,8 +391,8 @@ const SellerDashboard = () => {
     const url = `${window.location.origin}/deals`;
     navigator.clipboard?.writeText(url);
     setCopiedId(dealId);
-    showToast("Deal link copied to clipboard!");
-    setTimeout(() => setCopiedId(null), 2000);
+    showToast("Direct marketplace link copied to clipboard!");
+    setTimeout(() => setCopiedId(null), 2500);
   };
 
   // Submit Store Profile Update
@@ -417,15 +440,16 @@ const SellerDashboard = () => {
 
       setRedeemResult({
         success: true,
-        message: res.message || "Voucher successfully redeemed!",
-        data: res.voucher || res.redemption || { code: voucherCodeInput.trim() }
+        message: res.message || "Voucher successfully verified & redeemed!",
+        data: res.voucher || res.redemption || { code: voucherCodeInput.trim() },
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
       setVoucherCodeInput("");
-      showToast("Voucher verified & redeemed successfully!");
+      showToast("Customer voucher redeemed & recorded!");
     } catch (err) {
       setRedeemResult({
         success: false,
-        message: err.message || "Invalid or already redeemed voucher code."
+        message: err.message || "Invalid or already redeemed voucher code. Please check customer pass."
       });
     } finally {
       setRedeemLoading(false);
@@ -433,23 +457,26 @@ const SellerDashboard = () => {
   };
 
   // Filtered Deals
-  const filteredDeals = deals.filter((deal) => {
-    const matchesFilter =
-      activeFilter === "all" ? true : deal.status === activeFilter;
-    const matchesSearch =
-      searchQuery.trim() === ""
-        ? true
-        : deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        deal.category?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  const filteredDeals = useMemo(() => {
+    return deals.filter((deal) => {
+      const matchesFilter =
+        activeFilter === "all" ? true : deal.status === activeFilter;
+      const matchesSearch =
+        searchQuery.trim() === ""
+          ? true
+          : deal.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          deal.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          deal.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesFilter && matchesSearch;
+    });
+  }, [deals, activeFilter, searchQuery]);
 
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF8F5]">
         <div className="flex flex-col items-center gap-3">
-          <RefreshCw className="h-8 w-8 animate-spin text-[#E8503A]" />
-          <p className="text-sm font-semibold text-gray-600">Loading merchant workspace...</p>
+          <div className="h-10 w-10 rounded-full border-3 border-[#E8503A] border-t-transparent animate-spin" />
+          <p className="text-xs font-bold text-gray-600 tracking-wide uppercase">Connecting to Merchant Center...</p>
         </div>
       </div>
     );
@@ -470,31 +497,39 @@ const SellerDashboard = () => {
   }
 
   const storeName = businessProfile?.name || user?.businessName || `${user.name}'s Store`;
-  const storeCategory = businessProfile?.category || "Retail";
+  const storeCategory = businessProfile?.category || "Restaurant";
   const storeCity = businessProfile?.address?.city || "Colombo";
 
+  const filterTabs = [
+    { key: "all", label: "All Deals", count: metrics.total },
+    { key: "active", label: "Live & Active", count: metrics.active },
+    { key: "draft", label: "Drafts", count: metrics.draft },
+    { key: "expired", label: "Expired", count: metrics.expired }
+  ];
+
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#1A1A1A] pb-16 selection:bg-[#E8503A] selection:text-white">
+    <div className="min-h-screen bg-[#FAF8F5] text-[#1A1A1A] pb-20 selection:bg-[#E8503A] selection:text-white">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl bg-[#1A1A1A] px-5 py-3 text-xs font-bold text-white shadow-2xl border border-white/10 animate-bounce">
-          <Sparkles size={15} className="text-[#FFD19A]" />
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-2xl bg-[#111827] px-5 py-3 text-xs font-bold text-white shadow-2xl border border-white/10 animate-bounce">
+          <Sparkles size={16} className="text-[#FFB703]" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/95 px-6 sm:px-10 py-4 flex items-center justify-between backdrop-blur-md">
+      {/* Top Navigation Bar */}
+      <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/95 px-6 sm:px-10 py-3.5 flex items-center justify-between backdrop-blur-md">
         <div className="flex items-center gap-3">
           <Link to="/" className="text-xl font-black tracking-tight text-[#1A1A1A]">
             HitMe<span className="text-[#E8503A]">Up</span>
           </Link>
-          <span className="rounded-full bg-[#E8503A]/10 px-3 py-0.5 text-[11px] font-extrabold text-[#E8503A] uppercase tracking-wider">
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-[#E8503A]/10 px-3 py-0.5 text-[11px] font-extrabold text-[#E8503A] uppercase tracking-wider">
+            <span className="h-2 w-2 rounded-full bg-[#E8503A] animate-pulse" />
             Merchant Center
           </span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <Link
             to="/"
             className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#E8503A] transition"
@@ -504,7 +539,7 @@ const SellerDashboard = () => {
           </Link>
 
           <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold text-gray-900">{user.name}</p>
+            <p className="text-xs font-bold text-gray-900 leading-tight">{user.name}</p>
             <p className="text-[10px] uppercase font-semibold text-emerald-600 tracking-wider">
               {storeName} • Merchant
             </p>
@@ -512,7 +547,7 @@ const SellerDashboard = () => {
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50/50 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50/50 transition-colors cursor-pointer shadow-2xs"
           >
             <LogOut size={14} />
             <span className="hidden sm:inline">Sign Out</span>
@@ -522,137 +557,171 @@ const SellerDashboard = () => {
 
       {/* Main Content Area */}
       <main className="mx-auto max-w-6xl p-5 sm:p-8 space-y-7">
-        {/* Merchant Store Header Card */}
-        <div className="rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF4A2F] to-[#E8503A] text-white shadow-lg shadow-[#E8503A]/25">
-              <Store size={30} />
-            </div>
+        
+        {/* Merchant Store Hero Banner Card */}
+        <div className="relative rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-8 shadow-sm overflow-hidden">
+          {/* Subtle decorative glow */}
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gradient-to-br from-[#FF4A2F]/10 to-[#FFB703]/10 blur-2xl" />
 
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 border border-emerald-200">
-                  <ShieldCheck size={12} className="text-emerald-600" />
-                  Verified Store
-                </span>
-                <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-600">
-                  {storeCategory}
-                </span>
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex items-start gap-4 sm:gap-5">
+              <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF4A2F] via-[#E8503A] to-[#D43A26] text-white shadow-lg shadow-[#E8503A]/25 ring-4 ring-[#E8503A]/10">
+                <Store size={32} />
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
-                {storeName}
-              </h1>
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                    <ShieldCheck size={13} className="text-emerald-600" />
+                    Verified Store
+                  </span>
+                  <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-bold text-gray-600 uppercase tracking-wide">
+                    {storeCategory}
+                  </span>
+                  {lastSynced && (
+                    <span className="text-[10px] text-gray-400 font-medium">
+                      Synced {lastSynced.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </div>
 
-              <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 pt-1">
-                <span className="flex items-center gap-1">
-                  <MapPin size={13} className="text-[#E8503A]" />
-                  {storeCity}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Phone size={13} className="text-gray-400" />
-                  {businessProfile?.phone || user.phone || "+94 77 123 4567"}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock size={13} className="text-gray-400" />
-                  {businessProfile?.openingHours || "09:00 AM - 09:00 PM"}
-                </span>
+                <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                  {storeName}
+                </h1>
+
+                <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 pt-0.5">
+                  <span className="flex items-center gap-1 font-medium">
+                    <MapPin size={13} className="text-[#E8503A]" />
+                    {storeCity}
+                  </span>
+                  <span className="flex items-center gap-1 font-medium">
+                    <Phone size={13} className="text-gray-400" />
+                    {businessProfile?.phone || user.phone || "+94 77 123 4567"}
+                  </span>
+                  <span className="flex items-center gap-1 font-medium">
+                    <Clock size={13} className="text-gray-400" />
+                    {businessProfile?.openingHours || "09:00 AM - 09:00 PM"}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => setIsProfileModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-            >
-              <Edit3 size={15} />
-              <span>Edit Store Profile</span>
-            </button>
+            {/* Header Actions */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                onClick={() => {
+                  fetchBusinessProfile();
+                  fetchMyDeals();
+                  showToast("Data refreshed from database!");
+                }}
+                disabled={loadingDeals}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+                title="Sync latest database deals"
+              >
+                <RefreshCw size={14} className={loadingDeals ? "animate-spin text-[#E8503A]" : "text-gray-500"} />
+                <span>{loadingDeals ? "Syncing..." : "Sync"}</span>
+              </button>
 
-            <button
-              onClick={handleOpenCreate}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF4A2F] to-[#E8503A] px-5 py-3 text-xs font-bold text-white shadow-md shadow-[#E8503A]/25 hover:shadow-lg hover:shadow-[#E8503A]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
-            >
-              <PlusCircle size={17} />
-              <span>Create Flash Deal</span>
-            </button>
+              <button
+                onClick={() => setIsProfileModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-2xs cursor-pointer"
+              >
+                <Edit3 size={14} />
+                <span>Edit Profile</span>
+              </button>
+
+              <button
+                onClick={handleOpenCreate}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF4A2F] via-[#E8503A] to-[#D43A26] px-5 py-3 text-xs font-bold text-white shadow-md shadow-[#E8503A]/25 hover:shadow-lg hover:shadow-[#E8503A]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+              >
+                <PlusCircle size={16} />
+                <span>Create Flash Deal</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Real-Time Metrics Strip */}
+        {/* Real-Time Metrics Overview Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-xs">
+          {/* Card 1: Total Deals */}
+          <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-xs hover:border-gray-300 transition-all">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Deals</span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
+              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Total Deals</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-100 text-gray-700">
                 <Layers size={16} />
               </span>
             </div>
             <p className="text-3xl font-black text-gray-900">{metrics.total}</p>
-            <p className="text-[11px] text-gray-400 mt-1">All promotions created</p>
+            <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
+              <span>All flash promotions</span>
+            </p>
           </div>
 
-          <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/30 p-5 shadow-xs">
+          {/* Card 2: Active Deals */}
+          <div className="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/50 to-white p-5 shadow-xs hover:border-emerald-300 transition-all">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Active Deals</span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-white">
+              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Active Deals</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-xs">
                 <Tag size={16} />
               </span>
             </div>
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-black text-emerald-900">{metrics.active}</p>
+              <p className="text-3xl font-black text-emerald-950">{metrics.active}</p>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" /> Live
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" /> Live Now
               </span>
             </div>
-            <p className="text-[11px] text-emerald-700/80 mt-1">Visible on marketplace now</p>
+            <p className="text-[11px] text-emerald-700/80 mt-1">Live on shopper marketplace</p>
           </div>
 
-          <div className="rounded-2xl border border-amber-200/60 bg-amber-50/30 p-5 shadow-xs">
+          {/* Card 3: Draft Deals */}
+          <div className="rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50/50 to-white p-5 shadow-xs hover:border-amber-300 transition-all">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Draft Deals</span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white">
+              <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Draft Deals</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs">
                 <Clock size={16} />
               </span>
             </div>
-            <p className="text-3xl font-black text-amber-900">{metrics.draft}</p>
-            <p className="text-[11px] text-amber-700/80 mt-1">Ready for publishing</p>
+            <p className="text-3xl font-black text-amber-950">{metrics.draft}</p>
+            <p className="text-[11px] text-amber-700/80 mt-1">Ready for scheduled publish</p>
           </div>
 
-          <div className="rounded-2xl border border-blue-200/60 bg-blue-50/30 p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-blue-800 uppercase tracking-wider">AI Assistant</span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-                <Sparkles size={16} />
-              </span>
+          {/* Card 4: NVIDIA AI Assistant */}
+          <div className="rounded-2xl border border-blue-200/70 bg-gradient-to-br from-blue-50/60 to-white p-5 shadow-xs hover:border-blue-300 transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider">AI Deal Copilot</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+                  <Sparkles size={16} />
+                </span>
+              </div>
+              <p className="text-base font-extrabold text-blue-950">NVIDIA AI Ready</p>
             </div>
-            <p className="text-lg font-black text-blue-900">NVIDIA AI Ready</p>
             <button
               onClick={() => {
                 handleOpenCreate();
                 setShowAiHelper(true);
               }}
-              className="mt-1 text-[11px] font-bold text-blue-700 hover:underline flex items-center gap-1"
+              className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-700 hover:text-blue-900 transition-colors cursor-pointer"
             >
-              <Wand2 size={12} /> Auto-generate deal &rarr;
+              <Wand2 size={13} /> Auto-draft deal &rarr;
             </button>
           </div>
         </div>
 
-        {/* POS Quick Voucher Redemption Widget */}
-        <div className="rounded-3xl border border-gray-200/80 bg-white p-6 shadow-xs">
+        {/* POS Customer Voucher Verification & Quick Redemption */}
+        <div className="rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-7 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-[#E8503A]">
-                <Ticket size={20} />
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-[#E8503A] border border-orange-100">
+                <Ticket size={22} />
               </div>
               <div>
                 <h2 className="text-base font-extrabold text-gray-900">
                   Customer Voucher Verification & Redemption
                 </h2>
                 <p className="text-xs text-gray-500">
-                  Customer presenting a QR code voucher? Enter the unique digital voucher code below.
+                  Customer presenting a digital voucher or QR pass? Enter their unique voucher code below to redeem.
                 </p>
               </div>
             </div>
@@ -660,19 +729,19 @@ const SellerDashboard = () => {
 
           <form onSubmit={handleRedeemVoucher} className="mt-4 flex flex-col sm:flex-row items-center gap-3">
             <div className="relative flex-1 w-full">
-              <Ticket size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Ticket size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="e.g. VOUCH-48192 or enter 8-digit voucher code"
+                placeholder="e.g. VOUCH-48192 OR ENTER 8-DIGIT VOUCHER CODE"
                 value={voucherCodeInput}
-                onChange={(e) => setVoucherCodeInput(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-xs font-medium text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-none uppercase"
+                onChange={(e) => setVoucherCodeInput(e.target.value.toUpperCase())}
+                className="w-full rounded-xl border border-gray-200 bg-gray-50/60 py-3 pl-10 pr-4 text-xs font-bold text-gray-900 placeholder:text-gray-400 uppercase tracking-wider focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
               />
             </div>
             <button
               type="submit"
               disabled={redeemLoading || !voucherCodeInput.trim()}
-              className="w-full sm:w-auto rounded-xl bg-[#172026] px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#E8503A] transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+              className="w-full sm:w-auto h-11 rounded-xl bg-[#111827] px-6 text-xs font-bold text-white shadow-xs hover:bg-[#E8503A] transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shrink-0"
             >
               {redeemLoading && (
                 <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
@@ -684,30 +753,30 @@ const SellerDashboard = () => {
           {/* Redemption Feedback Banner */}
           {redeemResult && (
             <div
-              className={`mt-4 rounded-xl p-4 text-xs font-medium flex items-start gap-3 animate-fadeIn ${
+              className={`mt-4 rounded-2xl p-4 text-xs font-medium flex items-start gap-3 animate-fadeIn ${
                 redeemResult.success
-                  ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
-                  : "bg-red-50 border border-red-200 text-red-700"
+                  ? "bg-emerald-50 border border-emerald-200 text-emerald-900"
+                  : "bg-red-50 border border-red-200 text-red-800"
               }`}
             >
               {redeemResult.success ? (
-                <CheckCircle2 size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+                <CheckCircle2 size={20} className="text-emerald-600 shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
+                <AlertCircle size={20} className="text-red-600 shrink-0 mt-0.5" />
               )}
-              <div className="flex-1">
-                <p className="font-bold">{redeemResult.message}</p>
+              <div className="flex-1 space-y-1">
+                <p className="font-extrabold text-sm">{redeemResult.message}</p>
                 {redeemResult.success && (
-                  <p className="text-[11px] text-emerald-700 mt-0.5">
-                    Order confirmed. Customer voucher marked as REDEEMED.
+                  <p className="text-[11px] text-emerald-700">
+                    Voucher marked as <strong>REDEEMED</strong> at {redeemResult.timestamp}. Customer order fulfilled.
                   </p>
                 )}
               </div>
               <button
                 onClick={() => setRedeemResult(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 cursor-pointer p-1"
               >
-                <X size={15} />
+                <X size={16} />
               </button>
             </div>
           )}
@@ -716,36 +785,51 @@ const SellerDashboard = () => {
         {/* Deals Management Section */}
         <div className="rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
           {/* Section Header & Filters */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-gray-100">
             <div>
-              <h2 className="text-lg font-extrabold text-gray-900">Your Flash Promotions</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-black text-gray-900">Your Flash Promotions</h2>
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-extrabold text-gray-700">
+                  {filteredDeals.length}
+                </span>
+              </div>
               <p className="text-xs text-gray-500 mt-0.5">Filter, pause, edit, and monitor your active deals</p>
             </div>
 
             {/* Filter Pills, Search & View Mode Switcher */}
             <div className="flex flex-wrap items-center gap-3">
-              {/* Filter Tabs */}
-              <div className="flex items-center bg-gray-100 p-1 rounded-xl">
-                {["all", "active", "draft", "expired"].map((tab) => (
+              {/* Filter Tabs with Dynamic Counters */}
+              <div className="flex items-center bg-gray-100/80 p-1 rounded-xl">
+                {filterTabs.map((tab) => (
                   <button
-                    key={tab}
-                    onClick={() => setActiveFilter(tab)}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg capitalize transition-all cursor-pointer ${activeFilter === tab
-                      ? "bg-white text-gray-900 shadow-xs"
-                      : "text-gray-500 hover:text-gray-900"
-                      }`}
+                    key={tab.key}
+                    onClick={() => setActiveFilter(tab.key)}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                      activeFilter === tab.key
+                        ? "bg-white text-gray-900 shadow-2xs"
+                        : "text-gray-500 hover:text-gray-900"
+                    }`}
                   >
-                    {tab}
+                    <span>{tab.label}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                        activeFilter === tab.key
+                          ? "bg-[#E8503A]/10 text-[#E8503A]"
+                          : "bg-gray-200/80 text-gray-600"
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
                   </button>
                 ))}
               </div>
 
               {/* View Mode Toggle */}
-              <div className="flex items-center bg-gray-100 p-1 rounded-xl">
+              <div className="flex items-center bg-gray-100/80 p-1 rounded-xl">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-1 rounded-lg transition ${
-                    viewMode === "grid" ? "bg-white text-[#E8503A] shadow-xs" : "text-gray-400"
+                  className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                    viewMode === "grid" ? "bg-white text-[#E8503A] shadow-2xs" : "text-gray-400 hover:text-gray-600"
                   }`}
                   title="Grid View"
                 >
@@ -753,8 +837,8 @@ const SellerDashboard = () => {
                 </button>
                 <button
                   onClick={() => setViewMode("table")}
-                  className={`p-1 rounded-lg transition ${
-                    viewMode === "table" ? "bg-white text-[#E8503A] shadow-xs" : "text-gray-400"
+                  className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                    viewMode === "table" ? "bg-white text-[#E8503A] shadow-2xs" : "text-gray-400 hover:text-gray-600"
                   }`}
                   title="Table View"
                 >
@@ -770,32 +854,40 @@ const SellerDashboard = () => {
                   placeholder="Search deals..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-xl border border-gray-200 bg-gray-50/50 py-1.5 pl-8 pr-3 text-xs text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
+                  className="rounded-xl border border-gray-200 bg-gray-50/60 py-1.5 pl-8 pr-7 text-xs text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
                 />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
           {/* Deals Grid / List */}
           {loadingDeals ? (
-            <div className="py-16 text-center text-xs text-gray-400 flex flex-col items-center justify-center gap-3">
-              <span className="h-6 w-6 rounded-full border-2 border-[#E8503A] border-t-transparent animate-spin" />
-              <span>Loading your flash promotions...</span>
+            <div className="py-20 text-center text-xs text-gray-500 flex flex-col items-center justify-center gap-3">
+              <span className="h-7 w-7 rounded-full border-2 border-[#E8503A] border-t-transparent animate-spin" />
+              <span className="font-semibold">Retrieving your deals from database...</span>
             </div>
           ) : filteredDeals.length === 0 ? (
-            <div className="py-14 text-center space-y-3">
+            <div className="py-16 text-center space-y-3">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-[#E8503A]">
                 <Tag size={26} />
               </div>
               <h3 className="text-base font-bold text-gray-900">No flash deals found</h3>
               <p className="text-xs text-gray-500 max-w-sm mx-auto">
                 {searchQuery || activeFilter !== "all"
-                  ? "Try adjusting your search or status filters."
-                  : "Launch your first flash deal now to attract customers during quiet hours!"}
+                  ? "Try adjusting your search query or status filter."
+                  : "Launch your first flash deal now to attract customers during quiet store hours!"}
               </p>
               <button
                 onClick={handleOpenCreate}
-                className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-[#E8503A] px-4 py-2 text-xs font-bold text-white hover:bg-[#D43A26] transition-colors cursor-pointer"
+                className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-[#E8503A] px-4 py-2 text-xs font-bold text-white hover:bg-[#D43A26] transition-colors cursor-pointer shadow-xs"
               >
                 <PlusCircle size={15} />
                 <span>Create Flash Deal</span>
@@ -803,65 +895,87 @@ const SellerDashboard = () => {
             </div>
           ) : viewMode === "grid" ? (
             /* Cards Grid View */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredDeals.map((deal) => {
                 const isActive = deal.status === "active";
                 const isDraft = deal.status === "draft";
-                const isExpired = deal.status === "expired";
+                const isExpired = deal.status === "expired" || (deal.endDate && new Date(deal.endDate) < new Date());
+                const discountedPrice = deal.discountedPrice || (deal.originalPrice * (1 - deal.discountPercentage / 100));
+                const savings = deal.originalPrice - discountedPrice;
 
                 return (
                   <div
                     key={deal._id}
-                    className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs hover:shadow-md hover:border-gray-300 transition-all flex flex-col justify-between"
+                    className="group rounded-2xl border border-gray-200/90 bg-white p-5 shadow-xs hover:shadow-xl hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between"
                   >
                     <div>
-                      {/* Top Badges */}
+                      {/* Top Badges Strip */}
                       <div className="flex items-center justify-between gap-2 mb-3">
                         <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold text-gray-600 uppercase tracking-wide">
                           {deal.category || "General"}
                         </span>
                         <span
-                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${isActive
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : isDraft
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide border ${
+                            isActive
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : isDraft
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
                               : isExpired
-                                ? "bg-gray-100 text-gray-500 border border-gray-200"
-                                : "bg-red-50 text-red-700 border border-red-200"
-                            }`}
+                              ? "bg-gray-100 text-gray-500 border-gray-200"
+                              : "bg-red-50 text-red-700 border-red-200"
+                          }`}
                         >
                           {deal.status}
                         </span>
                       </div>
 
                       {/* Title & Description */}
-                      <h3 className="text-sm font-bold text-gray-900 line-clamp-1">{deal.title}</h3>
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">
+                      <h3 className="text-sm font-extrabold text-gray-900 line-clamp-1 group-hover:text-[#E8503A] transition-colors">
+                        {deal.title}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed font-normal">
                         {deal.description}
                       </p>
 
-                      {/* Pricing Box */}
-                      <div className="mt-4 p-3 rounded-xl bg-gray-50/80 flex items-center justify-between">
+                      {/* Pricing Box with Savings Pill */}
+                      <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-gray-50 to-orange-50/30 border border-gray-100 flex items-center justify-between">
                         <div>
-                          <span className="text-xs text-gray-400 line-through mr-1.5">
-                            Rs. {deal.originalPrice?.toLocaleString()}
-                          </span>
-                          <span className="text-base font-extrabold text-[#E8503A]">
-                            Rs. {deal.discountedPrice?.toLocaleString()}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-gray-400 line-through">
+                              Rs. {Number(deal.originalPrice).toLocaleString()}
+                            </span>
+                            <span className="text-base font-black text-[#E8503A]">
+                              Rs. {Math.round(discountedPrice).toLocaleString()}
+                            </span>
+                          </div>
+                          {savings > 0 && (
+                            <span className="text-[10px] font-bold text-emerald-600">
+                              Save Rs. {Math.round(savings).toLocaleString()}
+                            </span>
+                          )}
                         </div>
-                        <span className="rounded-lg bg-[#E8503A]/10 px-2 py-0.5 text-xs font-black text-[#E8503A]">
+
+                        <span className="rounded-lg bg-[#E8503A] px-2.5 py-1 text-xs font-black text-white shadow-2xs">
                           {deal.discountPercentage}% OFF
                         </span>
                       </div>
 
-                      {/* Availability & Dates */}
-                      <div className="mt-3 text-[11px] text-gray-500 flex items-center justify-between">
-                        <span className="flex items-center gap-1">
-                          <Clock size={12} className="text-gray-400" />
-                          <span>Ends: {new Date(deal.endDate).toLocaleDateString()}</span>
-                        </span>
-                        <span>{deal.availableQuantity || 50} vouchers left</span>
+                      {/* Availability & Duration Progress */}
+                      <div className="mt-3 text-[11px] text-gray-500 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1">
+                            <Clock size={12} className="text-gray-400" />
+                            <span>Ends: {deal.endDate ? new Date(deal.endDate).toLocaleDateString() : "Limited Time"}</span>
+                          </span>
+                          <span className="font-bold text-gray-700">{deal.availableQuantity || 30} vouchers left</span>
+                        </div>
+
+                        <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-[#E8503A] h-full rounded-full transition-all"
+                            style={{ width: `${Math.min(100, Math.max(15, (deal.availableQuantity || 30)))}%` }}
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -869,26 +983,27 @@ const SellerDashboard = () => {
                     <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
                       <button
                         onClick={() => handleToggleStatus(deal)}
-                        className={`flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${isActive
-                          ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
-                          : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                          }`}
+                        className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          isActive
+                            ? "bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200"
+                            : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
+                        }`}
                       >
                         {isActive ? <Pause size={13} /> : <Play size={13} />}
-                        <span>{isActive ? "Pause" : "Publish"}</span>
+                        <span>{isActive ? "Pause" : "Go Live"}</span>
                       </button>
 
                       <button
                         onClick={() => handleCopyLink(deal._id)}
-                        className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
+                        className="p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-200"
                         title="Copy deal link"
                       >
-                        {copiedId === deal._id ? <Check size={15} className="text-emerald-600" /> : <Copy size={15} />}
+                        {copiedId === deal._id ? <Check size={15} className="text-emerald-600" /> : <Share2 size={15} />}
                       </button>
 
                       <button
                         onClick={() => handleOpenEdit(deal)}
-                        className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
+                        className="p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-200"
                         title="Edit Deal"
                       >
                         <Edit3 size={15} />
@@ -896,7 +1011,7 @@ const SellerDashboard = () => {
 
                       <button
                         onClick={() => handleDeleteDeal(deal._id)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                        className="p-2 rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer border border-transparent hover:border-red-200"
                         title="Delete Deal"
                       >
                         <Trash2 size={15} />
@@ -910,60 +1025,63 @@ const SellerDashboard = () => {
             /* Table View */
             <div className="overflow-x-auto rounded-2xl border border-gray-200">
               <table className="w-full text-left text-xs">
-                <thead className="bg-gray-50 text-gray-500 font-bold border-b border-gray-200">
+                <thead className="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
                   <tr>
-                    <th className="p-3">Deal Title</th>
-                    <th className="p-3">Category</th>
-                    <th className="p-3">Original</th>
-                    <th className="p-3">Deal Price</th>
-                    <th className="p-3">Discount</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3 text-right">Actions</th>
+                    <th className="p-3.5">Deal Title</th>
+                    <th className="p-3.5">Category</th>
+                    <th className="p-3.5">Original</th>
+                    <th className="p-3.5">Flash Price</th>
+                    <th className="p-3.5">Discount</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 font-medium text-gray-800">
-                  {filteredDeals.map((deal) => (
-                    <tr key={deal._id} className="hover:bg-gray-50/70 transition">
-                      <td className="p-3 font-bold text-gray-900">{deal.title}</td>
-                      <td className="p-3">{deal.category || "General"}</td>
-                      <td className="p-3 text-gray-400 line-through">Rs. {deal.originalPrice}</td>
-                      <td className="p-3 font-extrabold text-[#E8503A]">Rs. {deal.discountedPrice}</td>
-                      <td className="p-3 font-bold">{deal.discountPercentage}%</td>
-                      <td className="p-3">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
-                            deal.status === "active"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {deal.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-right space-x-1">
-                        <button
-                          onClick={() => handleToggleStatus(deal)}
-                          className="px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700"
-                        >
-                          {deal.status === "active" ? "Pause" : "Live"}
-                        </button>
-                        <button
-                          onClick={() => handleOpenEdit(deal)}
-                          className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600"
-                          title="Edit"
-                        >
-                          <Edit3 size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteDeal(deal._id)}
-                          className="p-1.5 rounded-md hover:bg-red-50 text-red-500"
-                          title="Delete"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredDeals.map((deal) => {
+                    const discounted = deal.discountedPrice || (deal.originalPrice * (1 - deal.discountPercentage / 100));
+                    return (
+                      <tr key={deal._id} className="hover:bg-gray-50/70 transition">
+                        <td className="p-3.5 font-bold text-gray-900 max-w-[200px] truncate">{deal.title}</td>
+                        <td className="p-3.5">{deal.category || "General"}</td>
+                        <td className="p-3.5 text-gray-400 line-through">Rs. {Number(deal.originalPrice).toLocaleString()}</td>
+                        <td className="p-3.5 font-extrabold text-[#E8503A]">Rs. {Math.round(discounted).toLocaleString()}</td>
+                        <td className="p-3.5 font-bold">{deal.discountPercentage}%</td>
+                        <td className="p-3.5">
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase ${
+                              deal.status === "active"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-gray-100 text-gray-600 border border-gray-200"
+                            }`}
+                          >
+                            {deal.status}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-right space-x-1">
+                          <button
+                            onClick={() => handleToggleStatus(deal)}
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer"
+                          >
+                            {deal.status === "active" ? "Pause" : "Live"}
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(deal)}
+                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 cursor-pointer"
+                            title="Edit"
+                          >
+                            <Edit3 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDeal(deal._id)}
+                            className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -977,12 +1095,12 @@ const SellerDashboard = () => {
           <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-gray-100 my-6 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E8503A]/10 text-[#E8503A]">
-                  <Tag size={16} />
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8503A]/10 text-[#E8503A]">
+                  <Tag size={18} />
                 </span>
                 <h3 className="text-lg font-black text-gray-900">
-                  {editingDeal ? "Edit Flash Deal" : "Create New Flash Deal"}
+                  {editingDeal ? "Edit Flash Deal" : "Create Flash Promotion"}
                 </h3>
               </div>
               <button
@@ -993,125 +1111,88 @@ const SellerDashboard = () => {
               </button>
             </div>
 
-            {/* Error in modal */}
+            {/* Error banner in modal */}
             {formError && (
-              <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-                <AlertCircle size={15} className="shrink-0" />
+              <div className="mt-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                <AlertCircle size={16} className="shrink-0 text-red-600" />
                 <span>{formError}</span>
-              </div>
-            )}
-
-            {/* AI Generator Toggle Button (When creating new deal) */}
-            {!editingDeal && (
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowAiHelper(!showAiHelper)}
-                  className="w-full flex items-center justify-between gap-2 rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border border-orange-200/80 p-3 text-xs font-bold text-gray-800 hover:border-[#E8503A] transition"
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={16} className="text-[#E8503A]" />
-                    <span>Want NVIDIA AI to write your deal?</span>
-                  </div>
-                  <span className="text-[11px] font-extrabold text-[#E8503A]">
-                    {showAiHelper ? "Hide Assistant" : "Auto-Draft with AI &rarr;"}
-                  </span>
-                </button>
-
-                {showAiHelper && (
-                  <div className="mt-2.5 p-3.5 rounded-2xl bg-gray-50 border border-gray-200 space-y-2.5 animate-fadeIn">
-                    <p className="text-[11px] font-semibold text-gray-600">
-                      Enter product or service name (e.g. <em>Chicken Burger Combo, Full Body Massage, AC Cleaning</em>):
-                    </p>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="e.g. Crispy Chicken Burger with Fries"
-                        value={aiPrompt}
-                        onChange={(e) => setAiPrompt(e.target.value)}
-                        className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#E8503A]"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleGenerateAiDeal}
-                        disabled={isGeneratingAi || !aiPrompt.trim()}
-                        className="rounded-xl bg-[#E8503A] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#D43A26] transition disabled:opacity-50 flex items-center gap-1.5"
-                      >
-                        {isGeneratingAi && (
-                          <span className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                        )}
-                        <span>Generate</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
             {/* Deal Form */}
             <form onSubmit={handleSubmitDeal} className="mt-5 space-y-4">
-
-              {/* AI Deal Generator */}
+              
+              {/* AI Copilot Accordion */}
               {!editingDeal && (
-                <div className="rounded-2xl border border-orange-200 bg-orange-50/50 p-4 space-y-3">
-
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={18} className="text-[#E8503A]" />
-                    <h4 className="text-sm font-extrabold text-gray-900">
-                      AI Deal Assistant
-                    </h4>
+                <div className="rounded-2xl border border-orange-200/90 bg-gradient-to-br from-orange-50/70 via-amber-50/40 to-white p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles size={16} className="text-[#E8503A]" />
+                      <h4 className="text-xs font-black uppercase tracking-wider text-gray-900">
+                        NVIDIA AI Deal Assistant
+                      </h4>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAiHelper(!showAiHelper)}
+                      className="text-[11px] font-bold text-[#E8503A] hover:underline cursor-pointer"
+                    >
+                      {showAiHelper ? "Hide Assistant" : "Open Assistant"}
+                    </button>
                   </div>
 
-                  <p className="text-xs text-gray-500">
-                    Let AI suggest a title, description and discount for your flash deal.
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Enter your item name and original price below, and NVIDIA AI will craft the optimal headline and discount.
                   </p>
 
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Product or Service
-                    </label>
+                  {(showAiHelper || !formData.title) && (
+                    <div className="space-y-2.5 pt-1">
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                          Product or Special Offer Name
+                        </label>
+                        <input
+                          type="text"
+                          value={aiProduct}
+                          onChange={(e) => setAiProduct(e.target.value)}
+                          placeholder="e.g. Crispy Fried Chicken Burger Combo"
+                          className="w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden focus:border-[#E8503A]"
+                        />
+                      </div>
 
-                    <input
-                      type="text"
-                      value={aiProduct}
-                      onChange={(e) => setAiProduct(e.target.value)}
-                      placeholder="e.g. Chicken Burger"
-                      className="w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                          Target Shoppers (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={aiTargetCustomer}
+                          onChange={(e) => setAiTargetCustomer(e.target.value)}
+                          placeholder="e.g. University Students, Office Lunch Crowd"
+                          className="w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden focus:border-[#E8503A]"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Target Customers
-                    </label>
-
-                    <input
-                      type="text"
-                      value={aiTargetCustomer}
-                      onChange={(e) => setAiTargetCustomer(e.target.value)}
-                      placeholder="e.g. University Students"
-                      className="w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs"
-                    />
-                  </div>
-
-                  <p className="text-[11px] text-gray-500">
-                    Uses the original price and category entered in the form below.
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={handleGenerateAIDeal}
-                    disabled={
-                      aiLoading ||
-                      !aiProduct.trim() ||
-                      !Number.isFinite(Number.parseFloat(formData.originalPrice)) ||
-                      Number.parseFloat(formData.originalPrice) <= 0
-                    }
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#E8503A] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#D43A26] disabled:opacity-60"
-                  >
-                    <Sparkles size={15} />
-                    {aiLoading ? "AI is generating..." : "Generate with AI"}
-                  </button>
+                      <button
+                        type="button"
+                        onClick={handleGenerateAIDeal}
+                        disabled={aiLoading || !aiProduct.trim() || !formData.originalPrice}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF4A2F] to-[#E8503A] py-2.5 text-xs font-bold text-white shadow-xs hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
+                      >
+                        {aiLoading ? (
+                          <>
+                            <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                            <span>Crafting with AI...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={14} />
+                            <span>Auto-Generate Deal with NVIDIA AI</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1153,7 +1234,7 @@ const SellerDashboard = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block text-xs font-bold text-gray-700">Max Vouchers</label>
+                  <label className="block text-xs font-bold text-gray-700">Available Quantity</label>
                   <input
                     type="number"
                     name="availableQuantity"
@@ -1207,12 +1288,12 @@ const SellerDashboard = () => {
                   <div>
                     <span className="text-gray-500 text-[11px] block">Customer Pays</span>
                     <span className="text-base font-black text-[#E8503A]">
-                      Rs. {calculatedDiscountedPrice}
+                      Rs. {calculatedDiscountedPrice.toLocaleString()}
                     </span>
                   </div>
                   <div className="text-right">
                     <span className="text-emerald-700 font-bold block text-[11px]">
-                      Customer Saves: Rs. {savingsAmount}
+                      Customer Saves: Rs. {savingsAmount.toLocaleString()}
                     </span>
                     <span className="text-[10px] text-gray-500">
                       {discountPctNum}% instant markdown
@@ -1221,7 +1302,7 @@ const SellerDashboard = () => {
                 </div>
               )}
 
-              {/* Flash Duration */}
+              {/* Flash Duration Presets */}
               {!editingDeal && (
                 <div className="space-y-1">
                   <label className="block text-xs font-bold text-gray-700">Deal Duration</label>
@@ -1236,10 +1317,11 @@ const SellerDashboard = () => {
                         key={dur.val}
                         type="button"
                         onClick={() => setFormData((prev) => ({ ...prev, durationHours: dur.val }))}
-                        className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-colors cursor-pointer ${formData.durationHours === dur.val
-                          ? "bg-[#E8503A] text-white border-[#E8503A]"
-                          : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
-                          }`}
+                        className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+                          formData.durationHours === dur.val
+                            ? "bg-[#E8503A] text-white border-[#E8503A]"
+                            : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
+                        }`}
                       >
                         {dur.label}
                       </button>
@@ -1276,8 +1358,8 @@ const SellerDashboard = () => {
               </div>
 
               {/* Initial Status */}
-              <div className="flex items-center gap-3 pt-1">
-                <label className="text-xs font-bold text-gray-700">Publish Mode:</label>
+              <div className="flex items-center gap-4 pt-1">
+                <span className="text-xs font-bold text-gray-700">Mode:</span>
                 <label className="inline-flex items-center gap-1.5 text-xs text-gray-700 cursor-pointer">
                   <input
                     type="radio"
@@ -1287,7 +1369,7 @@ const SellerDashboard = () => {
                     onChange={handleInputChange}
                     className="text-[#E8503A] focus:ring-[#E8503A]"
                   />
-                  <span>Publish Immediately (Active)</span>
+                  <span>Live Immediately</span>
                 </label>
                 <label className="inline-flex items-center gap-1.5 text-xs text-gray-700 cursor-pointer">
                   <input

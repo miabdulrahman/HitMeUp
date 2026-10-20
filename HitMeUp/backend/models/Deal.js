@@ -108,4 +108,4 @@ dealSchema.methods.isExpired = function () {
   return new Date() > this.endDate;
 };
 
-module.exports = mongoose.model("Deal", dealSchema);
+module.exports = mongoose.models.Deal || mongoose.model("Deal", dealSchema);

@@ -1,7 +1,8 @@
 import { Search, Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import SearchModal from "./SearchModal";
 
 function Navbar() {
   const navigate = useNavigate();

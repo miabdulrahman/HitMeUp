@@ -16,7 +16,7 @@ export default function AIDealGeneration() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(agent);
+        setLoading(true);
         setError("");
         setResult(null);
 

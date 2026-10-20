@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { dealApi } from "../../services/api";
+import { dealApi, businessApi, voucherApi } from "../../services/api";
 import { generateDeals } from "../../services/aiService";
 import {
   LogOut,
@@ -287,7 +287,9 @@ const SellerDashboard = () => {
     } finally {
       setAiLoading(false);
     }
-  }
+  };
+
+  const handleGenerateAiDeal = handleGenerateAIDeal;
 
   // Submit Deal (Create or Update)
   const handleSubmitDeal = async (e) => {

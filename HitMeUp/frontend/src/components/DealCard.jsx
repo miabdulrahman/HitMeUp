@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Heart, MapPin, Clock3, ArrowRight, Sparkles } from "lucide-react";
 
-function DealCard({ deal }) {
+function DealCard({ deal, onOpen }) {
   const [isFavorite, setIsFavorite] = useState(false);
 
   const handleClick = () => {

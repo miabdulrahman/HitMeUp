@@ -4,6 +4,7 @@ import { normalizeCategory, getCategorySlug } from "../data/categories";
 import DealCard from "./DealCard";
 import DealDetailModal from "./DealDetailModal";
 import { dealApi } from "../services/api";
+import { Sparkles } from "lucide-react";
 
 function FeaturedDeals() {
   const sectionRef = useRef(null);

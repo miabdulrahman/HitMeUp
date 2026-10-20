@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, X, MapPin, Sparkles, ArrowRight, Clock } from "lucide-react";
+import { Search, X, MapPin, Sparkles, ArrowRight, Clock, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { deals as allDeals } from "../data/deals";
-import { categories } from "../data/categories";
+import { categories, normalizeCategory, getCategorySlug } from "../data/categories";
+import { dealApi } from "../services/api";
 
 function SearchModal({ isOpen, onClose, onSelectDeal }) {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [deals, setDeals] = useState([]);
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -17,6 +19,62 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
       setQuery("");
       setSelectedCategory("all");
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let isMounted = true;
+    const fetchLiveDeals = async () => {
+      setLoading(true);
+      try {
+        const response = await dealApi.getDeals();
+        const liveDeals = response.deals || response.data || [];
+        if (isMounted) {
+          if (Array.isArray(liveDeals)) {
+            const formatted = liveDeals.map((d, index) => {
+              const displayCat = normalizeCategory(d.category);
+              const catSlug = getCategorySlug(d.category);
+              const locationCity =
+                d.businessId?.address?.city ||
+                (typeof d.businessId?.address === "string" ? d.businessId?.address : "Colombo, Sri Lanka");
+
+              return {
+                id: d._id || index + 1,
+                title: d.title,
+                business: d.businessId?.name || d.businessName || "Verified Merchant",
+                category: displayCat,
+                categorySlug: catSlug,
+                price: `Rs. ${d.discountedPrice?.toLocaleString() || d.price || "0"}`,
+                rawPrice: d.discountedPrice,
+                oldPrice: `Rs. ${d.originalPrice?.toLocaleString() || d.oldPrice || "0"}`,
+                rawOldPrice: d.originalPrice,
+                discount: `${d.discountPercentage || 0}% OFF`,
+                discountPercentage: d.discountPercentage || 0,
+                image:
+                  d.imageUrl ||
+                  d.image ||
+                  "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+                distance: locationCity,
+                time: "Limited time",
+                description: d.description,
+              };
+            });
+            setDeals(formatted);
+          } else {
+            setDeals([]);
+          }
+        }
+      } catch (err) {
+        if (isMounted) setDeals([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchLiveDeals();
+    return () => {
+      isMounted = false;
+    };
   }, [isOpen]);
 
   useEffect(() => {
@@ -31,8 +89,8 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
 
   if (!isOpen) return null;
 
-  // Filter deals by query and selected category
-  const filteredDeals = allDeals.filter((deal) => {
+  // Filter deals from database by query and selected category
+  const filteredDeals = deals.filter((deal) => {
     const matchesQuery =
       !query.trim() ||
       deal.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -146,7 +204,12 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
 
         {/* Search Results List */}
         <div className="max-h-[55vh] overflow-y-auto p-4 sm:p-5 space-y-3">
-          {filteredDeals.length > 0 ? (
+          {loading ? (
+            <div className="py-12 text-center flex flex-col items-center justify-center">
+              <Loader2 size={24} className="animate-spin text-[#E8503A] mb-2" />
+              <p className="text-sm font-medium text-gray-500">Loading database deals...</p>
+            </div>
+          ) : filteredDeals.length > 0 ? (
             filteredDeals.map((deal) => (
               <div
                 key={deal.id}

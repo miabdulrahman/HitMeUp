@@ -20,7 +20,6 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import DealDetailModal from "../components/DealDetailModal";
 import { categories, normalizeCategory, getCategorySlug } from "../data/categories";
-import { deals as mockDeals } from "../data/deals";
 import { dealApi } from "../services/api";
 
 function CategoryPage() {
@@ -42,10 +41,10 @@ function CategoryPage() {
   const [activeSlug, setActiveSlug] = useState(slug || "all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("recommended");
-  const [dealsList, setDealsList] = useState(mockDeals);
+  const [dealsList, setDealsList] = useState([]);
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Sync state when URL param slug changes
   useEffect(() => {
@@ -53,7 +52,7 @@ function CategoryPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [slug]);
 
-  // Fetch backend deals for this category if available
+  // Fetch backend deals for this category directly from database
   useEffect(() => {
     let isMounted = true;
     const fetchCategoryDeals = async () => {
@@ -63,59 +62,55 @@ function CategoryPage() {
         const response = await dealApi.getDeals(catName ? { category: catName } : {});
         const liveDeals = response.deals || response.data || [];
 
-        if (isMounted && Array.isArray(liveDeals) && liveDeals.length > 0) {
-          const formattedLiveDeals = liveDeals.map((d) => {
-            const displayCat = normalizeCategory(d.category);
-            const catSlug = getCategorySlug(d.category);
-            const locationCity =
-              d.businessId?.address?.city ||
-              (typeof d.businessId?.address === "string" ? d.businessId?.address : "Colombo, Sri Lanka");
+        if (isMounted) {
+          if (Array.isArray(liveDeals)) {
+            const formattedLiveDeals = liveDeals.map((d) => {
+              const displayCat = normalizeCategory(d.category);
+              const catSlug = getCategorySlug(d.category);
+              const locationCity =
+                d.businessId?.address?.city ||
+                (typeof d.businessId?.address === "string" ? d.businessId?.address : "Colombo, Sri Lanka");
 
-            return {
-              id: d._id,
-              title: d.title,
-              business: d.businessId?.name || d.businessName || "Verified Merchant",
-              category: displayCat,
-              categorySlug: catSlug,
-              price: `Rs. ${d.discountedPrice?.toLocaleString() || "0"}`,
-              rawPrice: d.discountedPrice,
-              oldPrice: `Rs. ${d.originalPrice?.toLocaleString() || "0"}`,
-              rawOldPrice: d.originalPrice,
-              discount: `${d.discountPercentage || 0}% OFF`,
-              discountPercentage: d.discountPercentage || 0,
-              image:
-                d.imageUrl ||
-                d.image ||
-                "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
-              time: "Limited time",
-              distance: locationCity,
-              location: locationCity,
-              rating: 4.8,
-              reviewsCount: 35,
-              vouchersLeft: d.availableQuantity || 10,
-              description: d.description,
-              highlights: [
-                "Instant digital voucher",
-                "Valid for direct redemption",
-                "Verified local merchant",
-              ],
-              terms: d.terms || "Present digital voucher code upon arrival.",
-            };
-          });
-
-          // Merge live deals with mock deals without duplicating
-          setDealsList((prev) => {
-            const combined = [...formattedLiveDeals, ...mockDeals];
-            const seen = new Set();
-            return combined.filter((item) => {
-              const duplicate = seen.has(item.id);
-              seen.add(item.id);
-              return !duplicate;
+              return {
+                id: d._id,
+                title: d.title,
+                business: d.businessId?.name || d.businessName || "Verified Merchant",
+                category: displayCat,
+                categorySlug: catSlug,
+                price: `Rs. ${d.discountedPrice?.toLocaleString() || "0"}`,
+                rawPrice: d.discountedPrice,
+                oldPrice: `Rs. ${d.originalPrice?.toLocaleString() || "0"}`,
+                rawOldPrice: d.originalPrice,
+                discount: `${d.discountPercentage || 0}% OFF`,
+                discountPercentage: d.discountPercentage || 0,
+                image:
+                  d.imageUrl ||
+                  d.image ||
+                  "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+                time: "Limited time",
+                distance: locationCity,
+                location: locationCity,
+                rating: 4.8,
+                reviewsCount: 35,
+                vouchersLeft: d.availableQuantity || 10,
+                description: d.description,
+                highlights: [
+                  "Instant digital voucher",
+                  "Valid for direct redemption",
+                  "Verified local merchant",
+                ],
+                terms: d.terms || "Present digital voucher code upon arrival.",
+              };
             });
-          });
+
+            setDealsList(formattedLiveDeals);
+          } else {
+            setDealsList([]);
+          }
         }
       } catch (err) {
-        console.info("Using catalog deals for category:", err.message);
+        console.error("Failed to fetch category deals from database:", err.message);
+        if (isMounted) setDealsList([]);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -351,7 +346,24 @@ function CategoryPage() {
           </div>
 
           {/* Deals Grid */}
-          {filteredDeals.length > 0 ? (
+          {loading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col h-80 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm animate-pulse"
+                >
+                  <div className="h-44 w-full rounded-xl bg-gray-200" />
+                  <div className="mt-4 h-4 w-1/3 rounded bg-gray-200" />
+                  <div className="mt-2 h-5 w-3/4 rounded bg-gray-200" />
+                  <div className="mt-auto flex justify-between items-center pt-3 border-t border-gray-100">
+                    <div className="h-5 w-1/4 rounded bg-gray-200" />
+                    <div className="h-8 w-1/3 rounded-xl bg-gray-200" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredDeals.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
               {filteredDeals.map((deal) => (
                 <div

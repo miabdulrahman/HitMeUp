@@ -17,9 +17,25 @@ import {
   ShieldCheck,
   AlertCircle,
   TrendingUp,
-  Ticket
+  Ticket,
+  MapPin,
+  Building2
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
+
+const BUSINESS_CATEGORIES = [
+  "Restaurant",
+  "Cafe",
+  "Retail",
+  "Fashion",
+  "Electronics",
+  "Health & Beauty",
+  "Salon",
+  "Fitness",
+  "Entertainment",
+  "Groceries",
+  "Other"
+];
 
 const Register = () => {
   const navigate = useNavigate();
@@ -32,6 +48,9 @@ const Register = () => {
     password: "",
     phone: "",
     role: "customer", // "customer" or "business"
+    businessName: "",
+    businessCategory: "Restaurant",
+    city: "Colombo",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -95,15 +114,26 @@ const Register = () => {
       return;
     }
 
+    if (formData.role === "business" && !formData.phone?.trim()) {
+      setError("Contact phone number is required to register a merchant business.");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const isBusiness = formData.role === "business";
       const payload = {
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
         phone: formData.phone.trim(),
         role: formData.role,
+        ...(isBusiness && {
+          businessName: (formData.businessName || formData.name).trim(),
+          businessCategory: formData.businessCategory || "Restaurant",
+          city: (formData.city || "Colombo").trim(),
+        }),
       };
 
       const user = await register(payload);
@@ -213,7 +243,7 @@ const Register = () => {
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">
                       <ShieldCheck size={12} />
                     </span>
-                    <span>Zero upfront cost — pay only on confirmed redemptions</span>
+                    <span>Automatic Business Profile created with zero setup fees</span>
                   </div>
                 </>
               ) : (
@@ -257,7 +287,7 @@ const Register = () => {
           <div className="relative z-10 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-gray-300">
             <span className="text-[11px] text-white/80 font-medium">Over 850+ stores active</span>
             <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-semibold">
-              <CheckCircle2 size={12} /> Fast 2-minute setup
+              <CheckCircle2 size={12} /> Instant Merchant Profile Setup
             </span>
           </div>
         </div>
@@ -271,10 +301,12 @@ const Register = () => {
                 <span>Join HitMeUp</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1A1A1A] tracking-tight">
-                Create your account
+                {isBusiness ? "Register your Business" : "Create your account"}
               </h2>
               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                Choose your account type below to get started in seconds.
+                {isBusiness
+                  ? "Set up your merchant account to start publishing flash offers."
+                  : "Choose your account type below to get started in seconds."}
               </p>
             </div>
 
@@ -344,13 +376,94 @@ const Register = () => {
 
             {/* Register Form */}
             <form onSubmit={handleRegister} className="mt-5 space-y-3.5">
+              {/* If Merchant: Show Business Name & Category first */}
+              {isBusiness && (
+                <>
+                  <div className="space-y-1">
+                    <label
+                      htmlFor="businessName"
+                      className="block text-xs font-bold text-gray-700 tracking-wide"
+                    >
+                      Business / Store Name
+                    </label>
+                    <div className="relative flex items-center">
+                      <div className="pointer-events-none absolute left-3.5 text-gray-400">
+                        <Store size={17} />
+                      </div>
+                      <input
+                        id="businessName"
+                        type="text"
+                        name="businessName"
+                        required={isBusiness}
+                        placeholder="e.g. Bella Italia Trattoria or Urban Wear"
+                        value={formData.businessName}
+                        onChange={handleChange}
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="businessCategory"
+                        className="block text-xs font-bold text-gray-700 tracking-wide"
+                      >
+                        Business Category
+                      </label>
+                      <div className="relative flex items-center">
+                        <div className="pointer-events-none absolute left-3.5 text-gray-400">
+                          <Building2 size={16} />
+                        </div>
+                        <select
+                          id="businessCategory"
+                          name="businessCategory"
+                          value={formData.businessCategory}
+                          onChange={handleChange}
+                          className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-3 text-sm font-medium text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all cursor-pointer"
+                        >
+                          {BUSINESS_CATEGORIES.map((cat) => (
+                            <option key={cat} value={cat}>
+                              {cat}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="city"
+                        className="block text-xs font-bold text-gray-700 tracking-wide"
+                      >
+                        Store City / Area
+                      </label>
+                      <div className="relative flex items-center">
+                        <div className="pointer-events-none absolute left-3.5 text-gray-400">
+                          <MapPin size={16} />
+                        </div>
+                        <input
+                          id="city"
+                          type="text"
+                          name="city"
+                          placeholder="e.g. Colombo 03"
+                          value={formData.city}
+                          onChange={handleChange}
+                          className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Full Name / Business Owner Name */}
               <div className="space-y-1">
                 <label
                   htmlFor="name"
                   className="block text-xs font-bold text-gray-700 tracking-wide"
                 >
-                  {isBusiness ? "Business / Owner name" : "Full name"}
+                  {isBusiness ? "Account Owner Full Name" : "Full name"}
                 </label>
                 <div className="relative flex items-center">
                   <div className="pointer-events-none absolute left-3.5 text-gray-400">
@@ -361,7 +474,7 @@ const Register = () => {
                     type="text"
                     name="name"
                     required
-                    placeholder={isBusiness ? "e.g. Dave Miller (Brew & Bites)" : "e.g. Alex Silva"}
+                    placeholder={isBusiness ? "e.g. Dave Miller" : "e.g. Alex Silva"}
                     value={formData.name}
                     onChange={handleChange}
                     className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
@@ -377,7 +490,7 @@ const Register = () => {
                     htmlFor="email"
                     className="block text-xs font-bold text-gray-700 tracking-wide"
                   >
-                    Email address
+                    {isBusiness ? "Business Email" : "Email address"}
                   </label>
                   <div className="relative flex items-center">
                     <div className="pointer-events-none absolute left-3.5 text-gray-400">
@@ -388,7 +501,7 @@ const Register = () => {
                       type="email"
                       name="email"
                       required
-                      placeholder="alex@example.com"
+                      placeholder={isBusiness ? "store@example.com" : "alex@example.com"}
                       value={formData.email}
                       onChange={handleChange}
                       className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
@@ -402,7 +515,7 @@ const Register = () => {
                     htmlFor="phone"
                     className="block text-xs font-bold text-gray-700 tracking-wide"
                   >
-                    Phone <span className="text-gray-400 font-normal">(Optional)</span>
+                    Phone {isBusiness ? <span className="text-[#E8503A]">*</span> : <span className="text-gray-400 font-normal">(Optional)</span>}
                   </label>
                   <div className="relative flex items-center">
                     <div className="pointer-events-none absolute left-3.5 text-gray-400">
@@ -412,6 +525,7 @@ const Register = () => {
                       id="phone"
                       type="tel"
                       name="phone"
+                      required={isBusiness}
                       placeholder="+94 77 123 4567"
                       value={formData.phone}
                       onChange={handleChange}
@@ -502,7 +616,7 @@ const Register = () => {
                 {loading ? (
                   <>
                     <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>Creating account...</span>
+                    <span>Creating account & business profile...</span>
                   </>
                 ) : (
                   <>

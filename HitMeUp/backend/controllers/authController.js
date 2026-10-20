@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Business = require("../models/Business");
+const { createBusinessRecord } = require("./businessController");
 const { JWT_SECRET } = require("../middleware/authMiddleware");
 
 // Helper to generate signed JWT
@@ -24,7 +25,20 @@ const generateToken = (user) => {
  */
 const register = async (req, res) => {
   try {
-    const { name, email, password, role, phone } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      phone,
+      businessName,
+      businessCategory,
+      category,
+      city,
+      address,
+      description,
+      location
+    } = req.body;
 
     // Validate required fields
     if (!name || !email || !password) {
@@ -70,13 +84,40 @@ const register = async (req, res) => {
       phone: phone || ""
     });
 
+    let business = null;
+    // If registering as merchant (business / seller), initialize business profile using Business model & businessController
+    if (userRole === "business" || userRole === "seller") {
+      const bName = (businessName && businessName.trim()) ? businessName.trim() : `${name}'s Store`;
+      const bCategory = businessCategory || category || "Retail";
+      const bPhone = (phone && phone.trim()) ? phone.trim() : "+94 77 000 0000";
+      const bCity = (city && city.trim()) ? city.trim() : (address?.city || "Colombo");
+
+      business = await createBusinessRecord({
+        ownerId: user._id,
+        name: bName,
+        category: bCategory,
+        phone: bPhone,
+        email: user.email,
+        description: description || `Welcome to ${bName}. Discover limited-time flash deals and discounts.`,
+        address: typeof address === "object" ? address : { city: bCity, country: "Sri Lanka" },
+        location,
+        status: "active"
+      });
+
+      // Link businessId to User
+      user.businessId = business._id;
+    }
+
     const token = generateToken(user);
 
     return res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: (userRole === "business" || userRole === "seller")
+        ? "Merchant account and business profile registered successfully"
+        : "User registered successfully",
       token,
-      user: user.toSafeObject()
+      user: user.toSafeObject(),
+      business: business || undefined
     });
   } catch (error) {
     console.error("Register Error:", error);
@@ -130,8 +171,8 @@ const login = async (req, res) => {
       });
     }
 
-    // If business user doesn't have businessId linked yet, check if one exists
-    if (user.role === "seller" && !user.businessId) {
+    // If business user doesn't have businessId linked yet, check if one exists in Business model
+    if ((user.role === "seller" || user.role === "business") && !user.businessId) {
       const business = await Business.findOne({ ownerId: user._id });
       if (business) {
         user.businessId = business._id;

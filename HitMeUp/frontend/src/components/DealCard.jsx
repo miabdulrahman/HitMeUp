@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { Heart, MapPin, Clock3, ArrowRight, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
 
 function DealCard({ deal }) {
   const [isFavorite, setIsFavorite] = useState(false);
 
+  const handleClick = () => {
+    if (onOpen) onOpen(deal);
+  };
+
   return (
-    <article className="group relative flex flex-col h-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_16px_36px_rgba(0,0,0,0.09)]">
+    <article
+      onClick={handleClick}
+      className="group relative flex flex-col h-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_16px_36px_rgba(0,0,0,0.09)] cursor-pointer"
+    >
       {/* Image & Floating Overlays */}
       <div className="relative h-48 w-full overflow-hidden bg-gray-100">
         <img
@@ -92,13 +98,16 @@ function DealCard({ deal }) {
             </span>
           </div>
 
-          <Link
-            to="/register"
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClick();
+            }}
             className="inline-flex items-center gap-1 rounded-xl bg-[#172026] px-3.5 py-2 text-[12px] font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#E8503A] hover:shadow-md active:scale-95"
           >
-            <span>Grab deal</span>
+            <span>View Deal</span>
             <ArrowRight size={13} />
-          </Link>
+          </button>
         </div>
       </div>
     </article>

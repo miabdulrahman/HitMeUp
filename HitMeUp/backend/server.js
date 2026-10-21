@@ -27,6 +27,7 @@ const businessRoutes = require("./routes/businessRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const voucherRoutes = require("./routes/voucherRoutes");
+const discoveryRoutes = require("./routes/discoveryRoutes");
 
 const app = express();
 
@@ -91,6 +92,8 @@ app.use("/api/deals", dealRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/vouchers", voucherRoutes);
+// Member 3: Deal Discovery, Location, Favorites & Reviews
+app.use("/api/discovery", discoveryRoutes);
 
 const PORT = process.env.PORT || 5000;
 

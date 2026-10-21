@@ -15,12 +15,16 @@ import {
   CheckCircle2,
   RefreshCw,
   LayoutGrid,
+  Navigation,
+  Compass,
+  Map as MapIcon
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import DealDetailModal from "../components/DealDetailModal";
+import MapDiscoveryView from "../components/MapDiscoveryView";
 import { categories, normalizeCategory, getCategorySlug } from "../data/categories";
-import { dealApi } from "../services/api";
+import { discoveryApi, dealApi } from "../services/api";
 
 function CategoryPage() {
   const { slug } = useParams();
@@ -46,21 +50,47 @@ function CategoryPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Discovery View Modes: "grid" vs "map"
+  const [viewMode, setViewMode] = useState("grid");
+
+  // Geolocation & Nearby Mode (Member 3)
+  const [nearbyMode, setNearbyMode] = useState(false);
+  const [nearbyRadius, setNearbyRadius] = useState(15); // in km
+  const [userLocation, setUserLocation] = useState(null);
+  const [locating, setLocating] = useState(false);
+
   // Sync state when URL param slug changes
   useEffect(() => {
     setActiveSlug(slug || "all");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [slug]);
 
-  // Fetch backend deals for this category directly from database
+  // Fetch backend deals via Discovery API
   useEffect(() => {
     let isMounted = true;
     const fetchCategoryDeals = async () => {
       setLoading(true);
       try {
+        let liveDeals = [];
         const catName = currentCategory ? currentCategory.name : undefined;
-        const response = await dealApi.getDeals(catName ? { category: catName } : {});
-        const liveDeals = response.deals || response.data || [];
+
+        if (nearbyMode && userLocation) {
+          // Call Member 3 Nearby API with coordinates
+          const response = await discoveryApi.getNearbyDeals({
+            lat: userLocation.latitude,
+            lng: userLocation.longitude,
+            radius: nearbyRadius,
+            category: catName
+          });
+          liveDeals = response.deals || [];
+        } else {
+          // Call Member 3 Discovery Search API
+          const response = await discoveryApi.searchDeals({
+            category: catName,
+            sortBy
+          });
+          liveDeals = response.deals || [];
+        }
 
         if (isMounted) {
           if (Array.isArray(liveDeals)) {
@@ -73,8 +103,10 @@ function CategoryPage() {
 
               return {
                 id: d._id,
+                _id: d._id,
                 title: d.title,
                 business: d.businessId?.name || d.businessName || "Verified Merchant",
+                businessId: d.businessId,
                 category: displayCat,
                 categorySlug: catSlug,
                 price: `Rs. ${d.discountedPrice?.toLocaleString() || "0"}`,
@@ -88,12 +120,13 @@ function CategoryPage() {
                   d.image ||
                   "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
                 time: "Limited time",
-                distance: locationCity,
+                distance: d.distanceText || (d.distanceKm !== undefined ? `${d.distanceKm} km away` : locationCity),
                 location: locationCity,
                 rating: 4.8,
                 reviewsCount: 35,
                 vouchersLeft: d.availableQuantity || 10,
                 description: d.description,
+                isFavorited: d.isFavorited || false,
                 highlights: [
                   "Instant digital voucher",
                   "Valid for direct redemption",
@@ -109,7 +142,7 @@ function CategoryPage() {
           }
         }
       } catch (err) {
-        console.error("Failed to fetch category deals from database:", err.message);
+        console.error("Failed to fetch category deals from discovery API:", err.message);
         if (isMounted) setDealsList([]);
       } finally {
         if (isMounted) setLoading(false);
@@ -121,7 +154,54 @@ function CategoryPage() {
     return () => {
       isMounted = false;
     };
-  }, [currentCategory]);
+  }, [currentCategory, nearbyMode, userLocation, nearbyRadius, sortBy]);
+
+  // Request user GPS location for nearby discovery
+  const handleToggleNearby = () => {
+    if (nearbyMode) {
+      setNearbyMode(false);
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        });
+        setNearbyMode(true);
+        setLocating(false);
+      },
+      (err) => {
+        console.warn("Location permission denied or unavailable:", err.message);
+        // Fallback to Colombo coordinates
+        setUserLocation({ latitude: 6.9271, longitude: 79.8612 });
+        setNearbyMode(true);
+        setLocating(false);
+      }
+    );
+  };
+
+  // Toggle favorite helper
+  const handleToggleFavorite = async (e, dealId) => {
+    e.stopPropagation();
+    setDealsList((prev) =>
+      prev.map((d) =>
+        d.id === dealId ? { ...d, isFavorited: !d.isFavorited } : d
+      )
+    );
+    try {
+      await discoveryApi.toggleFavorite(dealId);
+    } catch (err) {
+      console.warn("Favorite sync failed:", err.message);
+    }
+  };
 
   // Filter and sort items
   const filteredDeals = useMemo(() => {
@@ -220,53 +300,55 @@ function CategoryPage() {
                       </span>
                     )}
                   </div>
-
-                  <h1 className="mt-1 text-3xl sm:text-4xl font-black tracking-tight text-[#1A1A1A]">
-                    {currentCategory
-                      ? `${currentCategory.name} Deals & Offers`
-                      : "Explore All Flash Deals"}
+                  <h1 className="mt-1 text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+                    {currentCategory ? currentCategory.name : "All Flash Deals"}
                   </h1>
-
-                  <p className="mt-2 text-sm sm:text-base text-gray-600 max-w-2xl">
+                  <p className="mt-2 text-sm text-gray-600 max-w-xl">
                     {currentCategory
                       ? currentCategory.description
-                      : "Browse limited-time vouchers and discounts across top-rated local food, fashion, tech, home, and wellness providers."}
+                      : "Explore limited-time discounts, empty table specials, and flash promotions across all verified merchants in your area."}
                   </p>
                 </div>
               </div>
 
-              {/* Quick Metrics Card */}
-              <div className="flex items-center gap-4 bg-[#F7F5F2] border border-gray-200/70 rounded-2xl p-4 shrink-0">
-                <div className="text-center px-2">
-                  <span className="block text-2xl font-black text-gray-900">
-                    {filteredDeals.length}
-                  </span>
-                  <span className="text-xs font-semibold text-gray-500">
-                    Active Deals
-                  </span>
-                </div>
-                <div className="h-8 w-[1px] bg-gray-300" />
-                <div className="text-center px-2">
-                  <span className="block text-2xl font-black text-emerald-600">
-                    Up to 50%
-                  </span>
-                  <span className="text-xs font-semibold text-gray-500">
-                    Max Discount
-                  </span>
-                </div>
+              {/* View Switcher: Grid vs Map */}
+              <div className="flex items-center gap-2 self-start md:self-center bg-gray-100 p-1.5 rounded-2xl border border-gray-200">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+                    viewMode === "grid"
+                      ? "bg-white text-gray-900 shadow-xs"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <LayoutGrid size={15} />
+                  <span>Grid View</span>
+                </button>
+
+                <button
+                  onClick={() => setViewMode("map")}
+                  className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+                    viewMode === "map"
+                      ? "bg-[#E8503A] text-white shadow-xs"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <MapIcon size={15} />
+                  <span>Interactive Map</span>
+                </button>
               </div>
             </div>
 
-            {/* Category Navigation Pills (Quick Switcher) */}
-            <div className="mt-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none pt-2 border-t border-gray-100">
+            {/* Category Filter Pills */}
+            <div className="mt-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
               <button
                 onClick={() => {
                   setActiveSlug("all");
                   navigate("/categories");
                 }}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   activeSlug === "all"
-                    ? "bg-[#172026] text-white shadow-sm"
+                    ? "bg-[#172026] text-white shadow-md"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -284,7 +366,7 @@ function CategoryPage() {
                       setActiveSlug(cat.slug);
                       navigate(`/category/${cat.slug}`);
                     }}
-                    className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all ${
+                    className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                       isActive
                         ? "bg-[#E8503A] text-white shadow-md shadow-[#E8503A]/25"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -301,8 +383,8 @@ function CategoryPage() {
 
         {/* Deals Listing & Filter Section */}
         <section className="mx-auto max-w-[1240px] px-6 py-8">
-          {/* Controls Bar: Search + Sort Dropdown */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm mb-8">
+          {/* Controls Bar: Search + Nearby + Sort Dropdown */}
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm mb-8">
             {/* Search within category */}
             <div className="relative flex-1">
               <Search
@@ -319,36 +401,68 @@ function CategoryPage() {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600 cursor-pointer"
                 >
                   Clear
                 </button>
               )}
             </div>
 
-            {/* Sort Filter */}
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                Sort by:
-              </span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:border-[#E8503A] transition"
+            {/* Member 3: Nearby Geolocation Discovery Controls */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleToggleNearby}
+                disabled={locating}
+                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
+                  nearbyMode
+                    ? "bg-[#E8503A] text-white shadow-sm"
+                    : "border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
+                }`}
               >
-                <option value="recommended">Featured & Recommended</option>
-                <option value="discount_desc">Highest Discount (%)</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="rating_desc">Highest Customer Rating</option>
-              </select>
+                <Navigation size={14} className={locating ? "animate-spin" : ""} />
+                <span>{locating ? "Locating..." : nearbyMode ? "Nearby Active" : "Find Nearby Deals"}</span>
+              </button>
+
+              {nearbyMode && (
+                <select
+                  value={nearbyRadius}
+                  onChange={(e) => setNearbyRadius(Number(e.target.value))}
+                  className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:border-[#E8503A] transition cursor-pointer"
+                >
+                  <option value={5}>Within 5 km</option>
+                  <option value={15}>Within 15 km</option>
+                  <option value={30}>Within 30 km</option>
+                  <option value={50}>Within 50 km</option>
+                </select>
+              )}
+
+              {/* Sort Filter */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
+                  Sort:
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:border-[#E8503A] transition cursor-pointer"
+                >
+                  <option value="recommended">Featured & Recommended</option>
+                  <option value="discount_desc">Highest Discount (%)</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="rating_desc">Highest Customer Rating</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Deals Grid */}
-          {loading ? (
+          {/* Conditional Rendering: Interactive Map Discovery vs Grid */}
+          {viewMode === "map" ? (
+            <MapDiscoveryView onSelectDeal={handleOpenDeal} />
+          ) : loading ? (
+            /* Loading skeletons */
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
-              {Array.from({ length: 6 }).map((_, i) => (
+              {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
                   className="flex flex-col h-80 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm animate-pulse"
@@ -364,6 +478,7 @@ function CategoryPage() {
               ))}
             </div>
           ) : filteredDeals.length > 0 ? (
+            /* Deals Grid */
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
               {filteredDeals.map((deal) => (
                 <div
@@ -386,6 +501,19 @@ function CategoryPage() {
                       <Sparkles size={11} />
                       {deal.discount}
                     </div>
+
+                    {/* Favorite Heart Button (Member 3) */}
+                    <button
+                      onClick={(e) => handleToggleFavorite(e, deal.id)}
+                      className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md shadow-sm transition-all duration-200 active:scale-90 ${
+                        deal.isFavorited
+                          ? "bg-[#E8503A] text-white"
+                          : "bg-white/90 text-gray-600 hover:bg-white hover:text-[#E8503A]"
+                      }`}
+                      aria-label="Save to favorites"
+                    >
+                      <Heart size={15} className={deal.isFavorited ? "fill-white" : ""} />
+                    </button>
 
                     {/* Category Tag */}
                     <div className="absolute bottom-3 left-3 rounded-lg bg-black/60 px-2.5 py-0.5 text-[11px] font-semibold text-white/95 backdrop-blur-md">
@@ -445,7 +573,7 @@ function CategoryPage() {
                         }}
                         className="inline-flex items-center gap-1 rounded-xl bg-[#172026] px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-all duration-200 group-hover:bg-[#E8503A] active:scale-95"
                       >
-                        <span>View Item</span>
+                        <span>View Deal</span>
                         <ArrowRight size={13} />
                       </button>
                     </div>
@@ -463,9 +591,19 @@ function CategoryPage() {
                 No matching flash deals found
               </h3>
               <p className="mt-1 text-sm text-gray-500 max-w-md mx-auto">
-                We couldn't find any deals matching &quot;{searchQuery}&quot; in this category. Try clearing your search or browsing another category.
+                {nearbyMode
+                  ? `No deals found within ${nearbyRadius} km of your location. Try widening the radius filter.`
+                  : `We couldn't find any deals matching "${searchQuery}" in this category. Try clearing your search or browsing another category.`}
               </p>
               <div className="mt-6 flex justify-center gap-3">
+                {nearbyMode && (
+                  <button
+                    onClick={() => setNearbyMode(false)}
+                    className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-200 transition"
+                  >
+                    Disable Nearby Filter
+                  </button>
+                )}
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}

@@ -52,8 +52,7 @@ exports.searchDeals = async (req, res) => {
 
     const searchTerm = (q || keyword || "").trim();
     const query = {
-      status: "active",
-      endDate: { $gt: new Date() }
+      status: "active"
     };
 
     // Category filter
@@ -256,8 +255,7 @@ exports.getNearbyDeals = async (req, res) => {
     // Fetch active deals for these nearby businesses
     const dealQuery = {
       businessId: { $in: businessIds },
-      status: "active",
-      endDate: { $gt: new Date() }
+      status: "active"
     };
 
     const deals = await Deal.find(dealQuery)
@@ -315,8 +313,7 @@ exports.getMapBusinesses = async (req, res) => {
 
     // Find all active deals first to identify merchants with live offers
     const dealQuery = {
-      status: "active",
-      endDate: { $gt: new Date() }
+      status: "active"
     };
 
     if (category && category !== "all" && category !== "All") {

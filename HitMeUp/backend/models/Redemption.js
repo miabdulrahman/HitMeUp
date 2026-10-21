@@ -36,4 +36,4 @@ const redemptionSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Redemption", redemptionSchema);
+module.exports = mongoose.models.Redemption || mongoose.model("Redemption", redemptionSchema);

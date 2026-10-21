@@ -101,4 +101,4 @@ businessSchema.index({ location: "2dsphere" });
 // Index name and category for text searching
 businessSchema.index({ name: "text", category: "text" });
 
-module.exports = mongoose.model("Business", businessSchema);
+module.exports = mongoose.models.Business || mongoose.model("Business", businessSchema);

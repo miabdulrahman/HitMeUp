@@ -38,6 +38,10 @@ const orderSchema = new mongoose.Schema(
     },
     expiresAt: {
       type: Date
+    },
+    paymentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Payment"
     }
   },
   {
@@ -45,4 +49,4 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Order", orderSchema);
+module.exports = mongoose.models.Order || mongoose.model("Order", orderSchema);

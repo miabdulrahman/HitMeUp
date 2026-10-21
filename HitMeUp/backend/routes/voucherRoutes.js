@@ -3,10 +3,11 @@ const express = require("express");
 const {
   getMyVouchers,
   getVoucherById,
+  previewVoucherByCode,
   redeemVoucher
 } = require("../controllers/voucherController");
 
-const { protect } = require("../middleware/authMiddleware");
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -14,11 +15,15 @@ const router = express.Router();
 // GET /api/vouchers
 router.get("/", protect, getMyVouchers);
 
-// Redeem voucher
-// POST /api/vouchers/redeem
-router.post("/redeem", protect, redeemVoucher);
+// Preview/verify voucher by code (cashier scanning view)
+// GET /api/vouchers/code/:code
+router.get("/code/:code", protect, authorizeRoles("business", "admin"), previewVoucherByCode);
 
-// Get single voucher
+// Redeem voucher (restricted to business owners and admins)
+// POST /api/vouchers/redeem
+router.post("/redeem", protect, authorizeRoles("business", "admin"), redeemVoucher);
+
+// Get single voucher by ID (customer view)
 // GET /api/vouchers/:id
 router.get("/:id", protect, getVoucherById);
 

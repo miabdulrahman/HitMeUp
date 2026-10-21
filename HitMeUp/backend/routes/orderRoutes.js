@@ -3,22 +3,28 @@ const express = require("express");
 const {
   createOrder,
   getMyOrders,
-  getOrderById
+  getOrderById,
+  cancelOrder,
+  getBusinessOrders
 } = require("../controllers/orderController");
 
-// CHANGE THIS PATH IF YOUR TEAM'S AUTH MIDDLEWARE
-// HAS A DIFFERENT FILE NAME.
-const { protect } = require("../middleware/authMiddleware");
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// POST /api/orders
+// POST /api/orders - Create new order
 router.post("/", protect, createOrder);
 
-// GET /api/orders
+// GET /api/orders - Get customer orders
 router.get("/", protect, getMyOrders);
 
-// GET /api/orders/:id
+// GET /api/orders/business - Get business owner's orders & revenue analytics
+router.get("/business", protect, authorizeRoles("business", "admin"), getBusinessOrders);
+
+// GET /api/orders/:id - Get single order details
 router.get("/:id", protect, getOrderById);
+
+// PUT /api/orders/:id/cancel - Cancel pending order
+router.put("/:id/cancel", protect, cancelOrder);
 
 module.exports = router;

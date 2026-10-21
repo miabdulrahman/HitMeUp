@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import { voucherApi } from "../services/api";
+import { voucherApi, discoveryApi } from "../services/api";
+import DealReviewsSection from "./DealReviewsSection";
 
 function DealDetailModal({ deal, isOpen, onClose }) {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ function DealDetailModal({ deal, isOpen, onClose }) {
         ? deal.availableQuantity
         : (typeof deal.vouchersLeft === "number" ? deal.vouchersLeft : 30);
       setCurrentStock(initialStock);
+      setIsFavorited(deal.isFavorited || false);
     }
   }, [deal]);
 
@@ -317,6 +319,12 @@ function DealDetailModal({ deal, isOpen, onClose }) {
                 <p>{deal.terms}</p>
               </div>
             )}
+
+            {/* Customer Reviews & Feedback (Member 3) */}
+            <DealReviewsSection
+              businessId={deal.businessId?._id || deal.businessId}
+              dealId={deal._id || deal.id}
+            />
 
             {/* Action Buttons */}
             {!claimSuccess && (

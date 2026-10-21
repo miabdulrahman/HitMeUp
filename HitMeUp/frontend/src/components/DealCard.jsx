@@ -1,11 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, MapPin, Clock3, ArrowRight, Sparkles } from "lucide-react";
+import { discoveryApi } from "../services/api";
 
 function DealCard({ deal, onOpen }) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(deal.isFavorited || false);
+
+  useEffect(() => {
+    setIsFavorite(deal.isFavorited || false);
+  }, [deal.isFavorited]);
 
   const handleClick = () => {
     if (onOpen) onOpen(deal);
+  };
+
+  const handleFavoriteToggle = async (e) => {
+    e.stopPropagation();
+    const dealId = deal.id || deal._id;
+    const nextVal = !isFavorite;
+    setIsFavorite(nextVal);
+    if (dealId) {
+      try {
+        await discoveryApi.toggleFavorite(dealId);
+      } catch (err) {
+        // If not logged in, maintain local state
+      }
+    }
   };
 
   return (
@@ -31,12 +50,9 @@ function DealCard({ deal, onOpen }) {
           {deal.discount}
         </div>
 
-        {/* Favorite Heart Button */}
+        {/* Favorite Heart Button (Member 3) */}
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsFavorite(!isFavorite);
-          }}
+          onClick={handleFavoriteToggle}
           className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md shadow-sm transition-all duration-200 active:scale-90 ${
             isFavorite
               ? "bg-[#E8503A] text-white"
@@ -70,12 +86,12 @@ function DealCard({ deal, onOpen }) {
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1 rounded-md bg-gray-100/80 px-2 py-0.5 text-[11px] font-semibold text-gray-700">
               <MapPin size={12} className="text-[#E8503A]" />
-              {deal.distance}
+              {deal.distanceText || deal.distance || "Nearby"}
             </span>
 
             <span className="inline-flex items-center gap-1 rounded-md bg-[#FFF0ED] px-2 py-0.5 text-[11px] font-bold text-[#E8503A]">
               <Clock3 size={12} />
-              {deal.time}
+              {deal.time || "Limited time"}
             </span>
           </div>
         </div>

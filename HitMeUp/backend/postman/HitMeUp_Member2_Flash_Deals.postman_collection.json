@@ -1,0 +1,176 @@
+{
+  "info": {
+    "_postman_id": "hitmeup-member2-flash-deals-2026",
+    "name": "HitMeUp - Member 2 (Flash Deal Management)",
+    "description": "Postman API collection for Member 2 (M H M Rushdhi). Includes Deal CRUD, automated pricing & discount calculation, lifecycle status transitions (draft/active/expired/cancelled), and business deal management.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "business_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "deal_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "business_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Public Discovery Endpoints",
+      "item": [
+        {
+          "name": "Get All Active Deals (Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/deals?status=active&category=Cafe&minDiscount=20",
+              "host": ["{{base_url}}"],
+              "path": ["deals"],
+              "query": [
+                { "key": "status", "value": "active" },
+                { "key": "category", "value": "Cafe" },
+                { "key": "minDiscount", "value": "20" }
+              ]
+            },
+            "description": "Used by Member 3 (Discovery) and customers to list active, non-expired flash deals."
+          }
+        },
+        {
+          "name": "Get Single Deal by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/deals/{{deal_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["deals", "{{deal_id}}"]
+            },
+            "description": "Used by Member 4 (Orders) to inspect pricing and voucher terms prior to purchase."
+          }
+        },
+        {
+          "name": "Get Deals by Business ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/deals/business/{{business_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["deals", "business", "{{business_id}}"]
+            },
+            "description": "Returns active deals on a specific store profile page."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Business Deal Management (Protected)",
+      "item": [
+        {
+          "name": "Get My Deals & Performance Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{business_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/deals/business/my-deals",
+              "host": ["{{base_url}}"],
+              "path": ["deals", "business", "my-deals"]
+            },
+            "description": "Returns all deals owned by the authenticated business with summary counters."
+          }
+        },
+        {
+          "name": "Create Flash Deal (Auto-calculate Discount)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{business_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Artisan Cold Brew & Croissant Combo\",\n  \"description\": \"Single-origin cold brew with freshly baked butter croissant\",\n  \"category\": \"Cafe\",\n  \"originalPrice\": 1500,\n  \"discountPercentage\": 40,\n  \"durationHours\": 6,\n  \"availableQuantity\": 30,\n  \"status\": \"active\",\n  \"terms\": \"Valid between 2PM - 6PM today. One voucher per customer.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/deals",
+              "host": ["{{base_url}}"],
+              "path": ["deals"]
+            },
+            "description": "Creates a new deal. Discounted price is automatically calculated as originalPrice * (1 - discountPercentage/100)."
+          }
+        },
+        {
+          "name": "Update Deal Details",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{business_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Artisan Cold Brew & Pastry Combo (Extended)\",\n  \"originalPrice\": 1800,\n  \"discountPercentage\": 50,\n  \"availableQuantity\": 40\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/deals/{{deal_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["deals", "{{deal_id}}"]
+            },
+            "description": "Updates an existing deal. Recalculates pricing and updates values."
+          }
+        },
+        {
+          "name": "Update Deal Status (Lifecycle Transition)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{business_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"draft\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/deals/{{deal_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["deals", "{{deal_id}}", "status"]
+            },
+            "description": "Transitions deal status between draft, active, expired, or cancelled."
+          }
+        },
+        {
+          "name": "Delete Deal",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{business_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/deals/{{deal_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["deals", "{{deal_id}}"]
+            },
+            "description": "Permanently deletes a deal owned by the authenticated merchant."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -62,6 +62,16 @@ const protect = async (req, res, next) => {
  * Example usage: authorizeRoles("business", "admin")
  */
 const authorizeRoles = (...roles) => {
+  const allowed = new Set(roles);
+  if (allowed.has("business") || allowed.has("seller")) {
+    allowed.add("business");
+    allowed.add("seller");
+  }
+  if (allowed.has("customer") || allowed.has("buyer")) {
+    allowed.add("customer");
+    allowed.add("buyer");
+  }
+
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
@@ -70,7 +80,7 @@ const authorizeRoles = (...roles) => {
       });
     }
 
-    if (!roles.includes(req.user.role)) {
+    if (!allowed.has(req.user.role)) {
       return res.status(403).json({
         success: false,
         message: `Role '${req.user.role}' is not authorized to access this resource.`
@@ -113,9 +123,9 @@ const optionalAuth = async (req, res, next) => {
   next();
 };
 
-module.exports = {
-  protect,
-  authorizeRoles,
-  optionalAuth,
-  JWT_SECRET
-};
+protect.protect = protect;
+protect.authorizeRoles = authorizeRoles;
+protect.optionalAuth = optionalAuth;
+protect.JWT_SECRET = JWT_SECRET;
+
+module.exports = protect;

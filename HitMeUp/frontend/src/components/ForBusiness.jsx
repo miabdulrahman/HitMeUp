@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 
 function ForBusiness() {
   const sectionRef = useRef(null);
@@ -65,13 +66,13 @@ function ForBusiness() {
               ))}
             </div>
 
-            <a
-              href="#signup"
+            <Link
+              to="/register"
               className="group mt-10 inline-flex items-center gap-2 rounded-lg bg-[#1A1A1A] px-7 py-3.5 text-[15px] font-semibold text-white transition-all duration-200 hover:bg-[#E8503A]"
             >
               Register your business
               <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
-            </a>
+            </Link>
           </div>
 
           {/* Right — AI demo card */}

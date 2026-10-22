@@ -1,9 +1,4 @@
-const OpenAI = require("openai");
-
-const openai = new OpenAI({
-    apiKey: process.env.NVIDIA_API_KEY,
-    baseURL: "https://integrate.api.nvidia.com/v1",
-});
+const { getNvidiaClient, getNvidiaModel } = require("./nvidiaClient");
 
 const recommendDeals = async ({
     userPreferences,
@@ -35,8 +30,8 @@ const recommendDeals = async ({
         Rcommend a maximum of 3 deals.
         `;
 
-        const response = await openai.chat.completions.create({
-            model: "nvidia/nemotron-3-super-120b-a12b",
+        const response = await getNvidiaClient().chat.completions.create({
+            model: getNvidiaModel("deal recommendations"),
             messages: [
                 {
                     role: "user",

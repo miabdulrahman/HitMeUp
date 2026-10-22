@@ -1,71 +1,226 @@
 const mongoose = require("mongoose");
 const axios = require("axios");
+const crypto = require("crypto");
+const QRCode = require("qrcode");
 
 const Voucher = require("../models/Voucher");
 const Order = require("../models/Order");
 const Redemption = require("../models/Redemption");
 const Deal = require("../models/Deal");
+const Business = require("../models/Business");
 
 const DEAL_SERVICE_URL =
   process.env.DEAL_SERVICE_URL ||
   "http://localhost:5000/api/deals";
 
 async function getDeal(dealId) {
-  try {
-    const response = await axios.get(
-      `${DEAL_SERVICE_URL}/${dealId}`,
-      { timeout: 1500 }
-    );
-
-    return (
-      response.data.data ||
-      response.data.deal ||
-      response.data
-    );
-  } catch (error) {
-    // Fallback: If Deal API route is not yet deployed by Member 2,
-    // read directly from Deal database model to allow independent testing
+  if (DEAL_SERVICE_URL && !DEAL_SERVICE_URL.includes("localhost:5000")) {
     try {
-      const dealFromDb = await Deal.findById(dealId);
-      if (dealFromDb) {
-        return dealFromDb;
-      }
-    } catch (err) {
-      // Ignore format errors
-    }
+      const baseUrl = DEAL_SERVICE_URL.endsWith("/")
+        ? DEAL_SERVICE_URL
+        : `${DEAL_SERVICE_URL}/`;
+      const targetUrl = new URL(dealId, baseUrl);
+      const response = await axios.get(targetUrl.toString(), { timeout: 2000 });
 
-    return null;
+      return (
+        response.data.data ||
+        response.data.deal ||
+        response.data
+      );
+    } catch (error) {
+      console.warn(
+        "External deal service call failed, falling back to database:",
+        error.message
+      );
+    }
   }
+
+  try {
+    const dealFromDb = await Deal.findById(dealId);
+    if (dealFromDb) {
+      return dealFromDb;
+    }
+  } catch (err) {
+    // Ignore format errors
+  }
+
+  return null;
 }
 
-// GET CUSTOMER VOUCHERS
-const getMyVouchers = async (req, res) => {
+function generateVoucherCode() {
+  const timePart = Date.now().toString(36).slice(-4).toUpperCase();
+  const randomPart = crypto.randomBytes(3).toString("hex").toUpperCase();
+  return `HMU-${timePart}-${randomPart}`;
+}
+
+function generateOrderNumber() {
+  const random = crypto.randomBytes(4).toString("hex").toUpperCase();
+  return `HMU-ORD-${Date.now().toString(36).toUpperCase()}-${random}`;
+}
+
+/**
+ * @desc    Claim a flash deal voucher (decrements available quantity in DB & generates unique QR voucher)
+ * @route   POST /api/vouchers/claim
+ * @access  Private (Authenticated Buyer / Customer)
+ */
+const claimVoucher = async (req, res) => {
   try {
     const customerId = req.user._id;
+    const { dealId } = req.body;
 
-    const vouchers = await Voucher.find({
-      customerId
-    })
-      .populate("dealId")
-      .populate("orderId")
-      .sort({ createdAt: -1 });
+    if (!dealId) {
+      return res.status(400).json({
+        success: false,
+        message: "Deal ID is required to claim a voucher"
+      });
+    }
 
-    return res.status(200).json({
+    const deal = await Deal.findById(dealId);
+    if (!deal) {
+      return res.status(404).json({
+        success: false,
+        message: "Flash promotion deal not found"
+      });
+    }
+
+    // Check deal active status
+    if (deal.status !== "active") {
+      return res.status(400).json({
+        success: false,
+        message: "This flash deal is not currently active"
+      });
+    }
+
+    // Check expiration
+    if (deal.endDate && new Date(deal.endDate) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "This flash deal has expired"
+      });
+    }
+
+    // Check stock / available quantity
+    if (deal.availableQuantity <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Sorry, this flash deal is completely sold out!"
+      });
+    }
+
+    // Atomically decrement availableQuantity in database
+    const updatedDeal = await Deal.findOneAndUpdate(
+      {
+        _id: dealId,
+        availableQuantity: { $gt: 0 },
+        status: "active"
+      },
+      {
+        $inc: { availableQuantity: -1 }
+      },
+      {
+        new: true
+      }
+    );
+
+    if (!updatedDeal) {
+      return res.status(400).json({
+        success: false,
+        message: "This flash deal just sold out or is no longer available"
+      });
+    }
+
+    // Create a completed order record
+    const amount = updatedDeal.discountedPrice || updatedDeal.originalPrice || 0;
+    const orderNumber = generateOrderNumber();
+
+    const order = await Order.create({
+      orderNumber,
+      customerId,
+      dealId: updatedDeal._id,
+      amount,
+      currency: "LKR",
+      status: "PAID",
+      expiresAt: updatedDeal.endDate || null
+    });
+
+    // Generate unique voucher code
+    const voucherCode = generateVoucherCode();
+
+    // Generate QR code Data URL for seller scanning
+    const qrData = await QRCode.toDataURL(voucherCode);
+
+    // Create the unique voucher
+    const voucher = await Voucher.create({
+      orderId: order._id,
+      customerId,
+      dealId: updatedDeal._id,
+      code: voucherCode,
+      qrData,
+      status: "ACTIVE",
+      expiresAt: updatedDeal.endDate || new Date(Date.now() + 24 * 60 * 60 * 1000)
+    });
+
+    await voucher.populate("dealId");
+
+    return res.status(201).json({
       success: true,
-      count: vouchers.length,
-      data: vouchers
+      message: "Flash voucher successfully claimed!",
+      voucher,
+      order,
+      remainingQuantity: updatedDeal.availableQuantity
     });
   } catch (error) {
-    console.error("Get Vouchers Error:", error);
-
+    console.error("Claim Voucher Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to get vouchers"
+      message: error.message || "Failed to claim digital voucher"
     });
   }
 };
 
-// GET SINGLE VOUCHER
+/**
+ * @desc    Get all vouchers claimed by authenticated customer
+ * @route   GET /api/vouchers
+ * @access  Private (Customer / Buyer)
+ */
+const getMyVouchers = async (req, res) => {
+  try {
+    const customerId = req.user._id;
+
+    const vouchers = await Voucher.find({ customerId })
+      .populate("dealId")
+      .populate("orderId")
+      .sort({ createdAt: -1 });
+
+    const now = new Date();
+    // Auto-expire past-due vouchers in background
+    vouchers.forEach((v) => {
+      if (v.status === "ACTIVE" && v.expiresAt && v.expiresAt < now) {
+        v.status = "EXPIRED";
+        Voucher.updateOne({ _id: v._id }, { status: "EXPIRED" }).exec();
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: vouchers.length,
+      vouchers,
+      data: vouchers
+    });
+  } catch (error) {
+    console.error("Get Vouchers Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve vouchers"
+    });
+  }
+};
+
+/**
+ * @desc    Get single voucher by ID
+ * @route   GET /api/vouchers/:id
+ * @access  Private (Customer)
+ */
 const getVoucherById = async (req, res) => {
   try {
     const customerId = req.user._id || req.user.id;
@@ -91,7 +246,6 @@ const getVoucherById = async (req, res) => {
       });
     }
 
-    // Automatically mark expired vouchers
     if (
       voucher.status === "ACTIVE" &&
       voucher.expiresAt &&
@@ -103,14 +257,14 @@ const getVoucherById = async (req, res) => {
 
     return res.status(200).json({
       success: true,
+      voucher,
       data: voucher
     });
   } catch (error) {
     console.error("Get Voucher Error:", error);
-
     return res.status(500).json({
       success: false,
-      message: "Failed to get voucher"
+      message: "Failed to get voucher details"
     });
   }
 };
@@ -189,13 +343,17 @@ const previewVoucherByCode = async (req, res) => {
   }
 };
 
-// REDEEM VOUCHER
+/**
+ * @desc    Redeem voucher code presented by customer at POS
+ * @route   POST /api/vouchers/redeem
+ * @access  Private (Seller / Business / Admin)
+ */
 const redeemVoucher = async (req, res) => {
   try {
-    const { code } = req.body;
+    const rawCode = req.body.code || req.body.voucherCode;
     const businessUser = req.user;
 
-    if (!code) {
+    if (!rawCode || !rawCode.trim()) {
       return res.status(400).json({
         success: false,
         message: "Voucher code is required"
@@ -203,14 +361,24 @@ const redeemVoucher = async (req, res) => {
     }
 
     // Automatically strip QR prefix "HITMEUP:" if cashier scanner sends full QR string
-    let cleanCode = code.trim();
+    let cleanCode = rawCode.trim();
     if (cleanCode.startsWith("HITMEUP:")) {
       cleanCode = cleanCode.replace("HITMEUP:", "");
     }
     cleanCode = cleanCode.toUpperCase().trim();
 
-    // The authenticated business account should have businessId.
-    if (!businessUser.businessId && businessUser.role !== "admin") {
+    // Resolve business for the user if not directly attached
+    let businessId = businessUser.businessId;
+    if (!businessId) {
+      const business = await Business.findOne({ ownerId: businessUser._id });
+      if (business) {
+        businessId = business._id;
+        businessUser.businessId = business._id;
+      }
+    }
+
+    // The authenticated business account should have businessId (admins exempted)
+    if (!businessId && businessUser.role !== "admin") {
       return res.status(403).json({
         success: false,
         message: "Business account information not found"
@@ -222,33 +390,34 @@ const redeemVoucher = async (req, res) => {
     if (!voucher) {
       return res.status(404).json({
         success: false,
-        message: "Invalid voucher code"
+        message: `Invalid voucher code: "${cleanCode}". Please verify code with customer.`
       });
     }
 
     if (voucher.status !== "ACTIVE") {
       return res.status(400).json({
         success: false,
-        message: `Voucher is already ${voucher.status.toLowerCase()}`
+        message: `This voucher is already ${voucher.status.toLowerCase()}`
       });
     }
 
-    // Check voucher expiry
-    if (
-      voucher.expiresAt &&
-      new Date() > voucher.expiresAt
-    ) {
+    // Check expiry
+    if (voucher.expiresAt && new Date() > voucher.expiresAt) {
       voucher.status = "EXPIRED";
       await voucher.save();
-
       return res.status(400).json({
         success: false,
-        message: "Voucher has expired"
+        message: "This voucher has expired and cannot be redeemed"
       });
     }
 
-    // Get deal to verify the correct business (admins can override)
-    const deal = await getDeal(voucher.dealId);
+    // Get deal to verify correct business (admins can override)
+    let deal = null;
+    try {
+      deal = await getDeal(voucher.dealId);
+    } catch (e) {
+      deal = await Deal.findById(voucher.dealId);
+    }
 
     if (!deal) {
       return res.status(404).json({
@@ -264,60 +433,56 @@ const redeemVoucher = async (req, res) => {
 
     if (
       businessUser.role !== "admin" &&
-      (!dealBusinessId ||
-        dealBusinessId.toString() !==
-          businessUser.businessId.toString())
+      dealBusinessId &&
+      businessId &&
+      dealBusinessId.toString() !== businessId.toString()
     ) {
       return res.status(403).json({
         success: false,
-        message:
-          "This voucher does not belong to your business"
+        message: "This voucher does not belong to your business"
       });
     }
 
     // Atomic update prevents two requests from redeeming the same active voucher
-    const redeemedVoucher =
-      await Voucher.findOneAndUpdate(
-        {
-          _id: voucher._id,
-          status: "ACTIVE"
-        },
-        {
-          status: "REDEEMED",
-          redeemedAt: new Date()
-        },
-        {
-          returnDocument: "after"
-        }
-      );
+    const redeemedVoucher = await Voucher.findOneAndUpdate(
+      {
+        _id: voucher._id,
+        status: "ACTIVE"
+      },
+      {
+        status: "REDEEMED",
+        redeemedAt: new Date()
+      },
+      {
+        new: true
+      }
+    ).populate("dealId");
 
     if (!redeemedVoucher) {
       return res.status(409).json({
         success: false,
-        message:
-          "Voucher has already been redeemed"
+        message: "Voucher has already been redeemed"
       });
     }
 
     const redemption = await Redemption.create({
       voucherId: redeemedVoucher._id,
       orderId: redeemedVoucher.orderId,
-      businessId: businessUser.businessId || dealBusinessId,
+      businessId: businessId || dealBusinessId,
       redeemedBy: businessUser._id || businessUser.id,
       redeemedAt: new Date()
     });
 
-    // Mark order completed
-    await Order.findByIdAndUpdate(
-      redeemedVoucher.orderId,
-      {
+    if (redeemedVoucher.orderId) {
+      await Order.findByIdAndUpdate(redeemedVoucher.orderId, {
         status: "COMPLETED"
-      }
-    );
+      });
+    }
 
     return res.status(200).json({
       success: true,
-      message: "Voucher redeemed successfully",
+      message: `Voucher ${cleanCode} successfully redeemed!`,
+      voucher: redeemedVoucher,
       data: {
         voucher: redeemedVoucher,
         redemption
@@ -325,16 +490,15 @@ const redeemVoucher = async (req, res) => {
     });
   } catch (error) {
     console.error("Redeem Voucher Error:", error);
-
     return res.status(500).json({
       success: false,
-      message: error.message ||
-        "Failed to redeem voucher"
+      message: error.message || "Failed to redeem voucher"
     });
   }
 };
 
 module.exports = {
+  claimVoucher,
   getMyVouchers,
   getVoucherById,
   previewVoucherByCode,

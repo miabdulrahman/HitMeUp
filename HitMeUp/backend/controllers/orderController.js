@@ -5,9 +5,7 @@ const crypto = require("crypto");
 const Order = require("../models/Order");
 const Deal = require("../models/Deal");
 
-const DEAL_SERVICE_URL =
-  process.env.DEAL_SERVICE_URL ||
-  "http://localhost:5000/api/deals";
+const DEAL_SERVICE_URL = process.env.DEAL_SERVICE_URL;
 
 function generateOrderNumber() {
   const random = crypto.randomBytes(4).toString("hex").toUpperCase();
@@ -16,34 +14,28 @@ function generateOrderNumber() {
 }
 
 async function getDeal(dealId) {
-  try {
-    const response = await axios.get(
-      `${DEAL_SERVICE_URL}/${dealId}`,
-      { timeout: 1500 }
-    );
-
-    return (
-      response.data.deal ||
-      response.data.data ||
-      response.data
-    );
-
-  } catch (error) {
-    // Fallback: If Deal API route is not yet deployed by Member 2,
-    // read directly from Deal database model to allow independent testing
+  if (DEAL_SERVICE_URL && !DEAL_SERVICE_URL.includes("localhost:5000")) {
     try {
-      const dealFromDb = await Deal.findById(dealId);
-      if (dealFromDb) {
-        return dealFromDb;
-      }
-    } catch (err) {
-      // Ignore format errors
-    }
+      const baseUrl = DEAL_SERVICE_URL.endsWith("/")
+        ? DEAL_SERVICE_URL
+        : `${DEAL_SERVICE_URL}/`;
+      const targetUrl = new URL(dealId, baseUrl);
+      const response = await axios.get(targetUrl.toString(), { timeout: 2000 });
 
-    if (error.response?.status === 404) {
-      return null;
+      return response.data.data || response.data.deal || response.data;
+    } catch (error) {
+      console.warn(
+        "External deal service call failed, falling back to database:",
+        error.message
+      );
     }
+  }
 
+  // Fallback: Read directly from database Deal model
+  try {
+    const deal = await Deal.findById(dealId);
+    return deal;
+  } catch (error) {
     return null;
   }
 }

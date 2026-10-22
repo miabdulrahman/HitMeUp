@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 function CTA() {
   return (
@@ -18,13 +19,13 @@ function CTA() {
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a
-              href="#signup"
+            <Link
+              to="/register"
               className="group flex items-center gap-2 rounded-lg bg-[#E8503A] px-7 py-3.5 text-[15px] font-semibold text-white transition-all duration-200 hover:bg-[#D4402C]"
             >
               Get started free
               <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
-            </a>
+            </Link>
 
             <a
               href="#for-business"

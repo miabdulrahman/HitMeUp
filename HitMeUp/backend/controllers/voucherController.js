@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+const axios = require("axios");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
 
@@ -6,6 +8,44 @@ const Order = require("../models/Order");
 const Redemption = require("../models/Redemption");
 const Deal = require("../models/Deal");
 const Business = require("../models/Business");
+
+const DEAL_SERVICE_URL =
+  process.env.DEAL_SERVICE_URL ||
+  "http://localhost:5000/api/deals";
+
+async function getDeal(dealId) {
+  if (DEAL_SERVICE_URL && !DEAL_SERVICE_URL.includes("localhost:5000")) {
+    try {
+      const baseUrl = DEAL_SERVICE_URL.endsWith("/")
+        ? DEAL_SERVICE_URL
+        : `${DEAL_SERVICE_URL}/`;
+      const targetUrl = new URL(dealId, baseUrl);
+      const response = await axios.get(targetUrl.toString(), { timeout: 2000 });
+
+      return (
+        response.data.data ||
+        response.data.deal ||
+        response.data
+      );
+    } catch (error) {
+      console.warn(
+        "External deal service call failed, falling back to database:",
+        error.message
+      );
+    }
+  }
+
+  try {
+    const dealFromDb = await Deal.findById(dealId);
+    if (dealFromDb) {
+      return dealFromDb;
+    }
+  } catch (err) {
+    // Ignore format errors
+  }
+
+  return null;
+}
 
 function generateVoucherCode() {
   const timePart = Date.now().toString(36).slice(-4).toUpperCase();
@@ -183,9 +223,18 @@ const getMyVouchers = async (req, res) => {
  */
 const getVoucherById = async (req, res) => {
   try {
+    const customerId = req.user._id || req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Voucher ID format"
+      });
+    }
+
     const voucher = await Voucher.findOne({
       _id: req.params.id,
-      customerId: req.user._id
+      customerId
     })
       .populate("dealId")
       .populate("orderId");
@@ -220,6 +269,80 @@ const getVoucherById = async (req, res) => {
   }
 };
 
+// PREVIEW VOUCHER BY CODE (For Cashier / Business Scanning)
+const previewVoucherByCode = async (req, res) => {
+  try {
+    let rawCode = req.params.code;
+
+    if (!rawCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Voucher code is required"
+      });
+    }
+
+    // Automatically strip QR prefix "HITMEUP:" if present
+    if (rawCode.startsWith("HITMEUP:")) {
+      rawCode = rawCode.replace("HITMEUP:", "");
+    }
+    const code = rawCode.toUpperCase().trim();
+
+    const voucher = await Voucher.findOne({ code })
+      .populate("dealId")
+      .populate("customerId", "name email phone")
+      .populate("orderId", "orderNumber amount status");
+
+    if (!voucher) {
+      return res.status(404).json({
+        success: false,
+        message: "Invalid voucher code"
+      });
+    }
+
+    // Auto-update expired
+    if (
+      voucher.status === "ACTIVE" &&
+      voucher.expiresAt &&
+      new Date() > voucher.expiresAt
+    ) {
+      voucher.status = "EXPIRED";
+      await voucher.save();
+    }
+
+    // Check ownership if business user is scanning
+    const businessUser = req.user;
+    let belongsToCurrentBusiness = true;
+    if (businessUser?.businessId && voucher.dealId) {
+      const dealBizId =
+        voucher.dealId.businessId ||
+        voucher.dealId.business?._id ||
+        voucher.dealId.business;
+
+      if (
+        dealBizId &&
+        dealBizId.toString() !== businessUser.businessId.toString()
+      ) {
+        belongsToCurrentBusiness = false;
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        voucher,
+        belongsToCurrentBusiness
+      }
+    });
+  } catch (error) {
+    console.error("Preview Voucher Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to preview voucher"
+    });
+  }
+};
+
 /**
  * @desc    Redeem voucher code presented by customer at POS
  * @route   POST /api/vouchers/redeem
@@ -237,7 +360,12 @@ const redeemVoucher = async (req, res) => {
       });
     }
 
-    const cleanCode = rawCode.trim().toUpperCase();
+    // Automatically strip QR prefix "HITMEUP:" if cashier scanner sends full QR string
+    let cleanCode = rawCode.trim();
+    if (cleanCode.startsWith("HITMEUP:")) {
+      cleanCode = cleanCode.replace("HITMEUP:", "");
+    }
+    cleanCode = cleanCode.toUpperCase().trim();
 
     // Resolve business for the user if not directly attached
     let businessId = businessUser.businessId;
@@ -247,6 +375,14 @@ const redeemVoucher = async (req, res) => {
         businessId = business._id;
         businessUser.businessId = business._id;
       }
+    }
+
+    // The authenticated business account should have businessId (admins exempted)
+    if (!businessId && businessUser.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Business account information not found"
+      });
     }
 
     const voucher = await Voucher.findOne({ code: cleanCode });
@@ -275,20 +411,39 @@ const redeemVoucher = async (req, res) => {
       });
     }
 
-    // Verify deal business matches if seller
-    const deal = await Deal.findById(voucher.dealId);
-    if (deal && businessId && businessUser.role !== "admin") {
-      const dealBiz = deal.businessId?.toString();
-      const userBiz = businessId.toString();
-      if (dealBiz && dealBiz !== userBiz) {
-        return res.status(403).json({
-          success: false,
-          message: "This voucher belongs to a different merchant store."
-        });
-      }
+    // Get deal to verify correct business (admins can override)
+    let deal = null;
+    try {
+      deal = await getDeal(voucher.dealId);
+    } catch (e) {
+      deal = await Deal.findById(voucher.dealId);
     }
 
-    // Atomic update to mark REDEEMED
+    if (!deal) {
+      return res.status(404).json({
+        success: false,
+        message: "Related deal not found"
+      });
+    }
+
+    const dealBusinessId =
+      deal.businessId ||
+      deal.business?._id ||
+      deal.business?.id;
+
+    if (
+      businessUser.role !== "admin" &&
+      dealBusinessId &&
+      businessId &&
+      dealBusinessId.toString() !== businessId.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "This voucher does not belong to your business"
+      });
+    }
+
+    // Atomic update prevents two requests from redeeming the same active voucher
     const redeemedVoucher = await Voucher.findOneAndUpdate(
       {
         _id: voucher._id,
@@ -313,8 +468,8 @@ const redeemVoucher = async (req, res) => {
     const redemption = await Redemption.create({
       voucherId: redeemedVoucher._id,
       orderId: redeemedVoucher.orderId,
-      businessId: businessId || deal?.businessId,
-      redeemedBy: businessUser._id,
+      businessId: businessId || dealBusinessId,
+      redeemedBy: businessUser._id || businessUser.id,
       redeemedAt: new Date()
     });
 
@@ -346,5 +501,6 @@ module.exports = {
   claimVoucher,
   getMyVouchers,
   getVoucherById,
+  previewVoucherByCode,
   redeemVoucher
 };

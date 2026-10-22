@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const axios = require("axios");
 const crypto = require("crypto");
 
@@ -19,7 +20,7 @@ async function getDeal(dealId) {
         ? DEAL_SERVICE_URL
         : `${DEAL_SERVICE_URL}/`;
       const targetUrl = new URL(dealId, baseUrl);
-      const response = await axios.get(targetUrl.toString());
+      const response = await axios.get(targetUrl.toString(), { timeout: 2000 });
 
       return response.data.data || response.data.deal || response.data;
     } catch (error) {
@@ -30,16 +31,15 @@ async function getDeal(dealId) {
     }
   }
 
+  // Fallback: Read directly from database Deal model
   try {
     const deal = await Deal.findById(dealId);
-    if (!deal) {
-      throw new Error("Deal not found");
-    }
     return deal;
   } catch (error) {
-    throw new Error("Unable to retrieve deal information");
+    return null;
   }
 }
+
 
 // CREATE ORDER
 const createOrder = async (req, res) => {
@@ -155,12 +155,21 @@ const getMyOrders = async (req, res) => {
 // GET SINGLE ORDER
 const getOrderById = async (req, res) => {
   try {
-    const customerId = req.user._id;
+    const customerId = req.user._id || req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Order ID format"
+      });
+    }
 
     const order = await Order.findOne({
       _id: req.params.id,
       customerId
-    }).populate("dealId");
+    })
+      .populate("dealId")
+      .populate("paymentId");
 
     if (!order) {
       return res.status(404).json({
@@ -183,8 +192,100 @@ const getOrderById = async (req, res) => {
   }
 };
 
+// CANCEL PENDING ORDER
+const cancelOrder = async (req, res) => {
+  try {
+    const customerId = req.user._id || req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Order ID format"
+      });
+    }
+
+    const order = await Order.findOne({
+      _id: req.params.id,
+      customerId
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    if (order.status !== "PENDING") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot cancel an order with status: ${order.status}`
+      });
+    }
+
+    order.status = "CANCELLED";
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Order cancelled successfully",
+      data: order
+    });
+  } catch (error) {
+    console.error("Cancel Order Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to cancel order"
+    });
+  }
+};
+
+// GET ORDERS FOR BUSINESS (Business Owner View)
+const getBusinessOrders = async (req, res) => {
+  try {
+    const businessId = req.user.businessId;
+
+    if (!businessId) {
+      return res.status(403).json({
+        success: false,
+        message: "No business profile associated with this account"
+      });
+    }
+
+    // Find all deals belonging to this business
+    const businessDeals = await Deal.find({ businessId }, "_id title discountedPrice");
+    const dealIds = businessDeals.map(d => d._id);
+
+    const orders = await Order.find({ dealId: { $in: dealIds } })
+      .populate("customerId", "name email phone")
+      .populate("dealId", "title discountedPrice")
+      .sort({ createdAt: -1 });
+
+    const totalRevenue = orders
+      .filter(o => o.status === "PAID" || o.status === "COMPLETED")
+      .reduce((sum, o) => sum + (o.amount || 0), 0);
+
+    return res.status(200).json({
+      success: true,
+      count: orders.length,
+      totalRevenue,
+      data: orders
+    });
+  } catch (error) {
+    console.error("Get Business Orders Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve business orders"
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
-  getOrderById
+  getOrderById,
+  cancelOrder,
+  getBusinessOrders
 };

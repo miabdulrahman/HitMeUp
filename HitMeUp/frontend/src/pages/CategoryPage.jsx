@@ -58,6 +58,7 @@ function CategoryPage() {
   const [nearbyRadius, setNearbyRadius] = useState(15); // in km
   const [userLocation, setUserLocation] = useState(null);
   const [locating, setLocating] = useState(false);
+  const [nearbyFallback, setNearbyFallback] = useState(null);
 
   // Sync state when URL param slug changes
   useEffect(() => {
@@ -83,7 +84,17 @@ function CategoryPage() {
             category: catName
           });
           liveDeals = response.deals || [];
+          if (response.isFallback) {
+            setNearbyFallback({
+              message: response.message,
+              count: response.count,
+              radius: nearbyRadius
+            });
+          } else {
+            setNearbyFallback(null);
+          }
         } else {
+          setNearbyFallback(null);
           // Call Member 3 Discovery Search API
           const response = await discoveryApi.searchDeals({
             category: catName,
@@ -455,6 +466,33 @@ function CategoryPage() {
               </div>
             </div>
           </div>
+
+          {/* Fallback notification when no deals are directly within radius */}
+          {nearbyMode && nearbyFallback && (
+            <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/90 p-4 text-amber-900 shadow-sm animate-in fade-in">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                  <MapPin size={20} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-amber-950">
+                    No Deals Directly Within {nearbyFallback.radius} km
+                  </h4>
+                  <p className="text-xs text-amber-800 mt-0.5">
+                    We didn't find active flash promotions in your immediate neighborhood, so we're displaying all available active offers sorted by proximity!
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setNearbyRadius(50)}
+                  className="rounded-xl bg-amber-200/80 px-3.5 py-1.5 text-xs font-bold text-amber-950 hover:bg-amber-300 transition cursor-pointer"
+                >
+                  Expand Radius to 50km
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Conditional Rendering: Interactive Map Discovery vs Grid */}
           {viewMode === "map" ? (

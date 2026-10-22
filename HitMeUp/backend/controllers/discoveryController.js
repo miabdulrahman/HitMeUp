@@ -208,6 +208,53 @@ exports.getNearbyDeals = async (req, res) => {
     const radiusKm = parseFloat(radius) || 15;
     const radiusRadians = radiusKm / 6378.1; // Convert km to earth sphere radians
 
+    // Helper: fetch all available active deals as fallback when no nearby deals are found
+    const fetchFallbackAvailableDeals = async () => {
+      const fallbackDealQuery = { status: "active" };
+      if (category && category !== "all" && category !== "All") {
+        fallbackDealQuery.category = { $regex: new RegExp(`^${category}$`, "i") };
+      }
+
+      const availableDeals = await Deal.find(fallbackDealQuery)
+        .populate("businessId", "name category address location phone logoUrl isVerified")
+        .limit(parseInt(limit, 10) || 50)
+        .sort({ createdAt: -1 })
+        .lean();
+
+      let favoriteDealIds = new Set();
+      if (req.user && req.user._id) {
+        const favorites = await Favorite.find({
+          userId: req.user._id,
+          dealId: { $ne: null }
+        }).select("dealId");
+        favoriteDealIds = new Set(favorites.map((f) => f.dealId.toString()));
+      }
+
+      const enrichedFallback = availableDeals.map((deal) => {
+        const b = deal.businessId || {};
+        const bCoords = b.location?.coordinates || [];
+        const bLng = bCoords[0];
+        const bLat = bCoords[1];
+        const dist = (bLat !== undefined && bLng !== undefined)
+          ? calculateDistanceKm(userLat, userLng, bLat, bLng)
+          : null;
+
+        return {
+          ...deal,
+          businessId: b,
+          distanceKm: dist,
+          distanceText: dist !== null ? `${dist} km away` : "Available Regionally",
+          isFavorited: favoriteDealIds.has(deal._id.toString()),
+          isNearby: false,
+          isFallbackOffer: true
+        };
+      });
+
+      // Sort by closest distance first
+      enrichedFallback.sort((a, b) => (a.distanceKm ?? 9999) - (b.distanceKm ?? 9999));
+      return enrichedFallback;
+    };
+
     // Find nearby businesses using MongoDB geospatial query on location (2dsphere index)
     const businessQuery = {
       status: "active",
@@ -226,13 +273,18 @@ exports.getNearbyDeals = async (req, res) => {
       .select("name category address location phone logoUrl isVerified")
       .lean();
 
+    // If no businesses found within radius, fallback to all available offers across region
     if (!nearbyBusinesses.length) {
+      const fallbackDeals = await fetchFallbackAvailableDeals();
       return res.status(200).json({
         success: true,
-        count: 0,
+        count: fallbackDeals.length,
         radiusKm,
+        hasNearby: false,
+        isFallback: true,
+        message: `No active offers found within ${radiusKm}km of your location. Showing all ${fallbackDeals.length} available offers across the region.`,
         userLocation: { latitude: userLat, longitude: userLng },
-        deals: []
+        deals: fallbackDeals
       });
     }
 
@@ -262,6 +314,21 @@ exports.getNearbyDeals = async (req, res) => {
       .limit(parseInt(limit, 10) || 50)
       .lean();
 
+    // If nearby businesses exist but have no active deals, fallback to all available deals
+    if (!deals.length) {
+      const fallbackDeals = await fetchFallbackAvailableDeals();
+      return res.status(200).json({
+        success: true,
+        count: fallbackDeals.length,
+        radiusKm,
+        hasNearby: false,
+        isFallback: true,
+        message: `No active flash deals found within ${radiusKm}km. Showing all ${fallbackDeals.length} available offers.`,
+        userLocation: { latitude: userLat, longitude: userLng },
+        deals: fallbackDeals
+      });
+    }
+
     // Check user favorites if logged in
     let favoriteDealIds = new Set();
     if (req.user && req.user._id) {
@@ -280,7 +347,8 @@ exports.getNearbyDeals = async (req, res) => {
         businessId: businessInfo,
         distanceKm: businessInfo.distanceKm ?? null,
         distanceText: businessInfo.distanceText ?? "Nearby",
-        isFavorited: favoriteDealIds.has(deal._id.toString())
+        isFavorited: favoriteDealIds.has(deal._id.toString()),
+        isNearby: true
       };
     });
 
@@ -291,6 +359,8 @@ exports.getNearbyDeals = async (req, res) => {
       success: true,
       count: enrichedDeals.length,
       radiusKm,
+      hasNearby: true,
+      isFallback: false,
       userLocation: { latitude: userLat, longitude: userLng },
       deals: enrichedDeals
     });
@@ -309,7 +379,12 @@ exports.getNearbyDeals = async (req, res) => {
 // ----------------------------------------------------------------------
 exports.getMapBusinesses = async (req, res) => {
   try {
-    const { category, city } = req.query;
+    const { category, city, lat, lng, latitude, longitude, radius } = req.query;
+
+    const userLat = parseFloat(lat || latitude);
+    const userLng = parseFloat(lng || longitude);
+    const hasCoordinates = !isNaN(userLat) && !isNaN(userLng);
+    const filterRadiusKm = parseFloat(radius) || 15;
 
     // Find all active deals first to identify merchants with live offers
     const dealQuery = {
@@ -349,29 +424,64 @@ exports.getMapBusinesses = async (req, res) => {
       .select("name category address location phone logoUrl isVerified")
       .lean();
 
-    // Map markers payload
+    // Map markers payload with proximity calculations if coordinates are provided
+    let markersWithinRadiusCount = 0;
+
     const mapMarkers = businesses.map((business) => {
       const deals = dealsByBusiness[business._id.toString()] || [];
       const coords = business.location?.coordinates || [79.8612, 6.9271];
+      const bLng = coords[0];
+      const bLat = coords[1];
+
+      let distanceKm = null;
+      let isNearby = false;
+
+      if (hasCoordinates && bLat !== undefined && bLng !== undefined) {
+        distanceKm = calculateDistanceKm(userLat, userLng, bLat, bLng);
+        if (distanceKm !== null && distanceKm <= filterRadiusKm) {
+          isNearby = true;
+          markersWithinRadiusCount++;
+        }
+      }
+
       return {
         id: business._id,
         name: business.name,
         category: business.category,
         address: business.address,
-        longitude: coords[0],
-        latitude: coords[1],
+        longitude: bLng,
+        latitude: bLat,
         phone: business.phone,
         logoUrl: business.logoUrl,
         isVerified: business.isVerified,
         activeDealsCount: deals.length,
         topDeal: deals[0] || null,
-        deals: deals.slice(0, 3)
+        deals: deals.slice(0, 5),
+        distanceKm,
+        distanceText: distanceKm !== null ? `${distanceKm} km away` : null,
+        isNearby
       };
     });
+
+    // If coordinates were supplied, sort markers by proximity
+    if (hasCoordinates) {
+      mapMarkers.sort((a, b) => (a.distanceKm ?? 9999) - (b.distanceKm ?? 9999));
+    }
+
+    const hasNearby = hasCoordinates ? markersWithinRadiusCount > 0 : true;
 
     return res.status(200).json({
       success: true,
       count: mapMarkers.length,
+      hasNearby,
+      isFallback: hasCoordinates && !hasNearby,
+      nearbyCount: markersWithinRadiusCount,
+      radiusKm: filterRadiusKm,
+      userLocation: hasCoordinates ? { latitude: userLat, longitude: userLng } : null,
+      message:
+        hasCoordinates && !hasNearby
+          ? `No merchants found within ${filterRadiusKm}km of your location. Showing all ${mapMarkers.length} available merchants across the island.`
+          : undefined,
       markers: mapMarkers
     });
   } catch (error) {

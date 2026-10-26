@@ -9,6 +9,36 @@ const Review = require("../models/Review");
  * interactive map data, favorites, and customer reviews.
  */
 
+const CATEGORY_MAP = {
+  food: ["food", "restaurant", "cafe", "dining", "bakery", "groceries", "beverage", "beverages", "dessert", "kottu", "burger", "pizza", "meal"],
+  fashion: ["fashion", "clothing", "apparel", "retail", "footwear", "accessories", "shoes", "wear"],
+  electronics: ["electronics", "tech", "gadget", "gadgets", "computer", "computers", "phone", "phones", "audio", "headphone"],
+  home: ["home", "furniture", "decor", "appliances", "cleaning", "living", "kitchen"],
+  health: ["health", "beauty", "salon", "spa", "fitness", "wellness", "medical", "clinic", "dental"],
+  sports: ["sports", "fitness", "gym", "athletics", "outdoor", "workout", "training"],
+  services: ["services", "automotive", "repair", "cleaning", "maintenance", "consulting", "photography", "salon", "service"],
+  games: ["games", "gaming", "arcade", "entertainment", "esports", "board game"]
+};
+
+const buildCategoryRegex = (catInput) => {
+  if (!catInput || catInput.toLowerCase() === "all") return null;
+  const lower = catInput.trim().toLowerCase();
+  const matchedTerms = new Set([lower]);
+  if (CATEGORY_MAP[lower]) {
+    CATEGORY_MAP[lower].forEach((t) => matchedTerms.add(t));
+  }
+  for (const [mainCat, synonyms] of Object.entries(CATEGORY_MAP)) {
+    if (synonyms.some((s) => lower.includes(s) || s.includes(lower))) {
+      matchedTerms.add(mainCat);
+      synonyms.forEach((t) => matchedTerms.add(t));
+    }
+  }
+  const pattern = Array.from(matchedTerms)
+    .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("|");
+  return new RegExp(pattern, "i");
+};
+
 // Helper: Haversine distance in kilometers
 const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
   if (
@@ -55,9 +85,12 @@ exports.searchDeals = async (req, res) => {
       status: "active"
     };
 
-    // Category filter
+    // Category filter with taxonomy mapping
     if (category && category !== "all" && category !== "All") {
-      query.category = { $regex: new RegExp(`^${category}$`, "i") };
+      const catRegex = buildCategoryRegex(category);
+      if (catRegex) {
+        query.category = catRegex;
+      }
     }
 
     // Price range filters
@@ -266,7 +299,8 @@ exports.getNearbyDeals = async (req, res) => {
     };
 
     if (category && category !== "all" && category !== "All") {
-      businessQuery.category = { $regex: new RegExp(`^${category}$`, "i") };
+      const catRegex = buildCategoryRegex(category);
+      if (catRegex) businessQuery.category = catRegex;
     }
 
     const nearbyBusinesses = await Business.find(businessQuery)
@@ -392,7 +426,8 @@ exports.getMapBusinesses = async (req, res) => {
     };
 
     if (category && category !== "all" && category !== "All") {
-      dealQuery.category = { $regex: new RegExp(`^${category}$`, "i") };
+      const catRegex = buildCategoryRegex(category);
+      if (catRegex) dealQuery.category = catRegex;
     }
 
     const activeDeals = await Deal.find(dealQuery)

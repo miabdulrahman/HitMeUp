@@ -3,6 +3,7 @@ import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { dealApi, businessApi, voucherApi } from "../../services/api";
 import { generateDeals } from "../../services/aiService";
+import SellerLocationMapPicker from "../../components/SellerLocationMapPicker";
 import {
   LogOut,
   ArrowLeft,
@@ -35,7 +36,11 @@ import {
   TrendingUp,
   Flame,
   Share2,
-  DollarSign
+  DollarSign,
+  Navigation,
+  Globe,
+  Crosshair,
+  Compass
 } from "lucide-react";
 
 const SellerDashboard = () => {
@@ -70,7 +75,11 @@ const SellerDashboard = () => {
     address: "",
     openingHours: "09:00 AM - 09:00 PM",
     description: "",
+    latitude: "",
+    longitude: "",
   });
+  const [locatingGPS, setLocatingGPS] = useState(false);
+  const [locationSearchQuery, setLocationSearchQuery] = useState("");
 
   // Deals State
   const [deals, setDeals] = useState([]);
@@ -121,6 +130,7 @@ const SellerDashboard = () => {
       const res = await businessApi.getMyBusiness();
       if (res?.business) {
         setBusinessProfile(res.business);
+        const coords = res.business.location?.coordinates || [79.8612, 6.9271];
         setProfileForm({
           name: res.business.name || "",
           category: res.business.category || "Restaurant",
@@ -129,6 +139,8 @@ const SellerDashboard = () => {
           address: res.business.address?.street || "",
           openingHours: res.business.openingHours || "09:00 AM - 09:00 PM",
           description: res.business.description || "",
+          latitude: coords[1] || 6.9271,
+          longitude: coords[0] || 79.8612,
         });
       }
     } catch (err) {
@@ -399,6 +411,9 @@ const SellerDashboard = () => {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
+      const lat = parseFloat(profileForm.latitude);
+      const lng = parseFloat(profileForm.longitude);
+
       const payload = {
         name: profileForm.name.trim(),
         category: profileForm.category,
@@ -412,15 +427,75 @@ const SellerDashboard = () => {
         }
       };
 
+      // Include GeoJSON location if valid coordinates provided
+      if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+        payload.location = {
+          type: "Point",
+          coordinates: [lng, lat] // GeoJSON: [longitude, latitude]
+        };
+      }
+
       const res = await businessApi.updateMyBusiness(payload);
       if (res?.business) {
         setBusinessProfile(res.business);
       }
-      showToast("Store profile updated successfully!");
+      showToast("Store profile & location updated successfully!");
       setIsProfileModalOpen(false);
     } catch (err) {
       console.error("Profile update error:", err);
       showToast(err.message || "Failed to update business profile");
+    }
+  };
+
+  // GPS auto-detect handler for profile modal
+  const handleDetectMyLocation = () => {
+    if (!navigator.geolocation) {
+      showToast("Geolocation is not supported by your browser.");
+      return;
+    }
+    setLocatingGPS(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setProfileForm((prev) => ({
+          ...prev,
+          latitude: pos.coords.latitude.toFixed(6),
+          longitude: pos.coords.longitude.toFixed(6),
+        }));
+        setLocatingGPS(false);
+        showToast("GPS location detected successfully!");
+      },
+      (err) => {
+        console.warn("GPS error:", err.message);
+        setLocatingGPS(false);
+        showToast("Could not detect location. Please enter coordinates manually.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  // Search address and geocode using Google Maps Geocoding (free embed)
+  const handleSearchAddress = async () => {
+    if (!locationSearchQuery.trim()) return;
+    try {
+      // Use Nominatim (free, open) for geocoding
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationSearchQuery.trim())}&limit=1`
+      );
+      const results = await response.json();
+      if (results && results.length > 0) {
+        const { lat, lon, display_name } = results[0];
+        setProfileForm((prev) => ({
+          ...prev,
+          latitude: parseFloat(lat).toFixed(6),
+          longitude: parseFloat(lon).toFixed(6),
+        }));
+        showToast(`Location found: ${display_name.split(',').slice(0,2).join(',')}`);
+      } else {
+        showToast("No results found. Try a more specific address.");
+      }
+    } catch (err) {
+      console.error("Address search error:", err);
+      showToast("Address search failed. Please enter coordinates manually.");
     }
   };
 
@@ -631,6 +706,15 @@ const SellerDashboard = () => {
               </button>
 
               <button
+                onClick={() => setIsProfileModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-4 py-3 text-xs font-bold text-blue-700 hover:bg-blue-100 transition-all shadow-2xs cursor-pointer"
+                title="Pin your store location on interactive map"
+              >
+                <MapPin size={14} className="text-[#E8503A]" />
+                <span>Pin Store on Map</span>
+              </button>
+
+              <button
                 onClick={handleOpenCreate}
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF4A2F] via-[#E8503A] to-[#D43A26] px-5 py-3 text-xs font-bold text-white shadow-md shadow-[#E8503A]/25 hover:shadow-lg hover:shadow-[#E8503A]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
               >
@@ -707,6 +791,45 @@ const SellerDashboard = () => {
               <Wand2 size={13} /> Auto-draft deal &rarr;
             </button>
           </div>
+        </div>
+
+        {/* Storefront Discovery Pin Status Card */}
+        <div className="rounded-2xl border border-gray-200/80 bg-white p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8503A]/10 text-[#E8503A] shrink-0">
+              <MapPin size={22} />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-extrabold text-gray-900">
+                  Storefront Discovery Pin
+                </h3>
+                {profileForm.latitude && profileForm.longitude ? (
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                    <CheckCircle2 size={11} className="text-emerald-600" />
+                    Pinned ({parseFloat(profileForm.latitude).toFixed(3)}°N, {parseFloat(profileForm.longitude).toFixed(3)}°E)
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
+                    Pin Not Set
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {profileForm.latitude && profileForm.longitude
+                  ? `Your store pin is live for buyers on the Discovery Map in ${storeCity}. Click below to adjust or fine-tune.`
+                  : "Pin your storefront on the interactive map so buyers can discover and get directions to your shop."}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsProfileModalOpen(true)}
+            className="shrink-0 flex items-center gap-1.5 rounded-xl bg-gray-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-[#E8503A] transition-all cursor-pointer shadow-xs"
+          >
+            <Compass size={14} className="text-[#FFB703]" />
+            <span>{profileForm.latitude && profileForm.longitude ? "Adjust Pin on Map" : "Pin Store on Map"}</span>
+          </button>
         </div>
 
         {/* POS Customer Voucher Verification & Quick Redemption */}
@@ -1412,7 +1535,7 @@ const SellerDashboard = () => {
       {/* EDIT STORE PROFILE MODAL */}
       {isProfileModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-gray-100 my-6 max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-2xl rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-gray-100 my-6 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
@@ -1520,19 +1643,65 @@ const SellerDashboard = () => {
                 />
               </div>
 
+              {/* ══════ INTERACTIVE STORE LOCATION MAP PINNER ══════ */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#E8503A]/10 text-[#E8503A]">
+                      <MapPin size={15} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black text-gray-900">
+                        Pin Store Location on Interactive Map
+                      </label>
+                      <p className="text-[10px] text-gray-500">
+                        Click on the map or drag the pin to set your storefront for buyers
+                      </p>
+                    </div>
+                  </div>
+                  {profileForm.latitude && profileForm.longitude && (
+                    <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                      <CheckCircle2 size={11} className="text-emerald-600" />
+                      Pin Placed
+                    </span>
+                  )}
+                </div>
+
+                <SellerLocationMapPicker
+                  latitude={profileForm.latitude}
+                  longitude={profileForm.longitude}
+                  storeName={profileForm.name || storeName || "My Store"}
+                  onChange={({ latitude, longitude }) => {
+                    setProfileForm((prev) => ({
+                      ...prev,
+                      latitude,
+                      longitude
+                    }));
+                  }}
+                  onAddressDetected={({ street, city }) => {
+                    setProfileForm((prev) => ({
+                      ...prev,
+                      address: prev.address ? prev.address : street,
+                      city: prev.city ? prev.city : city
+                    }));
+                  }}
+                />
+              </div>
+
               <div className="pt-3 flex items-center justify-end gap-2 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setIsProfileModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition-colors"
+                  className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#E8503A] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#D43A26] transition-all"
+                  className="rounded-xl bg-[#E8503A] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#D43A26] transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  Save Store Profile
+                  <MapPin size={13} />
+                  <span>Save Profile & Location</span>
                 </button>
               </div>
             </form>

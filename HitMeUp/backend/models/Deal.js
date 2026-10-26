@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 /**
- * Deal Model - Member 2 (Flash Deal Management)
+ * Deal Model - Member 2 (ar) (Flash Deal Management)
  * Handles deal CRUD, pricing, lifecycle status, and business association.
  */
 const dealSchema = new mongoose.Schema(

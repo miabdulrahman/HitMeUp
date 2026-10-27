@@ -50,7 +50,7 @@ const Register = () => {
     role: "customer", // "customer" or "business"
     businessName: "",
     businessCategory: "Restaurant",
-    city: "Colombo",
+    city: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);

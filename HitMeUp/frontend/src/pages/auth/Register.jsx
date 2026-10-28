@@ -1,4 +1,4 @@
-import { useState, useId } from "react";
+import { useState, useId, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   User,
@@ -19,8 +19,11 @@ import {
   TrendingUp,
   Ticket,
   MapPin,
-  Building2
+  Building2,
+  Check,
+  X
 } from "lucide-react";
+import { searchLocations } from "../../data/sriLankaLocations";
 import { useAuth } from "../../context/useAuth";
 
 const BUSINESS_CATEGORIES = [
@@ -57,6 +60,76 @@ const Register = () => {
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Auto-suggestion state for Sri Lanka locations / Colombo areas
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [isCityOpen, setIsCityOpen] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const cityContainerRef = useRef(null);
+
+  // Close suggestion dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        cityContainerRef.current &&
+        !cityContainerRef.current.contains(e.target)
+      ) {
+        setIsCityOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleCityInputChange = (e) => {
+    const val = e.target.value;
+    setFormData((prev) => ({ ...prev, city: val }));
+    setActiveSuggestionIndex(-1);
+    if (val.trim().length > 0) {
+      const matches = searchLocations(val, 10);
+      setCitySuggestions(matches);
+      setIsCityOpen(matches.length > 0);
+    } else {
+      setCitySuggestions([]);
+      setIsCityOpen(false);
+    }
+  };
+
+  const handleSelectCity = (locationName) => {
+    setFormData((prev) => ({ ...prev, city: locationName }));
+    setIsCityOpen(false);
+    setActiveSuggestionIndex(-1);
+  };
+
+  const handleCityKeyDown = (e) => {
+    if (!isCityOpen || citySuggestions.length === 0) {
+      if ((e.key === "ArrowDown" || e.key === "Enter") && formData.city?.trim()) {
+        const matches = searchLocations(formData.city, 10);
+        setCitySuggestions(matches);
+        setIsCityOpen(matches.length > 0);
+      }
+      return;
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveSuggestionIndex((prev) =>
+        prev < citySuggestions.length - 1 ? prev + 1 : 0
+      );
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveSuggestionIndex((prev) =>
+        prev > 0 ? prev - 1 : citySuggestions.length - 1
+      );
+    } else if (e.key === "Enter") {
+      if (activeSuggestionIndex >= 0 && activeSuggestionIndex < citySuggestions.length) {
+        e.preventDefault();
+        handleSelectCity(citySuggestions[activeSuggestionIndex]);
+      }
+    } else if (e.key === "Escape") {
+      setIsCityOpen(false);
+    }
+  };
 
   // Compute password strength score (0-4)
   const getPasswordStrength = (pwd) => {
@@ -431,13 +504,18 @@ const Register = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <label
-                        htmlFor="city"
-                        className="block text-xs font-bold text-gray-700 tracking-wide"
-                      >
-                        Store City / Area
-                      </label>
+                    <div ref={cityContainerRef} className="space-y-1 relative">
+                      <div className="flex items-center justify-between">
+                        <label
+                          htmlFor="city"
+                          className="block text-xs font-bold text-gray-700 tracking-wide"
+                        >
+                          Store City / Area
+                        </label>
+                        <span className="text-[10px] font-semibold text-gray-400">
+                          Sri Lanka
+                        </span>
+                      </div>
                       <div className="relative flex items-center">
                         <div className="pointer-events-none absolute left-3.5 text-gray-400">
                           <MapPin size={16} />
@@ -446,12 +524,71 @@ const Register = () => {
                           id="city"
                           type="text"
                           name="city"
-                          placeholder="e.g. Colombo 03"
+                          autoComplete="off"
+                          placeholder="e.g. Colombo 03, Kandy, Galle..."
                           value={formData.city}
-                          onChange={handleChange}
-                          className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                          onFocus={() => {
+                            if (formData.city && formData.city.trim().length > 0) {
+                              const matches = searchLocations(formData.city, 10);
+                              setCitySuggestions(matches);
+                              setIsCityOpen(matches.length > 0);
+                            } else {
+                              setIsCityOpen(false);
+                            }
+                          }}
+                          onChange={handleCityInputChange}
+                          onKeyDown={handleCityKeyDown}
+                          className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-8 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
                         />
+                        {formData.city && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData((prev) => ({ ...prev, city: "" }));
+                              setCitySuggestions([]);
+                              setIsCityOpen(false);
+                            }}
+                            className="absolute right-2.5 p-1 text-gray-400 hover:text-gray-600 rounded-lg cursor-pointer transition"
+                            title="Clear area"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
                       </div>
+
+                      {/* Floating Auto-suggestions Dropdown */}
+                      {isCityOpen && citySuggestions.length > 0 && (
+                        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border border-gray-200/90 bg-white shadow-2xl max-h-56 overflow-y-auto divide-y divide-gray-100 py-1.5 animate-fadeIn">
+                          
+                          {citySuggestions.map((loc, idx) => {
+                            const isHighlighted = activeSuggestionIndex === idx;
+                            const isExactSelected = formData.city === loc;
+                            return (
+                              <button
+                                key={loc}
+                                type="button"
+                                onClick={() => handleSelectCity(loc)}
+                                onMouseEnter={() => setActiveSuggestionIndex(idx)}
+                                className={`w-full flex items-center justify-between px-3.5 py-2 text-xs font-semibold text-left transition cursor-pointer ${
+                                  isHighlighted
+                                    ? "bg-[#FFF0ED] text-[#E8503A]"
+                                    : isExactSelected
+                                    ? "bg-gray-50 text-[#E8503A] font-bold"
+                                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 truncate">
+                                  <MapPin size={13} className="text-[#E8503A] shrink-0" />
+                                  <span className="truncate">{loc}</span>
+                                </div>
+                                {isExactSelected && (
+                                  <Check size={13} className="text-[#E8503A] shrink-0 ml-2" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </>

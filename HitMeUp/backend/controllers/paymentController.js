@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
 
@@ -311,9 +312,18 @@ const paymentWebhook = async (req, res) => {
 // GET PAYMENT BY ID
 const getPaymentById = async (req, res) => {
   try {
+    const customerId = req.user._id || req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Payment ID format"
+      });
+    }
+
     const payment = await Payment.findOne({
       _id: req.params.id,
-      customerId: req.user._id
+      customerId
     }).populate("orderId");
 
     if (!payment) {

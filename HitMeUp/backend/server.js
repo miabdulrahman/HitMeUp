@@ -27,6 +27,7 @@ const businessRoutes = require("./routes/businessRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const voucherRoutes = require("./routes/voucherRoutes");
+const discoveryRoutes = require("./routes/discoveryRoutes");
 
 const app = express();
 
@@ -84,13 +85,19 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/businesses", businessRoutes);
 
+// AI routes
 app.use("/api/ai", airoutes);
+
 // Deal routes
 app.use("/api/deals", dealRoutes);
+
 // Member 4: Orders, Payments & Vouchers
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/vouchers", voucherRoutes);
+
+// Member 3: Deal Discovery, Location, Favorites & Reviews
+app.use("/api/discovery", discoveryRoutes);
 
 const PORT = process.env.PORT || 5000;
 

@@ -142,7 +142,6 @@ export const dealApi = {
     }),
 };
 
-
 // ----------------------------------------------------------------------
 // Orders Endpoints (Member 4)
 // ----------------------------------------------------------------------
@@ -181,14 +180,20 @@ export const paymentApi = {
 // Vouchers Endpoints (Member 4)
 // ----------------------------------------------------------------------
 export const voucherApi = {
+  claimVoucher: ({ dealId }) =>
+    apiRequest("/vouchers/claim", {
+      method: "POST",
+      body: { dealId },
+    }),
+
   getMyVouchers: () => apiRequest("/vouchers"),
 
   getVoucherById: (id) => apiRequest(`/vouchers/${id}`),
 
-  redeemVoucher: ({ voucherCode, businessId }) =>
+  redeemVoucher: ({ voucherCode, code, businessId }) =>
     apiRequest("/vouchers/redeem", {
       method: "POST",
-      body: { voucherCode, businessId },
+      body: { voucherCode: voucherCode || code, code: voucherCode || code, businessId },
     }),
 };
 
@@ -203,6 +208,56 @@ export const aiApi = {
     }),
 };
 
+// ----------------------------------------------------------------------
+// Discovery, Maps, Favorites & Reviews Endpoints (Member 3)
+// ----------------------------------------------------------------------
+export const discoveryApi = {
+  searchDeals: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/discovery/deals${query ? `?${query}` : ""}`);
+  },
+
+  getNearbyDeals: ({ lat, lng, radius = 15, category, limit } = {}) => {
+    const params = new URLSearchParams();
+    if (lat !== undefined) params.append("lat", lat);
+    if (lng !== undefined) params.append("lng", lng);
+    if (radius !== undefined) params.append("radius", radius);
+    if (category && category !== "all") params.append("category", category);
+    if (limit) params.append("limit", limit);
+    return apiRequest(`/discovery/nearby?${params.toString()}`);
+  },
+
+  getMapBusinesses: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/discovery/map${query ? `?${query}` : ""}`);
+  },
+
+  getDealDetails: (id) => apiRequest(`/discovery/deal/${id}`),
+
+  toggleFavorite: (dealId) =>
+    apiRequest(`/discovery/favorites/${dealId}`, {
+      method: "POST",
+    }),
+
+  removeFavorite: (dealId) =>
+    apiRequest(`/discovery/favorites/${dealId}`, {
+      method: "DELETE",
+    }),
+
+  getMyFavorites: () => apiRequest("/discovery/favorites"),
+
+  addReview: ({ businessId, dealId, rating, comment }) =>
+    apiRequest("/discovery/reviews", {
+      method: "POST",
+      body: { businessId, dealId, rating, comment },
+    }),
+
+  getBusinessReviews: (businessId, params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/discovery/reviews/business/${businessId}${query ? `?${query}` : ""}`);
+  },
+};
+
 export default {
   apiRequest,
   auth: authApi,
@@ -212,4 +267,5 @@ export default {
   payments: paymentApi,
   vouchers: voucherApi,
   ai: aiApi,
+  discovery: discoveryApi,
 };

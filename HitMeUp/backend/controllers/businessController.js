@@ -237,7 +237,23 @@ const createBusinessProfile = async (req, res) => {
  */
 const getMyBusiness = async (req, res) => {
   try {
-    const business = await Business.findOne({ ownerId: req.user._id });
+    let business = await Business.findOne({ ownerId: req.user._id });
+
+    if (!business && req.user.businessId) {
+      business = await Business.findById(req.user.businessId);
+    }
+
+    if (!business && (req.user.role === "business" || req.user.role === "seller")) {
+      business = await Business.create({
+        name: req.user.name ? `${req.user.name}'s Store` : "Merchant Store",
+        ownerId: req.user._id,
+        category: "Restaurant",
+        phone: req.user.phone || "+94 77 000 0000",
+        address: { city: "Colombo", country: "Sri Lanka" },
+        status: "active"
+      });
+      await User.findByIdAndUpdate(req.user._id, { businessId: business._id });
+    }
 
     if (!business) {
       return res.status(404).json({

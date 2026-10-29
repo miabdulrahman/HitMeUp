@@ -13,14 +13,8 @@ const {
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
 // ----------------------------------------------------------------------
-// Public Routes
-// ----------------------------------------------------------------------
-router.get("/", getDeals);
-router.get("/business/:businessId", getDealsByBusiness);
-
-// ----------------------------------------------------------------------
 // Protected Business Deals Management (Member 2)
-// (Placed before /:id to prevent route shadowing)
+// (Placed before /business/:businessId and /:id to prevent route shadowing)
 // ----------------------------------------------------------------------
 router.get(
   "/business/my-deals",
@@ -28,6 +22,12 @@ router.get(
   authorizeRoles("business", "seller", "admin"),
   getMyDeals
 );
+
+// ----------------------------------------------------------------------
+// Public Routes
+// ----------------------------------------------------------------------
+router.get("/", getDeals);
+router.get("/business/:businessId", getDealsByBusiness);
 
 // ----------------------------------------------------------------------
 // Single Deal & Mutation Routes

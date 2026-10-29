@@ -1,9 +1,4 @@
-const OpenAI = require("openai");
-
-const nvidia = new OpenAI({
-    apiKey: process.env.NVIDIA_API_KEY,
-    baseURL: "https://integrate.api.nvidia.com/v1",
-});
+const { getNvidiaClient, getNvidiaModel } = require("./nvidiaClient");
 
 const generateDeal = async ({
     businessName,
@@ -35,8 +30,8 @@ Return ONLY valid JSON in this format:
 }
 `;
 
-        const response = await nvidia.chat.completions.create({
-            model: "nvidia/nemotron-3-super-120b-a12b",
+        const response = await getNvidiaClient().chat.completions.create({
+            model: getNvidiaModel("AI deal generation"),
             messages: [
                 {
                     role: "system",
@@ -48,10 +43,15 @@ Return ONLY valid JSON in this format:
                 },
             ],
             temperature: 0.7,
-            max_tokens: 1000,
+            max_tokens: 2000,
+            reasoning_effort: "low",
         });
 
-        const aiResponse = response.choices[0].message.content;
+        const aiResponse = response.choices?.[0]?.message?.content;
+        if (typeof aiResponse !== "string" || !aiResponse.trim()) {
+            throw new Error("NVIDIA returned an empty AI response");
+        }
+
         const cleanResponse = aiResponse
             .replace(/```json/g, "")
             .replace(/```/g,"")
@@ -61,7 +61,10 @@ Return ONLY valid JSON in this format:
         return deal;
     } catch (error) {
         console.error("NVIDIA AI Deal Generation Error:", error.message);
-        throw new Error("Failed to generate AI deal");
+        const aiError = new Error("Failed to generate AI deal");
+        aiError.status = error.status || error.statusCode || 502;
+        aiError.cause = error;
+        throw aiError;
     }
 };
 

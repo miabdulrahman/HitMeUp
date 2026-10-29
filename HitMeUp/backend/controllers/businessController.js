@@ -2,6 +2,123 @@ const mongoose = require("mongoose");
 const Business = require("../models/Business");
 const User = require("../models/user");
 
+// Standard supported business category enums
+const VALID_BUSINESS_CATEGORIES = [
+  "Restaurant",
+  "Cafe",
+  "Retail",
+  "Fashion",
+  "Electronics",
+  "Health & Beauty",
+  "Salon",
+  "Fitness",
+  "Entertainment",
+  "Groceries",
+  "Other"
+];
+
+/**
+ * Helper to normalize and map raw category string to schema enum
+ */
+const normalizeCategory = (category) => {
+  if (!category) return "Retail";
+  const exact = VALID_BUSINESS_CATEGORIES.find(
+    (c) => c.toLowerCase() === category.trim().toLowerCase()
+  );
+  if (exact) return exact;
+
+  const catLower = category.toLowerCase();
+  if (catLower.includes("food") || catLower.includes("rest") || catLower.includes("burger") || catLower.includes("pizza")) {
+    return "Restaurant";
+  }
+  if (catLower.includes("coffee") || catLower.includes("drink") || catLower.includes("cafe") || catLower.includes("bakery")) {
+    return "Cafe";
+  }
+  if (catLower.includes("fashion") || catLower.includes("cloth") || catLower.includes("wear")) {
+    return "Fashion";
+  }
+  if (catLower.includes("tech") || catLower.includes("electronic") || catLower.includes("gadget")) {
+    return "Electronics";
+  }
+  if (catLower.includes("health") || catLower.includes("wellness") || catLower.includes("beauty") || catLower.includes("spa")) {
+    return "Health & Beauty";
+  }
+  if (catLower.includes("salon") || catLower.includes("barber") || catLower.includes("hair")) {
+    return "Salon";
+  }
+  if (catLower.includes("gym") || catLower.includes("fitness") || catLower.includes("sport")) {
+    return "Fitness";
+  }
+  if (catLower.includes("game") || catLower.includes("arcade") || catLower.includes("entertain")) {
+    return "Entertainment";
+  }
+  if (catLower.includes("grocery") || catLower.includes("supermarket") || catLower.includes("market")) {
+    return "Groceries";
+  }
+  return "Retail";
+};
+
+/**
+ * Service function: Creates a Business model document and links it to owner
+ * Exported for reuse in authController during merchant registration
+ */
+const createBusinessRecord = async ({
+  ownerId,
+  name,
+  category = "Retail",
+  description = "",
+  phone,
+  email,
+  address = {},
+  location,
+  openingHours = "09:00 AM - 09:00 PM",
+  logoUrl = "",
+  coverImageUrl = "",
+  status = "active"
+}) => {
+  // Check if business already exists for this owner
+  const existing = await Business.findOne({ ownerId });
+  if (existing) {
+    return existing;
+  }
+
+  // Prepare location
+  let locationData = {
+    type: "Point",
+    coordinates: [79.8612, 6.9271] // Default Colombo, Sri Lanka
+  };
+
+  if (location && Array.isArray(location.coordinates) && location.coordinates.length === 2) {
+    locationData = {
+      type: "Point",
+      coordinates: [Number(location.coordinates[0]), Number(location.coordinates[1])]
+    };
+  }
+
+  const normalizedCat = normalizeCategory(category);
+  const contactPhone = (phone && phone.trim()) ? phone.trim() : "+94 77 000 0000";
+
+  const business = await Business.create({
+    name: name?.trim() || "Local Merchant Store",
+    category: normalizedCat,
+    description: description || "",
+    ownerId,
+    phone: contactPhone,
+    email: email || "",
+    address: typeof address === "object" ? address : { city: address || "Colombo", country: "Sri Lanka" },
+    location: locationData,
+    openingHours,
+    logoUrl,
+    coverImageUrl,
+    status
+  });
+
+  // Link business to User record
+  await User.findByIdAndUpdate(ownerId, { businessId: business._id });
+
+  return business;
+};
+
 /**
  * @desc    Create a business profile (for business user)
  * @route   POST /api/businesses
@@ -32,10 +149,37 @@ const createBusinessProfile = async (req, res) => {
     // Check if current user already owns a business
     const existingBusiness = await Business.findOne({ ownerId: req.user._id });
     if (existingBusiness) {
-      return res.status(400).json({
-        success: false,
-        message: "You already have an existing business profile registered.",
-        businessId: existingBusiness._id
+      // If business already exists (e.g. from registration), update it with full details and return 201
+      existingBusiness.name = name;
+      existingBusiness.category = normalizeCategory(category);
+      if (description !== undefined) existingBusiness.description = description;
+      if (phone) existingBusiness.phone = phone;
+      if (email) existingBusiness.email = email;
+      if (openingHours) existingBusiness.openingHours = openingHours;
+      if (logoUrl !== undefined) existingBusiness.logoUrl = logoUrl;
+      if (coverImageUrl !== undefined) existingBusiness.coverImageUrl = coverImageUrl;
+
+      if (address && typeof address === "object") {
+        existingBusiness.address = {
+          ...(existingBusiness.address?.toObject?.() || existingBusiness.address || {}),
+          ...address
+        };
+      }
+
+      if (location && Array.isArray(location.coordinates) && location.coordinates.length === 2) {
+        existingBusiness.location = {
+          type: "Point",
+          coordinates: [Number(location.coordinates[0]), Number(location.coordinates[1])]
+        };
+      }
+
+      await existingBusiness.save();
+      await User.findByIdAndUpdate(req.user._id, { businessId: existingBusiness._id });
+
+      return res.status(201).json({
+        success: true,
+        message: "Business profile configured successfully",
+        business: existingBusiness
       });
     }
 
@@ -55,7 +199,7 @@ const createBusinessProfile = async (req, res) => {
     // Create business
     const business = await Business.create({
       name,
-      category,
+      category: normalizeCategory(category),
       description: description || "",
       ownerId: req.user._id,
       phone,
@@ -146,7 +290,7 @@ const updateMyBusiness = async (req, res) => {
     } = req.body;
 
     if (name) business.name = name;
-    if (category) business.category = category;
+    if (category) business.category = normalizeCategory(category);
     if (description !== undefined) business.description = description;
     if (phone) business.phone = phone;
     if (email) business.email = email;
@@ -284,6 +428,7 @@ const getAllBusinesses = async (req, res) => {
 };
 
 module.exports = {
+  createBusinessRecord,
   createBusinessProfile,
   getMyBusiness,
   updateMyBusiness,

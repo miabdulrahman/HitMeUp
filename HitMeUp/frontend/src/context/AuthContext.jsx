@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { authApi } from "../services/api";
-
-const AuthContext = createContext(null);
+import AuthContext from "./context";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -101,16 +100,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const updateProfile = useCallback(async (data) => {
-    try {
-      const response = await authApi.updateProfile(data);
-      if (response?.user) {
-        setUser(response.user);
-        localStorage.setItem("user", JSON.stringify(response.user));
-      }
-      return response;
-    } catch (err) {
-      throw err;
+    const response = await authApi.updateProfile(data);
+    if (response?.user) {
+      setUser(response.user);
+      localStorage.setItem("user", JSON.stringify(response.user));
     }
+    return response;
   }, []);
 
   const value = {
@@ -119,8 +114,9 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     isAuthenticated: !!token && !!user,
-    isBusiness: user?.role === "business",
-    isCustomer: user?.role === "customer",
+    isBusiness: user?.role === "business" || user?.role === "seller",
+    isSeller: user?.role === "business" || user?.role === "seller",
+    isCustomer: user?.role === "customer" || user?.role === "buyer",
     isAdmin: user?.role === "admin",
     login,
     register,
@@ -131,12 +127,5 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
-
+export { useAuth } from "./useAuth";
 export default AuthContext;

@@ -86,7 +86,7 @@ const Register = () => {
     setFormData((prev) => ({ ...prev, city: val }));
     setActiveSuggestionIndex(-1);
     if (val.trim().length > 0) {
-      const matches = searchLocations(val, 10);
+      const matches = searchLocations(val, 20);
       setCitySuggestions(matches);
       setIsCityOpen(matches.length > 0);
     } else {
@@ -104,7 +104,7 @@ const Register = () => {
   const handleCityKeyDown = (e) => {
     if (!isCityOpen || citySuggestions.length === 0) {
       if ((e.key === "ArrowDown" || e.key === "Enter") && formData.city?.trim()) {
-        const matches = searchLocations(formData.city, 10);
+        const matches = searchLocations(formData.city, 20);
         setCitySuggestions(matches);
         setIsCityOpen(matches.length > 0);
       }
@@ -529,7 +529,7 @@ const Register = () => {
                           value={formData.city}
                           onFocus={() => {
                             if (formData.city && formData.city.trim().length > 0) {
-                              const matches = searchLocations(formData.city, 10);
+                              const matches = searchLocations(formData.city, 20);
                               setCitySuggestions(matches);
                               setIsCityOpen(matches.length > 0);
                             } else {

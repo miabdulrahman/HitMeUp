@@ -1,581 +1,430 @@
-# 🚀 HitMeUp
+::: {align="center"}
+# ⚡ HitMeUp
 
-### Real-Time Location-Based Flash Deal Marketplace with AI
+### Discover more. Spend less. Deal smarter.
 
-HitMeUp is a real-time, location-based flash deal marketplace designed to connect **businesses with customers** through limited-time offers.
+**A real-time, AI-powered flash-deals marketplace connecting businesses
+with customers.**
 
-The platform helps businesses promote products and services during slow-sales periods by creating attractive flash deals, while customers can discover nearby offers, purchase deals, receive digital vouchers, and redeem them using QR codes.
+![React](https://img.shields.io/badge/React-Frontend-149ECA?style=for-the-badge&logo=react&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-API-141922?style=for-the-badge&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Database-1FA061?style=for-the-badge&logo=mongodb&logoColor=white)
+![AI](https://img.shields.io/badge/NVIDIA-AI-76B900?style=for-the-badge&logo=nvidia&logoColor=white)
 
-HitMeUp also includes an **AI Agent Automation Layer** that supports deal creation, personalized recommendations, customer targeting, business insights, and suspicious activity detection.
+**[Overview](#-overview) · [Features](#-features) ·
+[UI--design-system](#-ui--design-system) ·
+[Architecture](#-architecture) · [Getting started](#-getting-started)**
+:::
 
----
+------------------------------------------------------------------------
 
-## 📌 Project Overview
+## 🌟 Overview
 
-Businesses often have unused capacity, slow-selling products, or periods of low customer traffic. HitMeUp provides a platform where businesses can turn these opportunities into **limited-time flash deals**.
+**HitMeUp** is a MERN-stack marketplace for **limited-time flash
+deals**. Customers discover offers, businesses create and manage
+promotions, and platform administrators oversee marketplace activity.
+AI-powered services help improve deal creation, discovery, targeting,
+fraud checks, and insights.
 
-Customers can:
+> **Project status:** Active development. AI backend services have been
+> developed and frontend integration is in progress. Screens and
+> workflows below describe the intended product experience; not every
+> feature is necessarily deployed.
 
-* Discover nearby flash deals
-* Search and filter available deals
-* View deal details
-* Purchase deals
-* Receive digital vouchers
-* Redeem vouchers using QR codes
-* Receive personalized deal recommendations
+### Who is it for?
 
-Businesses can:
+  -----------------------------------------------------------------------
+  👤 Customers            🏪 Businesses           🛡️ Administrators
+  ----------------------- ----------------------- -----------------------
+  Discover time-sensitive Publish and manage      Manage marketplace
+  deals                   flash deals             activity
 
-* Create and manage flash deals
-* Monitor deal performance
-* Reach targeted customers
-* View business insights
-* Use AI-assisted deal generation
+  Search and filter       Generate promotional    Review users,
+  offers                  copy with AI            businesses, and deals
 
-The system also provides administrative and security-related features such as suspicious activity detection and review management.
+  Save, purchase, and     Track performance and   Monitor suspicious
+  redeem offers           orders                  activity
 
----
+  Receive relevant        Understand audiences    Review platform
+  recommendations         and insights            analytics
+  -----------------------------------------------------------------------
 
-## 🎯 Main Objectives
+## ✨ Features
 
-The main objectives of HitMeUp are to:
+### Customer experience
 
-* Provide businesses with an easy flash-deal management platform
-* Help customers discover relevant deals nearby
-* Enable secure deal purchases
-* Provide digital vouchers and QR-based redemption
-* Use AI to assist businesses in creating attractive deals
-* Provide personalized deal recommendations
-* Support smart customer targeting
-* Generate business insights
-* Detect potentially suspicious activities
-* Reduce manual work through AI-assisted automation
+-   🔎 Browse, search, and filter flash deals
+-   ⏳ View limited-time offers and discount information
+-   ❤️ Save favorite deals
+-   🧠 Receive personalized deal recommendations
+-   🛒 Purchase deals and access digital voucher/QR redemption workflows
+    *(planned/integration-dependent)*
 
----
+### Business experience
 
-## ✨ Key Features
+-   🏷️ Create, update, and manage promotions
+-   ✍️ Generate deal titles, descriptions, discounts, and marketing copy
+    with AI
+-   🎯 Identify likely target audiences and marketing channels
+-   📈 Explore AI-assisted business insights
+-   📦 Manage deals and customer orders
 
-### 👤 User & Business Management
+### Admin experience
 
-* User registration and login
-* JWT-based authentication
-* Role-based access
-* Customer profiles
-* Business profiles
-* Secure password handling
+-   👥 Manage users and business accounts
+-   🛡️ Review suspicious transactions or activities
+-   📋 Moderate deals and platform content
+-   📊 View platform-level reports
 
-### 🔥 Flash Deal Management
+## 🤖 AI-powered services
 
-* Create flash deals
-* Edit and manage deals
-* Set original and discounted prices
-* Define target customers
-* Publish and expire deals
-* Manage active deals
+  -----------------------------------------------------------------------
+  Service                 Purpose                 Typical output
+  ----------------------- ----------------------- -----------------------
+  **Deal Generation**     Suggest a compelling    Title, description,
+                          flash deal from         suggested discount,
+                          business details        marketing message,
+                                                  target customer
 
-### 📍 Deal Discovery
+  **Deal                  Recommend relevant      Up to 3 suggested deals
+  Recommendations**       deals to customers      with reasons
 
-* Browse available deals
-* Search deals
-* Filter deals
-* Discover nearby deals
-* Location-based deal discovery
-* Map-based deal presentation
-* Favorites
-* Reviews
+  **Fraud Detection**     Flag potentially        `isSuspicious`,
+                          suspicious activity     `riskLevel`, `reason`
 
-### 🛒 Orders & Payments
+  **Food Safety**         Evaluate food-related   Classification and
+                          descriptions for        explanation
+                          potential concerns      
 
-* Create orders
-* Manage order status
-* Payment gateway integration
-* Payment verification
-* Transaction management
+  **Smart Targeting**     Suggest likely          Target audience,
+                          audiences and channels  interests, channels
 
-### 🎟️ Digital Vouchers
+  **Business Insights**   Summarize marketplace   Analytical summary and
+                          or seller activity      observations
 
-* Generate digital vouchers after successful purchases
-* Unique voucher codes
-* QR-based voucher redemption
-* Voucher status tracking
-* Redemption management
+  **AI Activity Logs**    Record AI feature       Feature, input/output,
+                          execution               status
+  -----------------------------------------------------------------------
 
-### 🤖 AI Agent Automation
+**AI provider:** NVIDIA AI API, accessed from the backend. AI results
+should be reviewed before publishing or acting on them; classifications
+are advisory rather than definitive.
 
-HitMeUp includes an AI layer designed to assist both customers and businesses.
-
-AI features include:
-
-* AI-powered flash deal creation
-* Personalized deal recommendations
-* Smart customer targeting
-* Business insights
-* Opportunity suggestions
-* Suspicious activity detection
-* AI activity logging
-* AI-assisted customer support
-
-> AI-generated suggestions are intended to support users and businesses. Important business decisions remain under human control.
-
----
-
-# 🧠 AI Module
-
-The AI module is developed as an independent layer so that it can consume data from other modules without directly modifying their core business logic.
-
-### Current AI Deal Creation
-
-The AI Deal Creation service accepts:
-
-```text
-Business Name
-Business Type
-Product / Service
-Original Price
-Target Customers
+```{=html}
+<details>
 ```
-
-and generates:
-
-```text
-Deal Title
-Deal Description
-Suggested Discount
-Marketing Message
-Target Customer
+```{=html}
+<summary>
 ```
-
-### Example
-
-**Input**
-
-```json
+`<strong>`{=html}Example: AI deal generation request`</strong>`{=html}
+```{=html}
+</summary>
+```
+``` json
 {
-  "businessName": "ABC Restaurant",
-  "businessType": "Restaurant",
+  "businessName": "HitMeUp",
+  "businessType": "Cafe",
   "productOrService": "Chicken Burger",
-  "originalPrice": 1200,
+  "originalPrice": 1019,
   "targetCustomers": "Students"
 }
 ```
 
-**Generated Output**
+Possible response structure (illustrative, not a live API result):
 
-```json
+``` json
 {
-  "title": "Student Special: Crispy Chicken Burger",
-  "description": "Enjoy a juicy chicken burger with fresh lettuce and secret sauce at a student-only price.",
-  "suggestedDiscount": "30%",
-  "marketingMessage": "Fuel your study sessions with a tasty bite – grab yours before it's gone!",
+  "title": "Student Burger Flash Deal",
+  "description": "Limited-time offer on a chicken burger.",
+  "suggestedDiscount": 20,
+  "marketingMessage": "Grab your student deal while it lasts!",
   "targetCustomer": "Students"
 }
 ```
 
----
+```{=html}
+</details>
+```
+## 🎨 UI & design system
 
-# 🏗️ System Architecture
+The visual direction is **energetic, modern, and deal-focused**: bold
+offer cards, clear prices, countdowns, easy-to-scan navigation, and
+prominent calls to action.
 
-```text
-                    ┌──────────────────────┐
-                    │      React App       │
-                    │      Frontend        │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │   Node.js / Express  │
-                    │      Backend API      │
-                    └──────────┬───────────┘
-                               │
-          ┌────────────────────┼────────────────────┐
-          │                    │                    │
-          ▼                    ▼                    ▼
-   ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-   │   MongoDB   │      │   Payment   │      │  AI Agent   │
-   │   Database  │      │   Gateway   │      │    Layer    │
-   └─────────────┘      └─────────────┘      └──────┬──────┘
-                                                    │
-                                                    ▼
-                                             ┌─────────────┐
-                                             │  NVIDIA AI  │
-                                             └─────────────┘
+### Brand palette
+
+  -----------------------------------------------------------------------
+  Token                   Hex                     Usage
+  ----------------------- ----------------------- -----------------------
+  🔴 **Primary**          `#FF4A2F`               Main buttons, active
+                                                  states, offer
+                                                  highlights
+
+  🟥 **Dark**             `#C72814`               Strong emphasis and
+                                                  darker brand accents
+
+  🟢 **Success**          `#1FA061`               Success states,
+                                                  redemption confirmation
+
+  🟡 **Warning**          `#F5A719`               Countdown alerts and
+                                                  caution states
+
+  ⚫ **Ink**              `#141922`               Headings and primary
+                                                  text
+
+  ⚪ **Surface**          `#F9F9F9`               Page backgrounds and
+                                                  subtle panels
+  -----------------------------------------------------------------------
+
+### Suggested UI components
+
+  -----------------------------------------------------------------------
+  Component                           Design direction
+  ----------------------------------- -----------------------------------
+  **Deal card**                       Product image, discount badge,
+                                      merchant, current/original price,
+                                      countdown, CTA
+
+  **Primary button**                  Primary orange-red fill, white
+                                      label, rounded corners
+
+  **Search bar**                      Wide, accessible search field with
+                                      category/filter actions
+
+  **AI assistant panel**              Clear input form, generation state,
+                                      editable result preview
+
+  **Dashboard KPI card**              Concise metric, trend indicator,
+                                      contextual label
+
+  **Status badge**                    Semantic success/warning/danger
+                                      colors and readable labels
+  -----------------------------------------------------------------------
+
+### Screen map
+
+  -----------------------------------------------------------------------
+  Customer app            Business dashboard      Admin panel
+  (mobile-first)          (desktop-first)         (desktop-first)
+  ----------------------- ----------------------- -----------------------
+  Splash / Onboarding     Sign in                 Overview
+
+  Sign in / Register      Dashboard               Users
+
+  Home / Explore          Create Deal             Businesses
+
+  Search / Filters        **AI Deal Generator**   Deal Moderation
+
+  Deal Details / Store    Manage Deals            Orders & Payments
+
+  Saved / Cart            Orders                  Fraud Monitoring
+
+  Checkout / Payment      Analytics & Insights    Reports
+
+  Orders / Vouchers       Reviews / Settings      Settings
+
+  Notifications / Profile ---                     ---
+  -----------------------------------------------------------------------
+
+### Customer journey
+
+``` mermaid
+flowchart LR
+    A["Explore deals"] --> B["View deal"]
+    B --> C["Save or purchase"]
+    C --> D["Checkout"]
+    D --> E["Voucher / QR"]
+    E --> F["Redeem"]
 ```
 
----
+### Business AI-assisted deal creation
 
-# 🛠️ Technology Stack
+``` mermaid
+flowchart LR
+    A["Business details"] --> B["Generate with AI"]
+    B --> C["Review & edit"]
+    C --> D["Publish deal"]
+    D --> E["Monitor insights"]
+```
 
-## Frontend
+> **Design note:** The screen map and diagrams are UI specifications,
+> not screenshots of completed Figma screens. Add approved screenshots
+> to `docs/screenshots/` as the interfaces are implemented.
 
-* React
-* JavaScript
-* HTML
-* CSS
+```{=html}
+<!-- Example once screenshots exist:
+![Customer home](docs/screenshots/customer-home.png)
+![Business dashboard](docs/screenshots/business-dashboard.png)
+-->
+```
+## 🧱 Technology stack
 
-## Backend
+  Layer            Technology
+  ---------------- ---------------------------
+  Frontend         React, Vite, Tailwind CSS
+  Backend          Node.js, Express.js
+  Database         MongoDB Atlas, Mongoose
+  AI integration   NVIDIA AI API
+  API style        REST
+  Collaboration    Git, GitHub
 
-* Node.js
-* Express.js
-* REST APIs
+## 🏗️ Architecture
 
-## Database
+``` mermaid
+flowchart TB
+    C["Customer React UI"] --> API["Node.js + Express API"]
+    B["Business React UI"] --> API
+    A["Admin React UI"] --> API
+    API --> DB[("MongoDB Atlas")]
+    API --> AI["AI Controllers & Services"]
+    AI --> NV["NVIDIA AI API"]
+    API --> O["Deals / Orders / Vouchers"]
+```
 
-* MongoDB
-* MongoDB Atlas
-* Mongoose
+### Repository layout
 
-## Authentication
-
-* JWT
-* Password hashing
-
-## AI
-
-* NVIDIA AI
-* OpenAI-compatible Node.js SDK
-
-## Development Tools
-
-* Git
-* GitHub
-* Postman
-* Visual Studio Code
-
----
-
-# 📂 Project Structure
-
-```text
+``` text
 HitMeUp/
-│
 ├── frontend/
 │   ├── src/
-│   ├── public/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── ...
 │   └── package.json
-│
 ├── backend/
 │   ├── controllers/
 │   ├── models/
 │   ├── routes/
 │   ├── services/
-│   │   └── ai/
-│   ├── middleware/
-│   ├── config/
-│   ├── server.js
+│   │   └── AI/
 │   ├── package.json
-│   └── .env
-│
-├── README.md
-└── .gitignore
+│   └── .env                 # Local only; never commit
+└── README.md
 ```
 
----
+*Illustrative folder map based on the current project structure; exact
+filenames may differ.*
 
-# 🤖 AI Service Structure
+## 🔌 AI API endpoints
 
-```text
-backend/
-└── services/
-    └── ai/
-        ├── dealCreationService.js
-        ├── recommendationService.js
-        ├── targetingService.js
-        ├── insightService.js
-        ├── fraudDetectionService.js
-        └── supportService.js
-```
+These are the **expected route patterns** used during development;
+verify actual mounted prefixes in the backend router before integrating.
 
-AI controllers and routes are maintained separately from the core business modules.
+  Method   Route                       Purpose
+  -------- --------------------------- -----------------------------------
+  `POST`   `/api/ai/generate-deal`     Generate promotional deal content
+  `POST`   `/api/ai/recommend-deals`   Recommend deals
+  `POST`   `/api/ai/detect-fraud`      Assess suspicious activity
+  `POST`   `/api/ai/food-safety`       Check food-related descriptions
+  `POST`   `/api/ai/targeting`         Suggest audience and channels
+  `POST`   `/api/ai/insights`          Generate business insights
 
----
+## 🚀 Getting started
 
-# 🔌 API Example
+### Prerequisites
 
-### Generate AI Deal
+-   Node.js and npm
+-   A MongoDB Atlas connection string
+-   An NVIDIA AI API key
 
-**Endpoint**
+### 1. Clone the project
 
-```http
-POST /api/ai/generate-deal
-```
-
-### Request
-
-```json
-{
-  "businessName": "ABC Restaurant",
-  "businessType": "Restaurant",
-  "productOrService": "Chicken Burger",
-  "originalPrice": 1200,
-  "targetCustomers": "Students"
-}
-```
-
-### Response
-
-```json
-{
-  "success": true,
-  "message": "Deal generated successfully",
-  "deal": {
-    "title": "Student Special: Crispy Chicken Burger",
-    "description": "Enjoy a juicy chicken burger with fresh lettuce and secret sauce at a student-only price.",
-    "suggestedDiscount": "30%",
-    "marketingMessage": "Fuel your study sessions with a tasty bite – grab yours before it's gone!",
-    "targetCustomer": "Students"
-  }
-}
-```
-
----
-
-# 👥 Team Responsibilities
-
-The project is divided into five major ownership areas to reduce conflicts during development.
-
-| Member       | Responsibility              |
-| ------------ | --------------------------- |
-| **Member 1** | User & Business Management  |
-| **Member 2** | Flash Deal Management       |
-| **Member 3** | Deal Discovery & Location   |
-| **Member 4** | Orders, Payments & Vouchers |
-| **Member 5** | AI Agent & Intelligence     |
-
-### Module Ownership
-
-```text
-Member 1
-└── Authentication
-└── Users
-└── Businesses
-
-Member 2
-└── Flash Deals
-└── Deal Lifecycle
-
-Member 3
-└── Search
-└── Filters
-└── Location
-└── Favorites
-└── Reviews
-
-Member 4
-└── Orders
-└── Payments
-└── Vouchers
-└── QR Redemption
-
-Member 5
-└── AI Deal Creation
-└── Recommendations
-└── Customer Targeting
-└── Business Insights
-└── Fraud Detection
-└── AI Activity Logs
-```
-
----
-
-# 🔐 Conflict-Free Development Strategy
-
-Each member owns specific modules and database models.
-
-### Core Rules
-
-1. One feature should have one primary owner.
-2. One database model should have one primary owner.
-3. Members should not directly modify another member's core module.
-4. Modules communicate through APIs and agreed data contracts.
-5. AI consumes approved data from other modules rather than directly modifying their data.
-6. Payment logic remains under Member 4.
-7. Authentication remains under Member 1.
-8. Deal CRUD remains under Member 2.
-9. AI services remain under Member 5.
-
----
-
-# 🌿 Git Branch Strategy
-
-Each member works on a separate branch.
-
-```text
-main
-│
-├── member1-auth-business
-├── member2-deals
-├── member3-discovery
-├── member4-orders-payment
-└── member5-ai
-```
-
-### Development Workflow
-
-```text
-Create Branch
-     ↓
-Develop Feature
-     ↓
-Test Feature
-     ↓
-Commit Changes
-     ↓
-Push Branch
-     ↓
-Create Pull Request
-     ↓
-Code Review
-     ↓
-Merge into main
-```
-
-The `main` branch should always contain a stable version of the project.
-
----
-
-# ⚙️ Installation
-
-## 1. Clone the Repository
-
-```bash
-git clone <repository-url>
-```
-
-## 2. Open the Project
-
-```bash
+``` bash
+git clone https://github.com/miabdulrahman/HitMeUp.git
 cd HitMeUp
 ```
 
-## 3. Install Backend Dependencies
+### 2. Install backend dependencies
 
-```bash
+``` bash
 cd backend
 npm install
 ```
 
-## 4. Configure Environment Variables
+Create `backend/.env` using the variables your backend expects:
 
-Create a `.env` file inside the backend directory.
-
-```env
+``` dotenv
 PORT=5000
-
-MONGO_URI=your_mongodb_connection_string
-
-JWT_SECRET=your_jwt_secret
-
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_secure_jwt_secret
 NVIDIA_API_KEY=your_nvidia_api_key
 ```
 
-> Never commit `.env` or API keys to GitHub.
+**Never commit `.env` or expose API keys in the React frontend.**
 
-## 5. Start Backend
+Start the backend using the script defined in `backend/package.json`
+(commonly `npm run dev` or `npm start`).
 
-```bash
-npm run dev
-```
+### 3. Install frontend dependencies
 
-The backend should run on:
+In a second terminal:
 
-```text
-http://localhost:5000
-```
-
-## 6. Start Frontend
-
-From the frontend directory:
-
-```bash
+``` bash
+cd frontend
 npm install
+```
+
+If the frontend reads a Vite API base URL, configure `frontend/.env`:
+
+``` dotenv
+VITE_API_URL=http://localhost:5000
+```
+
+Start the frontend:
+
+``` bash
 npm run dev
 ```
 
----
+> Exact commands and environment variable names should be checked
+> against the repository's `package.json` files and `.env.example`
+> files.
 
-# 🧪 Testing
+## 🧪 Testing checklist
 
-API testing can be performed using **Postman**.
+-   [ ] User registration and sign-in
+-   [ ] Customer deal discovery and filters
+-   [ ] Business deal creation and management
+-   [ ] AI-generated deal preview and manual approval
+-   [ ] Deal recommendation response
+-   [ ] Fraud detection and AI activity logging
+-   [ ] Checkout, payment, and voucher flows
+-   [ ] Admin review and moderation
+-   [ ] Mobile responsiveness and accessibility
+-   [ ] Error handling, loading states, and security checks
 
-Recommended testing order:
+## 🗺️ Roadmap
 
-```text
-Authentication
-      ↓
-Business / User
-      ↓
-Deals
-      ↓
-Discovery
-      ↓
-Orders
-      ↓
-Payment
-      ↓
-Voucher
-      ↓
-QR Redemption
-      ↓
-AI Features
-```
+-   [x] Establish MERN application structure
+-   [x] Develop core AI backend services
+-   [ ] Integrate AI features into the React dashboards
+-   [ ] Finalize customer, business, and admin UI
+-   [ ] Complete end-to-end payment and voucher testing
+-   [ ] Add automated tests and deployment configuration
+-   [ ] Release a production-ready version
 
-Each module should be tested independently before full-system integration.
+*Roadmap items represent development goals; completion status should be
+updated by the project team.*
 
----
+## 🤝 Contributing
 
-# 🔒 Security
+HitMeUp is a collaborative team project. Create a feature branch, keep
+commits focused, test your changes, and submit a pull request for
+review.
 
-The project follows basic security practices including:
+## 🔐 Security notes
 
-* JWT authentication
-* Password hashing
-* Environment variables for secrets
-* Protected API routes
-* Payment verification
-* Input validation
-* Suspicious activity detection
-* Restricted database access
+-   Keep API credentials and database connection strings server-side.
+-   Validate requests and enforce role-based authorization.
+-   Never rely on AI output alone for fraud or food-safety decisions.
+-   Protect payment and voucher workflows against duplicate or
+    unauthorized redemption.
 
-API keys and secrets must never be committed to the repository.
+------------------------------------------------------------------------
 
----
+::: {align="center"}
+### ⚡ HitMeUp --- Better deals, smarter connections.
 
-# 📈 Future Development
-
-Planned improvements include:
-
-* More advanced personalized recommendations
-* Improved AI customer targeting
-* Real-time deal notifications
-* Advanced business analytics
-* Improved fraud detection
-* AI-assisted customer support
-* Better location-based recommendations
-* Performance optimization
-* Production deployment
-
----
-
-# 🎓 Academic Project
-
-**Project:** HitMeUp
-**Group:** Group E
-**Program:** BICT
-**Faculty:** Faculty of Technology
-**University:** Southeastern University of Sri Lanka
-
-This project is developed as part of the undergraduate software development project.
-
----
-
-# 👨‍💻 Development Team
-
-HitMeUp is developed collaboratively by a five-member development team.
-
-Each member is responsible for an independent module while following shared API contracts and Git development practices to ensure smooth integration.
-
----
-
-## 📄 License
-
-This project is developed for academic purposes.
+**Built with the MERN stack and AI-powered services.**
+:::

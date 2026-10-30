@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import {
   MapPin,
   Sparkles,
@@ -12,11 +14,154 @@ import {
   CheckCircle2,
   ExternalLink,
   Layers,
-  Compass
+  Compass,
+  Maximize2,
+  Minimize2,
+  Tag
 } from "lucide-react";
 import { discoveryApi } from "../services/api";
 
+// Google & OpenStreetMap Map Tiles
+const TILE_LAYERS = {
+  m: {
+    name: "Google Streets",
+    url: "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
+    attribution: "Google Maps",
+    subdomains: ["mt0", "mt1", "mt2", "mt3"],
+    maxZoom: 20
+  },
+  k: {
+    name: "Google Satellite",
+    url: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+    attribution: "Google Maps Satellite",
+    subdomains: ["mt0", "mt1", "mt2", "mt3"],
+    maxZoom: 20
+  },
+  osm: {
+    name: "OpenStreetMap",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: "&copy; OpenStreetMap contributors",
+    maxZoom: 19
+  }
+};
+
+/**
+ * Creates custom store pin icon with deal badge and store name
+ */
+const createStorePinIcon = (marker, isSelected = false) => {
+  const dealCount = marker.activeDealsCount || (marker.deals?.length) || 0;
+  const topDiscount = marker.topDeal?.discountPercentage || (marker.deals?.[0]?.discountPercentage);
+  const scale = isSelected ? "scale(1.15)" : "scale(1)";
+  const zIndex = isSelected ? 9999 : 100;
+  const pinBg = isSelected ? "linear-gradient(135deg, #FF4A2F 0%, #E8503A 100%)" : "linear-gradient(135deg, #1F2937 0%, #111827 100%)";
+  const pillBg = isSelected ? "#E8503A" : "#111827";
+  const pillBorder = isSelected ? "#ffffff" : "rgba(255,255,255,0.25)";
+
+  return L.divIcon({
+    className: "hitmeup-store-pin",
+    html: `
+      <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%) ${scale}; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: ${zIndex}; cursor: pointer;">
+        
+        <!-- Store Name & Active Deals Pill -->
+        <div style="
+          background: ${pillBg};
+          color: #ffffff;
+          font-size: 10px;
+          font-weight: 800;
+          padding: 3px 8px;
+          border-radius: 9999px;
+          white-space: nowrap;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+          margin-bottom: 4px;
+          border: 1.5px solid ${pillBorder};
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          max-width: 160px;
+        ">
+          <span style="overflow: hidden; text-overflow: ellipsis; max-width: 95px;">${marker.name}</span>
+          ${dealCount > 0 ? `
+            <span style="
+              background: ${isSelected ? '#ffffff' : '#E8503A'};
+              color: ${isSelected ? '#E8503A' : '#ffffff'};
+              border-radius: 9999px;
+              padding: 1px 5px;
+              font-size: 9px;
+              font-weight: 900;
+              letter-spacing: -0.02em;
+            ">
+              ${dealCount} ${dealCount === 1 ? 'deal' : 'deals'}
+            </span>
+          ` : ''}
+        </div>
+
+        <!-- Teardrop Marker Pin -->
+        <div style="
+          width: 34px;
+          height: 34px;
+          background: ${pinBg};
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 6px 14px ${isSelected ? 'rgba(232, 80, 58, 0.45)' : 'rgba(0,0,0,0.35)'};
+          border: 2.5px solid #ffffff;
+        ">
+          <div style="
+            transform: rotate(45deg);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            ${topDiscount ? `${topDiscount}%` : '🏷️'}
+          </div>
+        </div>
+
+        <!-- Ground Shadow -->
+        <div style="
+          width: 14px;
+          height: 5px;
+          background: rgba(0, 0, 0, 0.35);
+          border-radius: 50%;
+          margin-top: 2px;
+          filter: blur(1.5px);
+        "></div>
+      </div>
+    `,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+    popupAnchor: [0, -45]
+  });
+};
+
+/**
+ * Creates pulsing user location pin
+ */
+const createUserPinIcon = () => {
+  return L.divIcon({
+    className: "hitmeup-user-pin",
+    html: `
+      <div style="position: relative; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); cursor: default;">
+        <div style="position: absolute; width: 30px; height: 30px; background: rgba(37, 99, 235, 0.35); border-radius: 50%; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+        <div style="width: 16px; height: 16px; background: #2563EB; border: 2.5px solid #ffffff; border-radius: 50%; box-shadow: 0 3px 10px rgba(0,0,0,0.35);"></div>
+      </div>
+    `,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0]
+  });
+};
+
 function MapDiscoveryView({ onSelectDeal }) {
+  const mapContainerRef = useRef(null);
+  const leafletMapRef = useRef(null);
+  const markersGroupRef = useRef(null);
+  const userMarkerRef = useRef(null);
+  const activeTileLayerRef = useRef(null);
+
   const [markers, setMarkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMarker, setSelectedMarker] = useState(null);
@@ -24,13 +169,11 @@ function MapDiscoveryView({ onSelectDeal }) {
   const [searchFilter, setSearchFilter] = useState("");
   const [userLocation, setUserLocation] = useState(null);
   const [locating, setLocating] = useState(false);
-  const [mapType, setMapType] = useState("m"); // 'm' for Roadmap, 'k' for Satellite
+  const [mapType, setMapType] = useState("m"); // 'm' for Roadmap, 'k' for Satellite, 'osm' for OpenStreetMap
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  useEffect(() => {
-    fetchMarkers();
-  }, [selectedCategory]);
-
-  const fetchMarkers = async () => {
+  // Fetch Markers from Backend API
+  const fetchMarkers = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -39,7 +182,7 @@ function MapDiscoveryView({ onSelectDeal }) {
       const list = res.markers || [];
       setMarkers(list);
       if (list.length > 0) {
-        setSelectedMarker((prev) => prev ? list.find((m) => m.id === prev.id) || list[0] : list[0]);
+        setSelectedMarker((prev) => (prev ? list.find((m) => m.id === prev.id) || list[0] : list[0]));
       }
     } catch (err) {
       console.error("Failed to load map markers:", err);
@@ -47,8 +190,171 @@ function MapDiscoveryView({ onSelectDeal }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory]);
 
+  useEffect(() => {
+    fetchMarkers();
+  }, [fetchMarkers]);
+
+  // Filtered markers based on search query
+  const filteredMarkers = markers.filter((m) => {
+    if (!searchFilter.trim()) return true;
+    const q = searchFilter.toLowerCase();
+    return (
+      m.name?.toLowerCase().includes(q) ||
+      m.category?.toLowerCase().includes(q) ||
+      m.address?.city?.toLowerCase().includes(q)
+    );
+  });
+
+  // Initialize Leaflet Map
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    if (leafletMapRef.current) {
+      leafletMapRef.current.remove();
+      leafletMapRef.current = null;
+    }
+
+    const defaultLat = 6.9271;
+    const defaultLng = 79.8612;
+
+    const map = L.map(mapContainerRef.current, {
+      center: [defaultLat, defaultLng],
+      zoom: 13,
+      zoomControl: false,
+      attributionControl: false
+    });
+
+    leafletMapRef.current = map;
+
+    // Add Tile Layer
+    const provider = TILE_LAYERS[mapType] || TILE_LAYERS.m;
+    const tileLayer = L.tileLayer(provider.url, {
+      attribution: provider.attribution,
+      subdomains: provider.subdomains || "abc",
+      maxZoom: provider.maxZoom || 19
+    }).addTo(map);
+
+    activeTileLayerRef.current = tileLayer;
+
+    // Group for Markers
+    const markersGroup = L.featureGroup().addTo(map);
+    markersGroupRef.current = markersGroup;
+
+    // Resize invalidation
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+
+    return () => {
+      clearTimeout(timer);
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update Tile Layer when mapType changes
+  useEffect(() => {
+    if (!leafletMapRef.current) return;
+
+    if (activeTileLayerRef.current) {
+      leafletMapRef.current.removeLayer(activeTileLayerRef.current);
+    }
+
+    const provider = TILE_LAYERS[mapType] || TILE_LAYERS.m;
+    const newTileLayer = L.tileLayer(provider.url, {
+      attribution: provider.attribution,
+      subdomains: provider.subdomains || "abc",
+      maxZoom: provider.maxZoom || 19
+    }).addTo(leafletMapRef.current);
+
+    activeTileLayerRef.current = newTileLayer;
+  }, [mapType]);
+
+  // Render All Store Flags / Markers on the Map
+  useEffect(() => {
+    if (!leafletMapRef.current || !markersGroupRef.current) return;
+
+    const group = markersGroupRef.current;
+    group.clearLayers();
+
+    if (filteredMarkers.length === 0) return;
+
+    const validMarkers = filteredMarkers.filter(
+      (m) => typeof m.latitude === "number" && typeof m.longitude === "number" && !isNaN(m.latitude) && !isNaN(m.longitude)
+    );
+
+    if (validMarkers.length === 0) return;
+
+    validMarkers.forEach((marker) => {
+      const isSelected = selectedMarker?.id === marker.id;
+      const icon = createStorePinIcon(marker, isSelected);
+
+      const leafletMarker = L.marker([marker.latitude, marker.longitude], {
+        icon,
+        title: marker.name,
+        riseOnHover: true
+      });
+
+      // Click on pin selects store and pans smoothly
+      leafletMarker.on("click", () => {
+        setSelectedMarker(marker);
+        leafletMapRef.current?.panTo([marker.latitude, marker.longitude], {
+          animate: true,
+          duration: 0.6
+        });
+      });
+
+      // Tooltip preview
+      const topDealTitle = marker.topDeal?.title ? `<br/><span style="color: #E8503A; font-weight: 700;">🔥 ${marker.topDeal.title}</span>` : "";
+      leafletMarker.bindTooltip(
+        `<div style="font-size: 11px; font-weight: 700; line-height: 1.3;">
+          <strong>${marker.name}</strong> (${marker.category || "Store"})
+          ${topDealTitle}
+          <div style="font-size: 10px; color: #6b7280; margin-top: 2px;">📍 ${marker.address?.city || "Colombo"}</div>
+        </div>`,
+        { direction: "top", offset: [0, -42], opacity: 0.95 }
+      );
+
+      group.addLayer(leafletMarker);
+    });
+
+    // Fit map bounds to show all available deal shops
+    try {
+      const bounds = group.getBounds();
+      if (bounds.isValid()) {
+        leafletMapRef.current.fitBounds(bounds.pad(0.15), { maxZoom: 16 });
+      }
+    } catch (e) {
+      console.warn("Could not fit bounds:", e);
+    }
+  }, [filteredMarkers, selectedMarker?.id]);
+
+  // User GPS Location Pin Marker
+  useEffect(() => {
+    if (!leafletMapRef.current) return;
+
+    if (userMarkerRef.current) {
+      leafletMapRef.current.removeLayer(userMarkerRef.current);
+      userMarkerRef.current = null;
+    }
+
+    if (userLocation) {
+      const uIcon = createUserPinIcon();
+      const uMarker = L.marker([userLocation.lat, userLocation.lng], {
+        icon: uIcon,
+        zIndexOffset: 1000
+      }).addTo(leafletMapRef.current);
+
+      uMarker.bindTooltip("<strong>You are here</strong>", { direction: "top" });
+      userMarkerRef.current = uMarker;
+    }
+  }, [userLocation]);
+
+  // Geolocation trigger
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser.");
@@ -63,71 +369,110 @@ function MapDiscoveryView({ onSelectDeal }) {
         };
         setUserLocation(coords);
         setLocating(false);
+        if (leafletMapRef.current) {
+          leafletMapRef.current.flyTo([coords.lat, coords.lng], 15, { animate: true, duration: 1.2 });
+        }
       },
       (err) => {
         console.warn("Geolocation denied or error:", err.message);
         setLocating(false);
-        setUserLocation({ lat: 6.9271, lng: 79.8612 });
-      }
+        const fallback = { lat: 6.9271, lng: 79.8612 };
+        setUserLocation(fallback);
+        leafletMapRef.current?.flyTo([fallback.lat, fallback.lng], 13);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
     );
   };
 
-  const filteredMarkers = markers.filter((m) => {
-    if (!searchFilter.trim()) return true;
-    const q = searchFilter.toLowerCase();
-    return (
-      m.name?.toLowerCase().includes(q) ||
-      m.category?.toLowerCase().includes(q) ||
-      m.address?.city?.toLowerCase().includes(q)
-    );
-  });
+  // Center map on a selected marker
+  const handleSelectStore = (marker) => {
+    setSelectedMarker(marker);
+    if (leafletMapRef.current && marker.latitude && marker.longitude) {
+      leafletMapRef.current.flyTo([marker.latitude, marker.longitude], 16, {
+        animate: true,
+        duration: 0.8
+      });
+    }
+  };
 
-  // Calculate current Google Map embed target
-  const mapCenterLat = selectedMarker?.latitude || userLocation?.lat || 6.9271;
-  const mapCenterLng = selectedMarker?.longitude || userLocation?.lng || 79.8612;
-  const mapLabel = selectedMarker ? `${selectedMarker.name}, ${selectedMarker.address?.city || "Colombo"}` : "Colombo, Sri Lanka";
+  // Fit all pins back in view
+  const handleFitAllPins = () => {
+    if (leafletMapRef.current && markersGroupRef.current) {
+      const bounds = markersGroupRef.current.getBounds();
+      if (bounds.isValid()) {
+        leafletMapRef.current.fitBounds(bounds.pad(0.15), { animate: true });
+      }
+    }
+  };
 
-  // Google Maps standard embed query
-  const googleMapEmbedUrl = `https://maps.google.com/maps?q=${mapCenterLat},${mapCenterLng}+(${encodeURIComponent(
-    mapLabel
-  )})&t=${mapType}&z=15&ie=UTF8&iwloc=&output=embed`;
+  // Resize listener for expand
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      leafletMapRef.current?.invalidateSize();
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [isExpanded]);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 bg-white rounded-3xl border border-gray-200/80 p-6 shadow-sm overflow-hidden">
-      {/* Left Column: Real Google Map Stage */}
+    <div className="flex flex-col lg:flex-row gap-6 bg-white rounded-3xl border border-gray-200/80 p-5 sm:p-6 shadow-sm overflow-hidden">
+      {/* Left Column: Interactive Multi-Pin Map Stage */}
       <div className="flex-1 flex flex-col">
         {/* Controls Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8503A]/10 text-[#E8503A]">
               <MapPin size={20} />
             </div>
             <div>
               <h3 className="text-base font-black text-gray-900 flex items-center gap-2">
-                <span>Google Maps Discovery</span>
+                <span>Interactive Deals Map</span>
                 <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5">
-                  Live GPS
+                  All Shops Flagged
                 </span>
               </h3>
               <p className="text-xs text-gray-500">
-                {filteredMarkers.length} verified merchant{filteredMarkers.length !== 1 ? "s" : ""} on map
+                {filteredMarkers.length} deal shop{filteredMarkers.length !== 1 ? "s" : ""} pinned with active flash promotions
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Satellite / Street Map Toggle */}
+            {/* Satellite / Road Toggle */}
+            <div className="flex items-center bg-gray-100 rounded-xl p-0.5 border border-gray-200">
+              <button
+                type="button"
+                onClick={() => setMapType("m")}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  mapType === "m" ? "bg-white text-gray-900 shadow-2xs" : "text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                Streets
+              </button>
+              <button
+                type="button"
+                onClick={() => setMapType("k")}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  mapType === "k" ? "bg-white text-gray-900 shadow-2xs" : "text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                Satellite
+              </button>
+            </div>
+
+            {/* Fit All Pins Button */}
             <button
-              onClick={() => setMapType(mapType === "m" ? "k" : "m")}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100 transition active:scale-95 cursor-pointer"
-              title="Toggle Satellite / Road view"
+              type="button"
+              onClick={handleFitAllPins}
+              className="inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100 transition active:scale-95 cursor-pointer"
+              title="Fit all shop pins into map view"
             >
-              <Layers size={14} className="text-[#E8503A]" />
-              <span>{mapType === "m" ? "Satellite" : "Road Map"}</span>
+              <Compass size={14} className="text-[#E8503A]" />
+              <span className="hidden sm:inline">Fit All</span>
             </button>
 
             {/* GPS Location Button */}
             <button
+              type="button"
               onClick={handleGetLocation}
               disabled={locating}
               className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition active:scale-95 cursor-pointer ${
@@ -137,15 +482,17 @@ function MapDiscoveryView({ onSelectDeal }) {
               }`}
             >
               <Navigation size={14} className={locating ? "animate-spin text-blue-600" : "text-blue-600"} />
-              <span>{locating ? "Locating..." : userLocation ? "My GPS Synced" : "Center on Me"}</span>
+              <span>{locating ? "Locating..." : userLocation ? "My GPS" : "Near Me"}</span>
             </button>
 
+            {/* Refresh */}
             <button
+              type="button"
               onClick={fetchMarkers}
               className="p-2 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 transition cursor-pointer"
-              title="Refresh Map"
+              title="Refresh Deal Shops"
             >
-              <RefreshCw size={14} />
+              <RefreshCw size={14} className={loading ? "animate-spin text-[#E8503A]" : ""} />
             </button>
           </div>
         </div>
@@ -160,7 +507,8 @@ function MapDiscoveryView({ onSelectDeal }) {
             return (
               <button
                 key={marker.id}
-                onClick={() => setSelectedMarker(marker)}
+                type="button"
+                onClick={() => handleSelectStore(marker)}
                 className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   isSelected
                     ? "bg-[#E8503A] text-white shadow-sm shadow-[#E8503A]/30 scale-102"
@@ -174,59 +522,103 @@ function MapDiscoveryView({ onSelectDeal }) {
                     isSelected ? "bg-white/20 text-white" : "bg-white text-gray-700"
                   }`}
                 >
-                  {marker.activeDealsCount}
+                  {marker.activeDealsCount || (marker.deals?.length) || 0}
                 </span>
               </button>
             );
           })}
         </div>
 
-        {/* Search inside map */}
+        {/* Search Filter Bar */}
         <div className="relative mb-3">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
-            placeholder="Search stores or cities on map..."
-            className="w-full rounded-xl bg-gray-50 pl-10 pr-4 py-2 text-xs font-semibold text-gray-800 placeholder:text-gray-400 border border-gray-200 focus:outline-none focus:border-[#E8503A]"
+            placeholder="Search stores, categories or cities on map..."
+            className="w-full rounded-xl bg-gray-50 pl-10 pr-4 py-2 text-xs font-semibold text-gray-800 placeholder:text-gray-400 border border-gray-200 focus:outline-hidden focus:border-[#E8503A] transition"
           />
         </div>
 
-        {/* Real Google Maps Container */}
-        <div className="relative h-[430px] w-full rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden shadow-inner">
-          {loading ? (
+        {/* Real Interactive Map Canvas */}
+        <div
+          className={`relative w-full rounded-2xl bg-gray-100 border-2 border-gray-200/90 overflow-hidden shadow-inner transition-all duration-300 ${
+            isExpanded ? "h-[560px]" : "h-[440px]"
+          }`}
+        >
+          {loading && markers.length === 0 ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-gray-500 bg-gray-50">
               <span className="h-6 w-6 rounded-full border-2 border-[#E8503A] border-t-transparent animate-spin" />
-              <span className="text-xs font-bold">Loading Google Maps...</span>
+              <span className="text-xs font-bold">Loading Store Pins...</span>
             </div>
-          ) : (
-            <iframe
-              key={`${mapCenterLat}-${mapCenterLng}-${mapType}`}
-              title="Google Maps Merchant Locator"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              loading="lazy"
-              allowFullScreen
-              referrerPolicy="no-referrer-when-downgrade"
-              src={googleMapEmbedUrl}
-              className="h-full w-full rounded-2xl"
-            />
-          )}
+          ) : null}
 
-          {/* Floating Current Location Badge */}
+          {/* Leaflet DOM Mounting Node */}
+          <div ref={mapContainerRef} className="h-full w-full z-0 cursor-grab active:cursor-grabbing" />
+
+          {/* Top Floating Helper Banner */}
+          <div className="absolute top-2.5 left-2.5 right-2.5 pointer-events-none z-10 flex items-center justify-between gap-2">
+            <div className="bg-[#111827]/90 text-white backdrop-blur-md px-3 py-1.5 rounded-xl shadow-md border border-white/10 flex items-center gap-2 text-[11px] font-semibold">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span>Click any shop pin on the map to inspect deals</span>
+            </div>
+
+            <div className="flex items-center gap-1 pointer-events-auto">
+              <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/95 text-gray-700 hover:bg-white hover:text-black shadow-md border border-gray-200 transition cursor-pointer"
+                title={isExpanded ? "Minimize map" : "Expand map"}
+              >
+                {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Floating Selected Store Badge */}
           {selectedMarker && (
-            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md rounded-xl px-3 py-2 text-xs font-bold text-gray-800 border border-gray-200 shadow-md flex items-center gap-2 z-10 pointer-events-none">
-              <MapPin size={15} className="text-[#E8503A]" />
+            <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md rounded-xl px-3 py-2 text-xs font-bold text-gray-800 border border-gray-200 shadow-md flex items-center gap-2 z-10 pointer-events-none">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#E8503A]/10 text-[#E8503A]">
+                <MapPin size={14} />
+              </div>
               <div className="flex flex-col">
-                <span className="text-gray-900 leading-tight">{selectedMarker.name}</span>
+                <span className="text-gray-900 leading-tight font-extrabold">{selectedMarker.name}</span>
                 <span className="text-[10px] text-gray-500 font-medium">
-                  {selectedMarker.address?.city || "Colombo"}, Sri Lanka
+                  {selectedMarker.address?.city || "Colombo"}, Sri Lanka • {selectedMarker.activeDealsCount || selectedMarker.deals?.length || 0} active deals
                 </span>
               </div>
             </div>
           )}
+
+          {/* Bottom Right Map Zoom & Reset Controls */}
+          <div className="absolute bottom-3 right-3 z-10 flex items-center bg-white/95 backdrop-blur-md rounded-xl p-1 shadow-lg border border-gray-200 gap-1">
+            <button
+              type="button"
+              onClick={handleFitAllPins}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition cursor-pointer"
+              title="Center all store pins"
+            >
+              <Compass size={14} className="text-[#E8503A]" />
+            </button>
+            <div className="h-4 w-px bg-gray-200" />
+            <button
+              type="button"
+              onClick={() => leafletMapRef.current?.zoomIn()}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 font-black text-sm cursor-pointer"
+              title="Zoom In"
+            >
+              +
+            </button>
+            <button
+              type="button"
+              onClick={() => leafletMapRef.current?.zoomOut()}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 font-black text-sm cursor-pointer"
+              title="Zoom Out"
+            >
+              -
+            </button>
+          </div>
         </div>
       </div>
 
@@ -263,11 +655,17 @@ function MapDiscoveryView({ onSelectDeal }) {
 
               {/* Active Deals on this merchant */}
               <div className="mt-5">
-                <h5 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-2.5">
-                  Available Flash Deals ({selectedMarker.deals?.length || 0})
-                </h5>
+                <div className="flex items-center justify-between mb-2.5">
+                  <h5 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                    <Tag size={12} className="text-[#E8503A]" />
+                    <span>Available Flash Deals ({selectedMarker.deals?.length || 0})</span>
+                  </h5>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Live Offers
+                  </span>
+                </div>
 
-                <div className="space-y-2.5 max-h-[260px] overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
                   {(selectedMarker.deals || []).length === 0 ? (
                     <div className="p-4 rounded-xl bg-gray-50 text-center text-xs text-gray-500">
                       No active deals currently for this location.
@@ -277,7 +675,7 @@ function MapDiscoveryView({ onSelectDeal }) {
                       <div
                         key={deal._id || deal.title}
                         onClick={() => onSelectDeal && onSelectDeal(deal)}
-                        className="group/item flex items-center justify-between gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50/70 hover:bg-[#FFF0ED] hover:border-[#E8503A]/30 transition cursor-pointer"
+                        className="group/item flex items-center justify-between gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50/70 hover:bg-[#FFF0ED] hover:border-[#E8503A]/30 transition cursor-pointer shadow-2xs"
                       >
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-gray-900 group-hover/item:text-[#E8503A] truncate">
@@ -330,7 +728,7 @@ function MapDiscoveryView({ onSelectDeal }) {
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 p-6">
             <Store size={36} className="mb-2 text-gray-300" />
-            <p className="text-xs font-semibold">Select a store to inspect its flash deals and location</p>
+            <p className="text-xs font-semibold">Select a store pin to inspect its flash deals and location</p>
           </div>
         )}
       </div>

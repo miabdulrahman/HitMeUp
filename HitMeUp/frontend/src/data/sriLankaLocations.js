@@ -120,9 +120,10 @@ export const SRI_LANKA_LOCATIONS = [
 /**
  * Filter suggestions matching user input.
  * Only returns results when query has text.
- * When a letter or prefix is typed (e.g. "K", "C"), it returns ONLY cities starting with that query.
+ * When a letter or prefix is typed (e.g. "K", "C", "Colombo"), it returns prefix-matched cities.
+ * Displays all 15 Colombo districts when searching Colombo/C.
  */
-export const searchLocations = (query, limit = 10) => {
+export const searchLocations = (query, limit = 20) => {
   if (!query || !query.trim()) {
     return [];
   }
@@ -141,9 +142,13 @@ export const searchLocations = (query, limit = 10) => {
     return locLower.startsWith(q) || locLower.startsWith(normalizedQuery);
   });
 
-  // If prefix matches exist (e.g. typing 'k' matches only 'K...' cities), return ONLY them
+  // If prefix matches exist (e.g. typing 'k' matches only 'K...' cities, or typing 'Colombo' shows all 15), return ONLY them
   if (startsWithMatches.length > 0) {
-    return startsWithMatches.slice(0, limit);
+    // Ensure all 15 Colombo districts are shown when searching 'Colombo' or 'C'
+    const effectiveLimit = q.startsWith("c") || q.startsWith("col")
+      ? Math.max(limit, 20)
+      : limit;
+    return startsWithMatches.slice(0, effectiveLimit);
   }
 
   // Fallback for sub-areas/landmarks (e.g. typing "Fort" -> "Colombo 01 (Fort)", "Galle Fort")

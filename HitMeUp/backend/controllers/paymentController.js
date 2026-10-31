@@ -33,6 +33,13 @@ const createPayment = async (req, res) => {
       });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Order ID"
+      });
+    }
+
     const order = await Order.findOne({
       _id: orderId,
       customerId
@@ -54,6 +61,7 @@ const createPayment = async (req, res) => {
 
     const existingPayment = await Payment.findOne({
       orderId,
+      customerId,
       status: "PENDING"
     });
 
@@ -101,212 +109,20 @@ const createPayment = async (req, res) => {
 
 // VERIFY PAYMENT
 const verifyPayment = async (req, res) => {
-  try {
-    const customerId = req.user._id;
-
-    const {
-      paymentId,
-      transactionId,
-      success
-    } = req.body;
-
-    if (!paymentId) {
-      return res.status(400).json({
-        success: false,
-        message: "Payment ID is required"
-      });
-    }
-
-    const payment = await Payment.findOne({
-      _id: paymentId,
-      customerId
-    });
-
-    if (!payment) {
-      return res.status(404).json({
-        success: false,
-        message: "Payment not found"
-      });
-    }
-
-    const order = await Order.findOne({
-      _id: payment.orderId,
-      customerId
-    });
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
-    }
-
-    // DEMO SUCCESS/FAILURE
-    const paymentSuccessful = success === true;
-
-    if (!paymentSuccessful) {
-      payment.status = "FAILED";
-
-      if (transactionId) {
-        payment.transactionId = transactionId;
-      }
-
-      await payment.save();
-
-      order.status = "FAILED";
-      await order.save();
-
-      return res.status(200).json({
-        success: false,
-        message: "Payment failed",
-        data: payment
-      });
-    }
-
-    payment.status = "SUCCESS";
-    payment.transactionId =
-      transactionId || generateTransactionId();
-    payment.paidAt = new Date();
-
-    await payment.save();
-
-    // Update order
-    order.status = "PAID";
-    order.paymentId = payment._id;
-
-    await order.save();
-
-    // Generate voucher
-    let voucher = await Voucher.findOne({
-      orderId: order._id
-    });
-
-    if (!voucher) {
-      const voucherCode = generateVoucherCode();
-
-      const qrData = await QRCode.toDataURL(
-        `HITMEUP:${voucherCode}`
-      );
-
-      voucher = await Voucher.create({
-        orderId: order._id,
-        customerId,
-        dealId: order.dealId,
-        code: voucherCode,
-        qrData,
-        status: "ACTIVE",
-        expiresAt: order.expiresAt
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Payment successful and voucher generated",
-      data: {
-        payment,
-        order,
-        voucher
-      }
-    });
-  } catch (error) {
-    console.error("Verify Payment Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to verify payment"
-    });
-  }
+  return res.status(403).json({
+    success: false,
+    message:
+      "Direct payment confirmation is disabled. Verified gateway payment is required."
+  });
 };
 
 // PAYMENT WEBHOOK
 const paymentWebhook = async (req, res) => {
-  try {
-    const {
-      paymentId,
-      transactionId,
-      status
-    } = req.body;
-
-    if (!paymentId) {
-      return res.status(400).json({
-        success: false,
-        message: "Payment ID is required"
-      });
-    }
-
-    const payment = await Payment.findById(paymentId);
-
-    if (!payment) {
-      return res.status(404).json({
-        success: false,
-        message: "Payment not found"
-      });
-    }
-
-    if (status === "SUCCESS") {
-      payment.status = "SUCCESS";
-      payment.transactionId =
-        transactionId || generateTransactionId();
-      payment.paidAt = new Date();
-
-      await payment.save();
-
-      const order = await Order.findById(payment.orderId);
-
-      if (order) {
-        order.status = "PAID";
-        order.paymentId = payment._id;
-
-        await order.save();
-
-        const existingVoucher = await Voucher.findOne({
-          orderId: order._id
-        });
-
-        if (!existingVoucher) {
-          const voucherCode = generateVoucherCode();
-
-          const qrData = await QRCode.toDataURL(
-            `HITMEUP:${voucherCode}`
-          );
-
-          await Voucher.create({
-            orderId: order._id,
-            customerId: payment.customerId,
-            dealId: order.dealId,
-            code: voucherCode,
-            qrData,
-            status: "ACTIVE",
-            expiresAt: order.expiresAt
-          });
-        }
-      }
-    }
-
-    if (status === "FAILED") {
-      payment.status = "FAILED";
-      await payment.save();
-
-      await Order.findByIdAndUpdate(
-        payment.orderId,
-        {
-          status: "FAILED"
-        }
-      );
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Webhook processed"
-    });
-  } catch (error) {
-    console.error("Payment Webhook Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Webhook processing failed"
-    });
-  }
+  return res.status(403).json({
+    success: false,
+    message:
+      "Payment webhook is disabled until secure gateway verification is configured."
+  });
 };
 
 // GET PAYMENT BY ID

@@ -3,6 +3,7 @@ const axios = require("axios");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
 
+const Payment = require("../models/Payment");
 const Voucher = require("../models/Voucher");
 const Order = require("../models/Order");
 const Redemption = require("../models/Redemption");
@@ -63,120 +64,149 @@ function generateOrderNumber() {
  * @route   POST /api/vouchers/claim
  * @access  Private (Authenticated Buyer / Customer)
  */
+
 const claimVoucher = async (req, res) => {
+  const customerId = req.user?._id || req.user?.id;
+  const { dealId } = req.body;
+
+  if (!customerId) {
+    return res.status(401).json({
+      success: false,
+      message: "Authentication required"
+    });
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(dealId)) {
+    return res.status(400).json({
+      success: false,
+      message: "Valid Deal ID is required"
+    });
+  }
+
+  const session = await mongoose.startSession();
+
   try {
-    const customerId = req.user._id;
-    const { dealId } = req.body;
+    let result;
 
-    if (!dealId) {
-      return res.status(400).json({
-        success: false,
-        message: "Deal ID is required to claim a voucher"
-      });
-    }
+    await session.withTransaction(async () => {
+      const deal = await Deal.findById(dealId).session(session);
 
-    const deal = await Deal.findById(dealId);
-    if (!deal) {
-      return res.status(404).json({
-        success: false,
-        message: "Flash promotion deal not found"
-      });
-    }
-
-    // Check deal active status
-    if (deal.status !== "active") {
-      return res.status(400).json({
-        success: false,
-        message: "This flash deal is not currently active"
-      });
-    }
-
-    // Check expiration
-    if (deal.endDate && new Date(deal.endDate) < new Date()) {
-      return res.status(400).json({
-        success: false,
-        message: "This flash deal has expired"
-      });
-    }
-
-    // Check stock / available quantity
-    if (deal.availableQuantity <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Sorry, this flash deal is completely sold out!"
-      });
-    }
-
-    // Atomically decrement availableQuantity in database
-    const updatedDeal = await Deal.findOneAndUpdate(
-      {
-        _id: dealId,
-        availableQuantity: { $gt: 0 },
-        status: "active"
-      },
-      {
-        $inc: { availableQuantity: -1 }
-      },
-      {
-        new: true
+      if (!deal) {
+        throw Object.assign(new Error("Deal not found"), {
+          statusCode: 404
+        });
       }
-    );
 
-    if (!updatedDeal) {
-      return res.status(400).json({
-        success: false,
-        message: "This flash deal just sold out or is no longer available"
-      });
-    }
+      const now = new Date();
 
-    // Create a completed order record
-    const amount = updatedDeal.discountedPrice || updatedDeal.originalPrice || 0;
-    const orderNumber = generateOrderNumber();
+      if (
+        deal.status !== "active" ||
+        (deal.startDate && deal.startDate > now) ||
+        (deal.endDate && deal.endDate <= now)
+      ) {
+        throw Object.assign(new Error("Deal is not active"), {
+          statusCode: 400
+        });
+      }
 
-    const order = await Order.create({
-      orderNumber,
-      customerId,
-      dealId: updatedDeal._id,
-      amount,
-      currency: "LKR",
-      status: "PAID",
-      expiresAt: updatedDeal.endDate || null
+      const amount =
+        deal.discountedPrice ?? deal.originalPrice;
+
+      if (
+        !Number.isFinite(amount) ||
+        amount < 0
+      ) {
+        throw Object.assign(
+          new Error("Invalid deal price"),
+          { statusCode: 400 }
+        );
+      }
+
+      // Atomically reserve one available deal.
+      const updatedDeal = await Deal.findOneAndUpdate(
+        {
+          _id: dealId,
+          status: "active",
+          availableQuantity: { $gt: 0 },
+          $and: [
+            {
+              $or: [
+                { startDate: { $exists: false } },
+                { startDate: null },
+                { startDate: { $lte: now } }
+              ]
+            },
+            {
+              $or: [
+                { endDate: { $exists: false } },
+                { endDate: null },
+                { endDate: { $gt: now } }
+              ]
+            }
+          ]
+        },
+        {
+          $inc: { availableQuantity: -1 }
+        },
+        {
+          new: true,
+          session
+        }
+      );
+
+      if (!updatedDeal) {
+        throw Object.assign(
+          new Error("Deal is unavailable or sold out"),
+          { statusCode: 409 }
+        );
+      }
+
+      const [order] = await Order.create(
+        [{
+          orderNumber: generateOrderNumber(),
+          customerId,
+          dealId: updatedDeal._id,
+          amount,
+          currency: "LKR",
+          status: "PENDING",
+          expiresAt: updatedDeal.endDate || null
+        }],
+        { session }
+      );
+
+      // SECURITY FIX:
+      // Do NOT create a voucher here.
+
+      result = {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        amount: order.amount,
+        currency: order.currency,
+        status: order.status,
+        remainingQuantity: updatedDeal.availableQuantity
+      };
     });
-
-    // Generate unique voucher code
-    const voucherCode = generateVoucherCode();
-
-    // Generate QR code Data URL for seller scanning
-    const qrData = await QRCode.toDataURL(voucherCode);
-
-    // Create the unique voucher
-    const voucher = await Voucher.create({
-      orderId: order._id,
-      customerId,
-      dealId: updatedDeal._id,
-      code: voucherCode,
-      qrData,
-      status: "ACTIVE",
-      expiresAt: updatedDeal.endDate || new Date(Date.now() + 24 * 60 * 60 * 1000)
-    });
-
-    await voucher.populate("dealId");
 
     return res.status(201).json({
       success: true,
-      message: "Flash voucher successfully claimed!",
-      voucher,
-      order,
-      remainingQuantity: updatedDeal.availableQuantity
+      message: "Order created. Payment required.",
+      data: result
     });
+
   } catch (error) {
     console.error("Claim Voucher Error:", error);
-    return res.status(500).json({
+
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.message || "Failed to claim digital voucher"
+      message: error.statusCode
+        ? error.message
+        : "Failed to create pending order"
     });
+  } finally {
+    await session.endSession();
   }
 };
+
 
 /**
  * @desc    Get all vouchers claimed by authenticated customer
@@ -378,11 +408,17 @@ const redeemVoucher = async (req, res) => {
     }
 
     // The authenticated business account should have businessId (admins exempted)
-    if (!businessId && businessUser.role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Business account information not found"
-      });
+    if (businessUser.role !== "admin") {
+      if (
+        !businessId ||
+        !dealBusinessId ||
+        dealBusinessId.toString() !== businessId.toString()
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "You are not authorized to redeem this voucher"
+        });
+      }
     }
 
     const voucher = await Voucher.findOne({ code: cleanCode });
@@ -408,6 +444,37 @@ const redeemVoucher = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "This voucher has expired and cannot be redeemed"
+      });
+    }
+
+    // Verify the order belongs to this voucher
+    const order = await Order.findOne({
+      _id: voucher.orderId,
+      customerId: voucher.customerId,
+      dealId: voucher.dealId
+    });
+
+    if (!order) {
+      return res.status(403).json({
+        success: false,
+        message: "Voucher order verification failed"
+      });
+    }
+
+    // Check that the payment is marked successful
+    const payment = await Payment.findOne({
+      _id: order.paymentId,
+      orderId: order._id,
+      customerId: order.customerId,
+      status: "SUCCESS",
+      verificationStatus: "VERIFIED",
+      provider: "PAYHERE"
+    });
+
+    if (!payment || order.status !== "PAID") {
+      return res.status(403).json({
+        success: false,
+        message: "Verified payment required"
       });
     }
 
@@ -456,8 +523,7 @@ const redeemVoucher = async (req, res) => {
       {
         new: true
       }
-    ).populate("dealId");
-
+    );
     if (!redeemedVoucher) {
       return res.status(409).json({
         success: false,

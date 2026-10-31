@@ -11,8 +11,13 @@ const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+// DEMO webhook - development only
+if (process.env.NODE_ENV !== "production") {
+  router.post("/webhook", paymentWebhook);
+}
+
 // Create payment
-// POST /api/payments/create
+// POST /api/payments/create  
 router.post("/create", protect, createPayment);
 
 // Verify payment

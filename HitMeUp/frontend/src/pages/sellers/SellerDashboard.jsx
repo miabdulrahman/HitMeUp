@@ -3,6 +3,7 @@ import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { dealApi, businessApi, voucherApi } from "../../services/api";
 import { generateDeals } from "../../services/aiService";
+import AICommandCenter from "../../components/AICommandCenter";
 import SellerLocationMapPicker from "../../components/SellerLocationMapPicker";
 import {
   LogOut,
@@ -792,6 +793,9 @@ const SellerDashboard = () => {
             </button>
           </div>
         </div>
+
+        {/* AI Command Center */}
+        <AICommandCenter mode="seller" deals={deals} user={user} />
 
         {/* Storefront Discovery Pin Status Card */}
         <div className="rounded-2xl border border-gray-200/80 bg-white p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

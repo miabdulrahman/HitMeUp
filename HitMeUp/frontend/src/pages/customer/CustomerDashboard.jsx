@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
 import { voucherApi, orderApi, discoveryApi, authApi } from "../../services/api";
+import AICommandCenter from "../../components/AICommandCenter";
 
 const CustomerDashboard = () => {
   const navigate = useNavigate();
@@ -516,6 +517,7 @@ const CustomerDashboard = () => {
                       <Ticket size={16} />
                     </span>
                   </div>
+
                   <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-black text-emerald-950">{activeVouchers.length}</p>
                     <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
@@ -560,6 +562,8 @@ const CustomerDashboard = () => {
                   <p className="text-[11px] text-gray-400 mt-1">Checkout & voucher receipts</p>
                 </div>
               </div>
+
+              <AICommandCenter mode="customer" deals={favorites.map((favorite) => favorite.deal || favorite)} user={user} />
 
               {/* Active Passes Section */}
               <div className="rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-7 shadow-xs space-y-4">

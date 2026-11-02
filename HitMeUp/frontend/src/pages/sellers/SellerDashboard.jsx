@@ -26,10 +26,8 @@ import {
   MapPin,
   Phone,
   CheckCircle2,
-  Copy,
   Check,
   Ticket,
-  Wand2,
   RefreshCw,
   LayoutGrid,
   List,
@@ -123,6 +121,7 @@ const SellerDashboard = () => {
   const [aiTargetCustomer, setAiTargetCustomer] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [showAiHelper, setShowAiHelper] = useState(false);
+  const [activeSection, setActiveSection] = useState("home");
 
   // Fetch Business Profile
   const fetchBusinessProfile = async () => {
@@ -229,6 +228,8 @@ const SellerDashboard = () => {
 
   // Open Create Modal
   const handleOpenCreate = () => {
+    setActiveSection("deals");
+    setIsProfileModalOpen(false);
     setEditingDeal(null);
     setFormData({
       ...initialFormState,
@@ -243,6 +244,8 @@ const SellerDashboard = () => {
 
   // Open Edit Modal
   const handleOpenEdit = (deal) => {
+    setActiveSection("deals");
+    setIsProfileModalOpen(false);
     setEditingDeal(deal);
     setFormData({
       title: deal.title || "",
@@ -362,6 +365,7 @@ const SellerDashboard = () => {
       }
 
       setIsModalOpen(false);
+      setActiveSection("home");
       fetchMyDeals();
     } catch (err) {
       console.error("Save deal error:", err);
@@ -442,6 +446,7 @@ const SellerDashboard = () => {
       }
       showToast("Store profile & location updated successfully!");
       setIsProfileModalOpen(false);
+      setActiveSection("home");
     } catch (err) {
       console.error("Profile update error:", err);
       showToast(err.message || "Failed to update business profile");
@@ -584,7 +589,7 @@ const SellerDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#1A1A1A] pb-20 selection:bg-[#E8503A] selection:text-white">
+    <div className="dashboard-page dashboard-seller min-h-screen bg-[#F2F0EC] p-0 sm:p-6 lg:p-10 text-[#1A1A1A] pb-20 selection:bg-[#E8503A] selection:text-white">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-2xl bg-[#111827] px-5 py-3 text-xs font-bold text-white shadow-2xl border border-white/10 animate-bounce">
@@ -593,10 +598,44 @@ const SellerDashboard = () => {
         </div>
       )}
 
+      <aside className="seller-rail hidden lg:flex flex-col items-center justify-between rounded-l-[30px] border-r border-[#E6E1DA] bg-[#F8F7F4] py-7 px-3">
+        <div className="flex w-full flex-col items-center gap-8">
+          <Link to="/" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8503A] text-lg font-black text-white shadow-lg shadow-[#E8503A]/20">
+            H<span className="text-[#FFD19A]">U</span>
+          </Link>
+          <nav className="flex w-full flex-col items-center gap-4">
+            <button type="button" onClick={() => { setActiveSection("home"); setIsModalOpen(false); setIsProfileModalOpen(false); }} title="Overview" className={`dashboard-rail-icon ${activeSection === "home" ? "active" : ""}`}>
+              <Store size={19} />
+              <span>Home</span>
+            </button>
+            <button type="button" onClick={() => { setActiveSection("deals"); setIsModalOpen(false); setIsProfileModalOpen(false); }} title="Deals" className={`dashboard-rail-icon ${activeSection === "deals" ? "active" : ""}`}>
+              <PlusCircle size={19} />
+              <span>Deals</span>
+            </button>
+            <button type="button" onClick={() => { setActiveSection("redeem"); setIsModalOpen(false); setIsProfileModalOpen(false); }} title="Redeem voucher" className={`dashboard-rail-icon ${activeSection === "redeem" ? "active" : ""}`}>
+              <Ticket size={19} />
+              <span>Redeem</span>
+            </button>
+            <button type="button" onClick={() => { setActiveSection("ai"); setIsModalOpen(false); setIsProfileModalOpen(false); }} title="AI Command Center" className={`dashboard-rail-icon ${activeSection === "ai" ? "active" : ""}`}>
+              <Sparkles size={19} />
+              <span>AI</span>
+            </button>
+            <button type="button" onClick={() => { setActiveSection("store"); setIsModalOpen(false); setIsProfileModalOpen(true); }} title="Store location" className={`dashboard-rail-icon ${activeSection === "store" ? "active" : ""}`}>
+              <MapPin size={19} />
+              <span>Store</span>
+            </button>
+          </nav>
+        </div>
+        <button type="button" onClick={handleLogout} title="Sign out" className="dashboard-rail-icon text-red-500">
+          <LogOut size={19} />
+          <span>Exit</span>
+        </button>
+      </aside>
+
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/95 px-6 sm:px-10 py-3.5 flex items-center justify-between backdrop-blur-md">
+      <header className="dashboard-seller-header sticky top-0 z-40 border-b border-[#E6E1DA] bg-white px-6 sm:px-10 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/" className="text-xl font-black tracking-tight text-[#1A1A1A]">
+          <Link to="/" className="text-2xl font-black tracking-tight text-[#1A1A1A]">
             HitMe<span className="text-[#E8503A]">Up</span>
           </Link>
           <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-[#E8503A]/10 px-3 py-0.5 text-[11px] font-extrabold text-[#E8503A] uppercase tracking-wider">
@@ -632,14 +671,36 @@ const SellerDashboard = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="mx-auto max-w-6xl p-5 sm:p-8 space-y-7">
+      <main className={`dashboard-seller-main dashboard-view-${activeSection} mx-auto max-w-7xl bg-white p-5 sm:p-10 space-y-8`}>
+        {activeSection !== "ai" && (
+          <>
+        <div className="dashboard-section-home dashboard-commerce-nav">
+          <div className="dashboard-commerce-brand">
+            <button type="button" className="dashboard-menu-button" aria-label="Open dashboard navigation">
+              <span />
+              <span />
+              <span />
+            </button>
+            <span className="text-xl font-black tracking-tight text-[#1A1A1A]">Merchant workspace</span>
+          </div>
+          <div className="dashboard-location-button">
+            <Store size={16} className="text-[#E8503A]" />
+            <span className="text-left">
+              <span className="block text-[9px] font-bold uppercase tracking-wider text-gray-400">Store status</span>
+              <span className="block text-xs font-extrabold text-gray-900">Open for business</span>
+            </span>
+          </div>
+          <div className="dashboard-search">
+            <Search size={16} className="text-gray-400" />
+            <span>Search your deals and activity</span>
+          </div>
+        </div>
         
         {/* Merchant Store Hero Banner Card */}
-        <div className="relative rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-8 shadow-sm overflow-hidden">
+        <div className="dashboard-section-home relative rounded-[30px] border border-[#E6E1DA] bg-white p-7 sm:p-10 shadow-[0_18px_48px_rgba(53,42,33,0.07)] overflow-hidden">
           {/* Subtle decorative glow */}
-          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gradient-to-br from-[#FF4A2F]/10 to-[#FFB703]/10 blur-2xl" />
 
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
             <div className="flex items-start gap-4 sm:gap-5">
               <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF4A2F] via-[#E8503A] to-[#D43A26] text-white shadow-lg shadow-[#E8503A]/25 ring-4 ring-[#E8503A]/10">
                 <Store size={32} />
@@ -661,7 +722,7 @@ const SellerDashboard = () => {
                   )}
                 </div>
 
-                <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-none">
                   {storeName}
                 </h1>
 
@@ -683,7 +744,7 @@ const SellerDashboard = () => {
             </div>
 
             {/* Header Actions */}
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5 lg:justify-end">
               <button
                 onClick={() => {
                   fetchBusinessProfile();
@@ -699,7 +760,7 @@ const SellerDashboard = () => {
               </button>
 
               <button
-                onClick={() => setIsProfileModalOpen(true)}
+                onClick={() => { setActiveSection("store"); setIsProfileModalOpen(true); }}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-2xs cursor-pointer"
               >
                 <Edit3 size={14} />
@@ -707,7 +768,7 @@ const SellerDashboard = () => {
               </button>
 
               <button
-                onClick={() => setIsProfileModalOpen(true)}
+                onClick={() => { setActiveSection("store"); setIsProfileModalOpen(true); }}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-4 py-3 text-xs font-bold text-blue-700 hover:bg-blue-100 transition-all shadow-2xs cursor-pointer"
                 title="Pin your store location on interactive map"
               >
@@ -715,21 +776,14 @@ const SellerDashboard = () => {
                 <span>Pin Store on Map</span>
               </button>
 
-              <button
-                onClick={handleOpenCreate}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF4A2F] via-[#E8503A] to-[#D43A26] px-5 py-3 text-xs font-bold text-white shadow-md shadow-[#E8503A]/25 hover:shadow-lg hover:shadow-[#E8503A]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
-              >
-                <PlusCircle size={16} />
-                <span>Create Flash Deal</span>
-              </button>
             </div>
           </div>
         </div>
 
         {/* Real-Time Metrics Overview Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="dashboard-section-home grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total Deals */}
-          <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-xs hover:border-gray-300 transition-all">
+          <div className="rounded-[24px] border border-[#E6E1DA] bg-white p-5 shadow-[0_10px_30px_rgba(53,42,33,0.04)] hover:border-gray-300 transition-all">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Total Deals</span>
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-100 text-gray-700">
@@ -743,7 +797,7 @@ const SellerDashboard = () => {
           </div>
 
           {/* Card 2: Active Deals */}
-          <div className="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/50 to-white p-5 shadow-xs hover:border-emerald-300 transition-all">
+          <div className="rounded-[24px] border border-emerald-200/70 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-[0_10px_30px_rgba(27,122,74,0.06)] hover:border-emerald-300 transition-all">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Active Deals</span>
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-xs">
@@ -760,7 +814,7 @@ const SellerDashboard = () => {
           </div>
 
           {/* Card 3: Draft Deals */}
-          <div className="rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50/50 to-white p-5 shadow-xs hover:border-amber-300 transition-all">
+          <div className="rounded-[24px] border border-amber-200/70 bg-gradient-to-br from-amber-50/80 to-white p-5 shadow-[0_10px_30px_rgba(193,122,26,0.06)] hover:border-amber-300 transition-all">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Draft Deals</span>
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs">
@@ -771,34 +825,10 @@ const SellerDashboard = () => {
             <p className="text-[11px] text-amber-700/80 mt-1">Ready for scheduled publish</p>
           </div>
 
-          {/* Card 4: NVIDIA AI Assistant */}
-          <div className="rounded-2xl border border-blue-200/70 bg-gradient-to-br from-blue-50/60 to-white p-5 shadow-xs hover:border-blue-300 transition-all flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider">AI Deal Copilot</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
-                  <Sparkles size={16} />
-                </span>
-              </div>
-              <p className="text-base font-extrabold text-blue-950">NVIDIA AI Ready</p>
-            </div>
-            <button
-              onClick={() => {
-                handleOpenCreate();
-                setShowAiHelper(true);
-              }}
-              className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-700 hover:text-blue-900 transition-colors cursor-pointer"
-            >
-              <Wand2 size={13} /> Auto-draft deal &rarr;
-            </button>
-          </div>
         </div>
 
-        {/* AI Command Center */}
-        <AICommandCenter mode="seller" deals={deals} user={user} />
-
         {/* Storefront Discovery Pin Status Card */}
-        <div className="rounded-2xl border border-gray-200/80 bg-white p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="dashboard-section-home rounded-2xl border border-gray-200/80 bg-white p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8503A]/10 text-[#E8503A] shrink-0">
               <MapPin size={22} />
@@ -828,7 +858,7 @@ const SellerDashboard = () => {
           </div>
           <button
             type="button"
-            onClick={() => setIsProfileModalOpen(true)}
+            onClick={() => { setActiveSection("store"); setIsProfileModalOpen(true); }}
             className="shrink-0 flex items-center gap-1.5 rounded-xl bg-gray-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-[#E8503A] transition-all cursor-pointer shadow-xs"
           >
             <Compass size={14} className="text-[#FFB703]" />
@@ -837,7 +867,7 @@ const SellerDashboard = () => {
         </div>
 
         {/* POS Customer Voucher Verification & Quick Redemption */}
-        <div className="rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-7 shadow-xs">
+        <div className="dashboard-section-redeem seller-redeem-card rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-7 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-[#E8503A] border border-orange-100">
@@ -910,7 +940,7 @@ const SellerDashboard = () => {
         </div>
 
         {/* Deals Management Section */}
-        <div className="rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="dashboard-section-deals rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
           {/* Section Header & Filters */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-gray-100">
             <div>
@@ -922,6 +952,15 @@ const SellerDashboard = () => {
               </div>
               <p className="text-xs text-gray-500 mt-0.5">Filter, pause, edit, and monitor your active deals</p>
             </div>
+
+            <button
+              type="button"
+              onClick={handleOpenCreate}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#E8503A] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#D43A26] transition-colors cursor-pointer"
+            >
+              <PlusCircle size={15} />
+              <span>Create Flash Deal</span>
+            </button>
 
             {/* Filter Pills, Search & View Mode Switcher */}
             <div className="flex flex-wrap items-center gap-3">
@@ -1214,12 +1253,20 @@ const SellerDashboard = () => {
             </div>
           )}
         </div>
+          </>
+        )}
+
+        {activeSection === "ai" && (
+          <div className="dashboard-section-ai">
+            <AICommandCenter mode="seller" deals={deals} user={user} />
+          </div>
+        )}
       </main>
 
-      {/* CREATE / EDIT FLASH DEAL MODAL */}
+      {/* CREATE / EDIT FLASH DEAL PANEL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-gray-100 my-6 max-h-[90vh] overflow-y-auto">
+        <div className="dashboard-seller-inline dashboard-seller-deal-panel bg-white p-5 sm:p-10">
+          <div className="w-full max-w-3xl rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <div className="flex items-center gap-2.5">
@@ -1231,7 +1278,7 @@ const SellerDashboard = () => {
                 </h3>
               </div>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => { setIsModalOpen(false); setActiveSection("home"); }}
                 className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 <X size={18} />
@@ -1515,7 +1562,7 @@ const SellerDashboard = () => {
               <div className="pt-3 flex items-center justify-end gap-2 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => { setIsModalOpen(false); setActiveSection("home"); }}
                   className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                 >
                   Cancel
@@ -1536,10 +1583,10 @@ const SellerDashboard = () => {
         </div>
       )}
 
-      {/* EDIT STORE PROFILE MODAL */}
+      {/* EDIT STORE PROFILE PANEL */}
       {isProfileModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-gray-100 my-6 max-h-[92vh] overflow-y-auto">
+        <div className="dashboard-seller-inline dashboard-seller-store-panel bg-white p-5 sm:p-10">
+          <div className="w-full max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
@@ -1550,7 +1597,7 @@ const SellerDashboard = () => {
                 </h3>
               </div>
               <button
-                onClick={() => setIsProfileModalOpen(false)}
+                onClick={() => { setIsProfileModalOpen(false); setActiveSection("home"); }}
                 className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 <X size={18} />
@@ -1695,7 +1742,7 @@ const SellerDashboard = () => {
               <div className="pt-3 flex items-center justify-end gap-2 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setIsProfileModalOpen(false)}
+                  onClick={() => { setIsProfileModalOpen(false); setActiveSection("home"); }}
                   className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                 >
                   Cancel

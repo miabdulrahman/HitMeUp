@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Sparkles,
   ArrowRight,
-  ShieldCheck,
   AlertCircle,
   Copy,
   Check,
@@ -18,7 +17,6 @@ import {
   Clock,
   Store,
   Tag,
-  CheckCircle2,
   Heart,
   Star,
   MapPin,
@@ -33,6 +31,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
 import { voucherApi, orderApi, discoveryApi, authApi } from "../../services/api";
+import AICommandCenter from "../../components/AICommandCenter";
 
 const CustomerDashboard = () => {
   const navigate = useNavigate();
@@ -40,6 +39,7 @@ const CustomerDashboard = () => {
 
   // Navigation tab: 'overview', 'vouchers', 'favorites', 'orders', 'profile'
   const [activeTab, setActiveTab] = useState("overview");
+  const [dashboardSearch, setDashboardSearch] = useState("");
 
   // Core Data
   const [vouchers, setVouchers] = useState([]);
@@ -307,7 +307,7 @@ const CustomerDashboard = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#FAF8F5] text-[#1A1A1A] selection:bg-[#E8503A] selection:text-white">
+    <div className="dashboard-page dashboard-customer flex min-h-screen bg-[#F2F0EC] p-0 sm:p-6 lg:p-10 text-[#1A1A1A] selection:bg-[#E8503A] selection:text-white">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-2xl bg-[#111827] px-5 py-3 text-xs font-bold text-white shadow-2xl border border-white/10 animate-bounce">
@@ -317,23 +317,20 @@ const CustomerDashboard = () => {
       )}
 
       {/* Sidebar (Desktop) */}
-      <aside className="w-64 border-r border-gray-200/90 bg-white p-6 flex flex-col justify-between hidden md:flex shrink-0">
+      <aside className="dashboard-rail w-[118px] rounded-l-[30px] border-r border-[#E6E1DA] bg-[#F8F7F4] px-3 py-7 flex flex-col justify-between hidden md:flex shrink-0">
         <div>
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-1 mb-8 group">
-            <span className="text-2xl font-black tracking-tight text-[#1A1A1A]">
-              HitMe<span className="text-[#E8503A]">Up</span>
-            </span>
-            <span className="ml-2 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-orange-50 text-[#E8503A] border border-orange-200/60">
-              Shopper
+          <Link to="/" className="flex items-center justify-center mb-10 group px-2" title="HitMeUp">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8503A] text-lg font-black text-white shadow-lg shadow-[#E8503A]/20">
+              H<span className="text-[#FFD19A]">U</span>
             </span>
           </Link>
 
-          <p className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 mb-3 px-3">
+          <p className="text-center text-[9px] font-extrabold uppercase tracking-[0.12em] text-gray-400 mb-3 px-1">
             Navigation Menu
           </p>
 
-          <nav className="space-y-1">
+          <nav className="space-y-3">
             <SidebarBtn
               icon={<Home size={18} />}
               label="Overview"
@@ -369,47 +366,55 @@ const CustomerDashboard = () => {
               active={activeTab === "profile"}
               onClick={() => setActiveTab("profile")}
             />
+            <SidebarBtn
+              icon={<Sparkles size={18} />}
+              label="AI Command Center"
+              active={activeTab === "ai"}
+              onClick={() => setActiveTab("ai")}
+            />
           </nav>
         </div>
 
         {/* Bottom Explore Links */}
-        <div className="border-t border-gray-100 pt-4 space-y-2">
+        <div className="border-t border-[#E6E1DA] pt-5 space-y-3">
           <Link
             to="/category/all"
-            className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-gray-700 hover:text-[#E8503A] rounded-xl hover:bg-orange-50/50 transition-colors"
+            className="flex flex-col items-center gap-1 px-1 py-2 text-[10px] text-center font-bold text-gray-700 hover:text-[#E8503A] rounded-xl hover:bg-orange-50/50 transition-colors"
           >
             <Compass size={16} className="text-[#E8503A]" />
-            <span>Interactive Map Discovery</span>
+            <span>Map</span>
           </Link>
           <Link
             to="/#deals"
-            className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-gray-700 hover:text-[#E8503A] rounded-xl hover:bg-orange-50/50 transition-colors"
+            className="flex flex-col items-center gap-1 px-1 py-2 text-[10px] text-center font-bold text-gray-700 hover:text-[#E8503A] rounded-xl hover:bg-orange-50/50 transition-colors"
           >
             <Sparkles size={16} className="text-amber-500" />
-            <span>Browse Flash Marketplace</span>
+            <span>Browse</span>
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors text-left cursor-pointer"
+            className="w-full flex flex-col items-center gap-1 px-1 py-2 text-[10px] font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors text-center cursor-pointer"
           >
             <LogOut size={16} />
-            <span>Sign Out</span>
+            <span>Exit</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="dashboard-workspace flex-1 flex flex-col min-w-0 rounded-r-[30px] bg-white overflow-hidden">
         {/* Top Header */}
-        <header className="border-b border-gray-200/90 bg-white/95 px-6 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md">
+        <header className="border-b border-[#E6E1DA] bg-white px-6 sm:px-10 py-5 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-xl font-black text-gray-900 tracking-tight">
+              <p className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8A8A8A]">Workspace</p>
+              <h1 className="text-2xl font-black text-gray-900 tracking-tight">
                 {activeTab === "overview" && "Shopper Hub Overview"}
                 {activeTab === "vouchers" && "Digital Passes & QR Vouchers"}
                 {activeTab === "favorites" && "Saved Flash Promotions"}
                 {activeTab === "orders" && "Order & Payment History"}
                 {activeTab === "profile" && "Account Profile & Security"}
+                {activeTab === "ai" && "AI Command Center"}
               </h1>
               <p className="text-xs text-gray-500 mt-0.5">
                 Welcome back, <span className="font-bold text-gray-800">{user?.name}</span>
@@ -450,6 +455,35 @@ const CustomerDashboard = () => {
           </div>
         </header>
 
+        <div className="dashboard-commerce-nav">
+          <div className="dashboard-commerce-brand">
+            <button type="button" className="dashboard-menu-button" aria-label="Open dashboard navigation">
+              <span />
+              <span />
+              <span />
+            </button>
+            <Link to="/" className="text-xl font-black tracking-tight text-[#1A1A1A]">
+              HitMe<span className="text-[#E8503A]">Up</span>
+            </Link>
+          </div>
+          <button type="button" className="dashboard-location-button">
+            <MapPin size={16} className="text-[#E8503A]" />
+            <span className="text-left">
+              <span className="block text-[9px] font-bold uppercase tracking-wider text-gray-400">Delivering to</span>
+              <span className="block text-xs font-extrabold text-gray-900">Your current location</span>
+            </span>
+          </button>
+          <div className="dashboard-search">
+            <Search size={16} className="text-gray-400" />
+            <input
+              value={dashboardSearch}
+              onChange={(event) => setDashboardSearch(event.target.value)}
+              placeholder="Search deals, restaurants, or categories"
+              aria-label="Search deals"
+            />
+          </div>
+        </div>
+
         {/* Mobile Horizontal Tabs */}
         <div className="flex border-b border-gray-200 bg-white px-4 py-2 gap-2 overflow-x-auto md:hidden">
           <MobileTabBtn label="Overview" active={activeTab === "overview"} onClick={() => setActiveTab("overview")} />
@@ -457,10 +491,11 @@ const CustomerDashboard = () => {
           <MobileTabBtn label={`Saved (${favorites.length})`} active={activeTab === "favorites"} onClick={() => setActiveTab("favorites")} />
           <MobileTabBtn label={`Orders (${orders.length})`} active={activeTab === "orders"} onClick={() => setActiveTab("orders")} />
           <MobileTabBtn label="Profile" active={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
+          <MobileTabBtn label="AI Center" active={activeTab === "ai"} onClick={() => setActiveTab("ai")} />
         </div>
 
         {/* Content Body */}
-        <main className="flex-1 p-5 sm:p-8 overflow-y-auto space-y-7">
+        <main className="dashboard-content flex-1 bg-white p-5 sm:p-10 overflow-y-auto space-y-8">
           {errorMsg && (
             <div className="flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-medium text-amber-900">
               <AlertCircle size={16} className="text-amber-600 shrink-0" />
@@ -471,32 +506,43 @@ const CustomerDashboard = () => {
           {/* TAB 1: OVERVIEW */}
           {activeTab === "overview" && (
             <div className="space-y-7">
+              <div className="dashboard-category-row">
+                {["All deals", "Food & dining", "Beauty", "Fashion", "Services", "Nearby"].map((category, index) => (
+                  <button
+                    key={category}
+                    type="button"
+                    className={`dashboard-category-pill ${index === 0 ? "active" : ""}`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
               {/* Hero Welcome Banner */}
-              <div className="relative rounded-3xl bg-gradient-to-r from-[#172026] via-[#1E293B] to-[#0F172A] p-6 sm:p-8 text-white shadow-md overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-2 relative z-10 max-w-lg">
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-0.5 text-[11px] font-bold text-[#FFD19A] border border-white/15 backdrop-blur-md">
+              <div className="dashboard-minimal-hero relative rounded-[30px] p-7 sm:p-10 overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div className="space-y-3 relative z-10 max-w-xl">
+                  <div className="dashboard-minimal-kicker inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-[11px] font-bold border">
                     <Sparkles size={12} />
                     <span>Real-Time Deal Passport</span>
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                  <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-[1.05]">
                     Ready to claim flash savings, {user?.name}?
                   </h2>
-                  <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-normal">
-                    You have <strong className="text-emerald-400 font-bold">{activeVouchers.length} active digital passes</strong> ready to present at store counters.
+                  <p className="text-xs sm:text-sm leading-relaxed font-normal">
+                    You have <strong className="font-bold">{activeVouchers.length} active digital passes</strong> ready to present at store counters.
                   </p>
                 </div>
 
-                <div className="relative z-10 flex flex-wrap items-center gap-3">
+                <div className="relative z-10 flex flex-wrap items-center gap-3 md:self-end">
                   <button
                     onClick={() => setActiveTab("vouchers")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF4A2F] to-[#E8503A] px-5 py-3 text-xs font-bold text-white shadow-md shadow-[#E8503A]/25 hover:shadow-lg transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#E8503A] px-5 py-3 text-xs font-bold text-white transition-all cursor-pointer"
                   >
                     <QrCode size={16} />
                     <span>View Digital Passes</span>
                   </button>
                   <Link
                     to="/#deals"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold text-white hover:bg-white/20 transition-all backdrop-blur-md"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-gray-300 bg-white px-4 py-3 text-xs font-bold text-gray-800 transition-all"
                   >
                     <span>Browse Marketplace</span>
                     <ArrowRight size={14} />
@@ -504,52 +550,52 @@ const CustomerDashboard = () => {
                 </div>
 
                 {/* Subtle background circle glow */}
-                <div className="pointer-events-none absolute -right-10 -bottom-10 h-64 w-64 rounded-full bg-[#E8503A]/20 blur-3xl" />
               </div>
 
               {/* 4 Stat Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/60 to-white p-5 shadow-xs">
+                <div className="dashboard-minimal-stat rounded-[24px] border p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Active Passes</span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-xs">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Active Passes</span>
+                    <span className="dashboard-minimal-icon flex h-8 w-8 items-center justify-center rounded-xl">
                       <Ticket size={16} />
                     </span>
                   </div>
+
                   <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-black text-emerald-950">{activeVouchers.length}</p>
-                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" /> Live
+                    <p className="text-3xl font-black">{activeVouchers.length}</p>
+                    <span className="text-xs font-bold flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-gray-400" /> Live
                     </span>
                   </div>
-                  <p className="text-[11px] text-emerald-700/80 mt-1">Ready for in-store redemption</p>
+                  <p className="text-[11px] text-gray-500 mt-1">Ready for in-store redemption</p>
                 </div>
 
-                <div className="rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/60 to-white p-5 shadow-xs">
+                <div className="dashboard-minimal-stat rounded-[24px] border p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-rose-800 uppercase tracking-wider">Saved Wishlist</span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500 text-white shadow-xs">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Saved Wishlist</span>
+                    <span className="dashboard-minimal-icon flex h-8 w-8 items-center justify-center rounded-xl">
                       <Heart size={16} />
                     </span>
                   </div>
-                  <p className="text-3xl font-black text-rose-950">{favorites.length}</p>
-                  <p className="text-[11px] text-rose-700/80 mt-1">Deals bookmarked for quick claim</p>
+                  <p className="text-3xl font-black">{favorites.length}</p>
+                  <p className="text-[11px] text-gray-500 mt-1">Deals bookmarked for quick claim</p>
                 </div>
 
-                <div className="rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50/60 to-white p-5 shadow-xs">
+                <div className="dashboard-minimal-stat rounded-[24px] border p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Total Savings</span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Total Savings</span>
+                    <span className="dashboard-minimal-icon flex h-8 w-8 items-center justify-center rounded-xl">
                       <Tag size={16} />
                     </span>
                   </div>
-                  <p className="text-2xl sm:text-3xl font-black text-amber-950">
+                  <p className="text-2xl sm:text-3xl font-black">
                     Rs. {totalSavingsLkr.toLocaleString()}
                   </p>
-                  <p className="text-[11px] text-amber-700/80 mt-1">Saved from flash discounts</p>
+                  <p className="text-[11px] text-gray-500 mt-1">Saved from flash discounts</p>
                 </div>
 
-                <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-xs">
+                <div className="rounded-[24px] border border-[#E6E1DA] bg-white p-5 shadow-[0_10px_30px_rgba(53,42,33,0.04)]">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Orders Made</span>
                     <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-100 text-gray-700">
@@ -942,6 +988,10 @@ const CustomerDashboard = () => {
                     </div>
                   </div>
                 )}
+
+                {activeTab === "ai" && (
+                  <AICommandCenter mode="customer" deals={favorites.map((favorite) => favorite.deal || favorite)} user={user} />
+                )}
               </div>
 
               {/* Password & Security Card */}
@@ -1017,7 +1067,7 @@ const CustomerDashboard = () => {
       {/* FULLSCREEN DIGITAL QR PASS MODAL (FOR SELLER SCANNING AT POS) */}
       {selectedVoucherForQR && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fadeIn"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 animate-fadeIn"
           onClick={() => setSelectedVoucherForQR(null)}
         >
           <div
@@ -1122,7 +1172,7 @@ const CustomerDashboard = () => {
       {/* REVIEW STORE MODAL (FOR REDEEMED VOUCHERS) */}
       {reviewModalVoucher && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fadeIn"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 animate-fadeIn"
           onClick={() => setReviewModalVoucher(null)}
         >
           <div
@@ -1358,14 +1408,14 @@ const FavoriteCard = ({ deal, onRemove }) => {
           <div className="absolute top-2.5 right-2.5">
             <button
               onClick={(e) => onRemove(dealId, e)}
-              className="h-8 w-8 rounded-full bg-white/90 text-rose-500 hover:bg-white hover:scale-110 flex items-center justify-center shadow-md backdrop-blur-xs transition cursor-pointer"
+              className="h-8 w-8 rounded-full bg-white text-rose-500 hover:bg-white hover:scale-110 flex items-center justify-center shadow-md transition cursor-pointer"
               title="Remove from saved"
             >
               <Heart size={15} className="fill-rose-500 text-rose-500" />
             </button>
           </div>
           <div className="absolute bottom-2.5 left-2.5">
-            <span className="rounded-full bg-black/60 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-md">
+            <span className="rounded-full bg-black/80 px-2.5 py-0.5 text-[10px] font-bold text-white">
               {deal.category || "Flash Deal"}
             </span>
           </div>
@@ -1407,19 +1457,20 @@ const FavoriteCard = ({ deal, onRemove }) => {
 const SidebarBtn = ({ icon, label, badge = null, badgeColor = "gray", active = false, onClick }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+    title={label}
+    className={`relative w-full flex flex-col items-center justify-center gap-1 px-1 py-3 rounded-2xl text-[10px] font-bold transition-all cursor-pointer ${
       active
-        ? "bg-[#E8503A]/10 text-[#E8503A]"
-        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        ? "bg-[#E8503A]/10 text-[#E8503A] shadow-sm"
+        : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
     }`}
   >
-    <div className="flex items-center gap-3">
+    <div className="flex flex-col items-center gap-1">
       {icon}
-      <span>{label}</span>
+      <span className="leading-tight text-center">{label.split(" ")[0]}</span>
     </div>
     {badge !== null && (
       <span
-        className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+        className={`absolute right-1 top-1 rounded-full px-1.5 py-0.5 text-[9px] font-black ${
           active
             ? "bg-[#E8503A] text-white"
             : badgeColor === "rose"

@@ -47,17 +47,21 @@ const detectFraud = async ({
             temperature: 0.1,
             max_tokens: 300,
             reasoning_effort: "none",
-        })
+        });
 
         const result = response.choices[0].message.content;
+        const cleanResult = result
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
 
-        return JSON.parse(result);
+        return JSON.parse(cleanResult);
     } catch (error) {
         console.error("AI Fraud Detection Error:", error);
         throw error;
     }
-}
+};
 
 module.exports = {
     detectFraud,
-}
+};

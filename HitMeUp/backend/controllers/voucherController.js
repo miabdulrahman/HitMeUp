@@ -64,7 +64,6 @@ function generateOrderNumber() {
  * @route   POST /api/vouchers/claim
  * @access  Private (Authenticated Buyer / Customer)
  */
-
 const claimVoucher = async (req, res) => {
   const customerId = req.user?._id || req.user?.id;
   const { dealId } = req.body;
@@ -83,130 +82,113 @@ const claimVoucher = async (req, res) => {
     });
   }
 
-  const session = await mongoose.startSession();
-
   try {
-    let result;
+    const deal = await Deal.findById(dealId);
 
-    await session.withTransaction(async () => {
-      const deal = await Deal.findById(dealId).session(session);
+    if (!deal) {
+      return res.status(404).json({
+        success: false,
+        message: "Deal not found"
+      });
+    }
 
-      if (!deal) {
-        throw Object.assign(new Error("Deal not found"), {
-          statusCode: 404
-        });
-      }
+    const now = new Date();
 
-      const now = new Date();
+    if (
+      deal.status !== "active" ||
+      (deal.startDate && deal.startDate > now) ||
+      (deal.endDate && deal.endDate <= now)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "This deal is no longer active or has expired"
+      });
+    }
 
-      if (
-        deal.status !== "active" ||
-        (deal.startDate && deal.startDate > now) ||
-        (deal.endDate && deal.endDate <= now)
-      ) {
-        throw Object.assign(new Error("Deal is not active"), {
-          statusCode: 400
-        });
-      }
+    const amount = Number(deal.discountedPrice ?? deal.originalPrice ?? 0);
 
-      const amount =
-        deal.discountedPrice ?? deal.originalPrice;
+    if (!Number.isFinite(amount) || amount < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid deal price"
+      });
+    }
 
-      if (
-        !Number.isFinite(amount) ||
-        amount < 0
-      ) {
-        throw Object.assign(
-          new Error("Invalid deal price"),
-          { statusCode: 400 }
-        );
-      }
-
-      // Atomically reserve one available deal.
-      const updatedDeal = await Deal.findOneAndUpdate(
-        {
-          _id: dealId,
-          status: "active",
-          availableQuantity: { $gt: 0 },
-          $and: [
-            {
-              $or: [
-                { startDate: { $exists: false } },
-                { startDate: null },
-                { startDate: { $lte: now } }
-              ]
-            },
-            {
-              $or: [
-                { endDate: { $exists: false } },
-                { endDate: null },
-                { endDate: { $gt: now } }
-              ]
-            }
-          ]
-        },
-        {
-          $inc: { availableQuantity: -1 }
-        },
-        {
-          new: true,
-          session
+    // Atomically reserve one available deal and increment claimedQuantity
+    const updatedDeal = await Deal.findOneAndUpdate(
+      {
+        _id: dealId,
+        status: "active",
+        availableQuantity: { $gt: 0 }
+      },
+      {
+        $inc: {
+          availableQuantity: -1,
+          claimedQuantity: 1
         }
-      );
+      },
+      { new: true }
+    ).populate("businessId", "name category address location phone openingHours");
 
-      if (!updatedDeal) {
-        throw Object.assign(
-          new Error("Deal is unavailable or sold out"),
-          { statusCode: 409 }
-        );
-      }
+    if (!updatedDeal) {
+      return res.status(409).json({
+        success: false,
+        message: "Deal is unavailable or sold out"
+      });
+    }
 
-      const [order] = await Order.create(
-        [{
-          orderNumber: generateOrderNumber(),
-          customerId,
-          dealId: updatedDeal._id,
-          amount,
-          currency: "LKR",
-          status: "PENDING",
-          expiresAt: updatedDeal.endDate || null
-        }],
-        { session }
-      );
+    const order = await Order.create({
+      orderNumber: generateOrderNumber(),
+      customerId,
+      dealId: updatedDeal._id,
+      amount,
+      currency: "LKR",
+      status: "PAID",
+      expiresAt: updatedDeal.endDate || null
+    });
 
-      // SECURITY FIX:
-      // Do NOT create a voucher here.
+    const code = generateVoucherCode();
+    const qrData = await QRCode.toDataURL(`HITMEUP:${code}`);
 
-      result = {
+    const createdVoucher = await Voucher.create({
+      orderId: order._id,
+      customerId,
+      dealId: updatedDeal._id,
+      code,
+      qrData,
+      status: "ACTIVE",
+      expiresAt: updatedDeal.endDate || null
+    });
+
+    const voucher = await Voucher.findById(createdVoucher._id)
+      .populate("dealId")
+      .populate("orderId");
+
+    return res.status(201).json({
+      success: true,
+      message: "Voucher claimed successfully!",
+      voucher,
+      remainingQuantity: updatedDeal.availableQuantity,
+      data: {
+        voucher,
+        order,
         orderId: order._id,
         orderNumber: order.orderNumber,
         amount: order.amount,
         currency: order.currency,
         status: order.status,
         remainingQuantity: updatedDeal.availableQuantity
-      };
+      }
     });
-
-    return res.status(201).json({
-      success: true,
-      message: "Order created. Payment required.",
-      data: result
-    });
-
   } catch (error) {
     console.error("Claim Voucher Error:", error);
 
     return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.statusCode
-        ? error.message
-        : "Failed to create pending order"
+      message: error.message || "Failed to claim voucher"
     });
-  } finally {
-    await session.endSession();
   }
 };
-
 
 /**
  * @desc    Get all vouchers claimed by authenticated customer
@@ -215,7 +197,7 @@ const claimVoucher = async (req, res) => {
  */
 const getMyVouchers = async (req, res) => {
   try {
-    const customerId = req.user._id;
+    const customerId = req.user._id || req.user.id;
 
     const vouchers = await Voucher.find({ customerId })
       .populate("dealId")
@@ -341,8 +323,14 @@ const previewVoucherByCode = async (req, res) => {
 
     // Check ownership if business user is scanning
     const businessUser = req.user;
+    let businessId = businessUser?.businessId;
+    if (!businessId && businessUser?._id) {
+      const biz = await Business.findOne({ ownerId: businessUser._id });
+      if (biz) businessId = biz._id;
+    }
+
     let belongsToCurrentBusiness = true;
-    if (businessUser?.businessId && voucher.dealId) {
+    if (businessId && voucher.dealId) {
       const dealBizId =
         voucher.dealId.businessId ||
         voucher.dealId.business?._id ||
@@ -350,7 +338,7 @@ const previewVoucherByCode = async (req, res) => {
 
       if (
         dealBizId &&
-        dealBizId.toString() !== businessUser.businessId.toString()
+        dealBizId.toString() !== businessId.toString()
       ) {
         belongsToCurrentBusiness = false;
       }
@@ -358,6 +346,8 @@ const previewVoucherByCode = async (req, res) => {
 
     return res.status(200).json({
       success: true,
+      voucher,
+      belongsToCurrentBusiness,
       data: {
         voucher,
         belongsToCurrentBusiness
@@ -392,8 +382,8 @@ const redeemVoucher = async (req, res) => {
 
     // Automatically strip QR prefix "HITMEUP:" if cashier scanner sends full QR string
     let cleanCode = rawCode.trim();
-    if (cleanCode.startsWith("HITMEUP:")) {
-      cleanCode = cleanCode.replace("HITMEUP:", "");
+    if (cleanCode.toUpperCase().startsWith("HITMEUP:")) {
+      cleanCode = cleanCode.slice(8);
     }
     cleanCode = cleanCode.toUpperCase().trim();
 
@@ -407,21 +397,9 @@ const redeemVoucher = async (req, res) => {
       }
     }
 
-    // The authenticated business account should have businessId (admins exempted)
-    if (businessUser.role !== "admin") {
-      if (
-        !businessId ||
-        !dealBusinessId ||
-        dealBusinessId.toString() !== businessId.toString()
-      ) {
-        return res.status(403).json({
-          success: false,
-          message: "You are not authorized to redeem this voucher"
-        });
-      }
-    }
-
-    const voucher = await Voucher.findOne({ code: cleanCode });
+    const voucher = await Voucher.findOne({ code: cleanCode })
+      .populate("dealId")
+      .populate("customerId", "name email phone");
 
     if (!voucher) {
       return res.status(404).json({
@@ -447,43 +425,14 @@ const redeemVoucher = async (req, res) => {
       });
     }
 
-    // Verify the order belongs to this voucher
-    const order = await Order.findOne({
-      _id: voucher.orderId,
-      customerId: voucher.customerId,
-      dealId: voucher.dealId
-    });
-
-    if (!order) {
-      return res.status(403).json({
-        success: false,
-        message: "Voucher order verification failed"
-      });
-    }
-
-    // Check that the payment is marked successful
-    const payment = await Payment.findOne({
-      _id: order.paymentId,
-      orderId: order._id,
-      customerId: order.customerId,
-      status: "SUCCESS",
-      verificationStatus: "VERIFIED",
-      provider: "PAYHERE"
-    });
-
-    if (!payment || order.status !== "PAID") {
-      return res.status(403).json({
-        success: false,
-        message: "Verified payment required"
-      });
-    }
-
     // Get deal to verify correct business (admins can override)
-    let deal = null;
-    try {
-      deal = await getDeal(voucher.dealId);
-    } catch (e) {
-      deal = await Deal.findById(voucher.dealId);
+    let deal = voucher.dealId;
+    if (!deal || !deal._id) {
+      try {
+        deal = await getDeal(voucher.dealId);
+      } catch (e) {
+        deal = await Deal.findById(voucher.dealId);
+      }
     }
 
     if (!deal) {
@@ -494,20 +443,22 @@ const redeemVoucher = async (req, res) => {
     }
 
     const dealBusinessId =
+      deal.businessId?._id ||
       deal.businessId ||
       deal.business?._id ||
       deal.business?.id;
 
-    if (
-      businessUser.role !== "admin" &&
-      dealBusinessId &&
-      businessId &&
-      dealBusinessId.toString() !== businessId.toString()
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "This voucher does not belong to your business"
-      });
+    if (businessUser.role !== "admin") {
+      if (
+        !businessId ||
+        !dealBusinessId ||
+        dealBusinessId.toString() !== businessId.toString()
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "This voucher belongs to another store and cannot be redeemed by your account"
+        });
+      }
     }
 
     // Atomic update prevents two requests from redeeming the same active voucher
@@ -523,7 +474,10 @@ const redeemVoucher = async (req, res) => {
       {
         new: true
       }
-    );
+    )
+      .populate("dealId")
+      .populate("customerId", "name email phone");
+
     if (!redeemedVoucher) {
       return res.status(409).json({
         success: false,

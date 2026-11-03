@@ -20,35 +20,31 @@ import {
   Heart,
   Star,
   MapPin,
-  Phone,
-  ExternalLink,
-  Lock,
   Edit3,
   Search,
   Compass,
-  Trash2,
-  DollarSign
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
-import { voucherApi, orderApi, discoveryApi, authApi } from "../../services/api";
+import { voucherApi, orderApi, discoveryApi, authApi, dealApi } from "../../services/api";
 import AICommandCenter from "../../components/AICommandCenter";
 
 const CustomerDashboard = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout, updateProfile: updateAuthProfile, loading: authLoading } = useAuth();
 
-  // Navigation tab: 'overview', 'vouchers', 'favorites', 'orders', 'profile'
+  // Navigation tab: 'overview', 'vouchers', 'favorites', 'orders', 'profile', 'ai'
   const [activeTab, setActiveTab] = useState("overview");
   const [dashboardSearch, setDashboardSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All deals");
 
   // Core Data
   const [vouchers, setVouchers] = useState([]);
   const [orders, setOrders] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [marketplaceDeals, setMarketplaceDeals] = useState([]);
   const [loadingData, setLoadingData] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [toastMessage, setToastMessage] = useState("");
-  const [lastSynced, setLastSynced] = useState(null);
 
   // Vouchers Tab State
   const [voucherFilter, setVoucherFilter] = useState("all"); // 'all', 'active', 'redeemed', 'expired'
@@ -91,10 +87,11 @@ const CustomerDashboard = () => {
     setErrorMsg("");
 
     try {
-      const [vouchersRes, ordersRes, favRes] = await Promise.allSettled([
+      const [vouchersRes, ordersRes, favRes, dealsRes] = await Promise.allSettled([
         voucherApi.getMyVouchers(),
         orderApi.getMyOrders(),
         discoveryApi.getMyFavorites ? discoveryApi.getMyFavorites() : Promise.resolve({ favorites: [] }),
+        dealApi.getDeals ? dealApi.getDeals() : Promise.resolve({ deals: [] })
       ]);
 
       if (vouchersRes.status === "fulfilled") {
@@ -106,7 +103,9 @@ const CustomerDashboard = () => {
       if (favRes.status === "fulfilled") {
         setFavorites(favRes.value?.favorites || []);
       }
-      setLastSynced(new Date());
+      if (dealsRes.status === "fulfilled") {
+        setMarketplaceDeals(dealsRes.value?.deals || dealsRes.value?.data || []);
+      }
     } catch (err) {
       console.error("Dashboard data load error:", err);
       setErrorMsg("Failed to synchronize with server. Please refresh.");
@@ -282,7 +281,7 @@ const CustomerDashboard = () => {
       else if (voucherFilter === "expired") matchesFilter = isExp;
 
       const deal = v.dealId || {};
-      const q = voucherSearch.trim().toLowerCase();
+      const q = (voucherSearch || dashboardSearch).trim().toLowerCase();
       const matchesSearch =
         q === ""
           ? true
@@ -293,7 +292,46 @@ const CustomerDashboard = () => {
 
       return matchesFilter && matchesSearch;
     });
-  }, [vouchers, voucherFilter, voucherSearch]);
+  }, [vouchers, voucherFilter, voucherSearch, dashboardSearch]);
+
+  // Filtered Marketplace Deals for Category Pills & Top Search Bar
+  const filteredMarketplaceDeals = useMemo(() => {
+    const q = dashboardSearch.trim().toLowerCase();
+    return marketplaceDeals.filter((deal) => {
+      const cat = String(deal.category || "").toLowerCase();
+      let matchesCat = true;
+      if (selectedCategory === "Food & dining") {
+        matchesCat = cat.includes("food") || cat.includes("restaurant") || cat.includes("cafe") || cat.includes("dining");
+      } else if (selectedCategory === "Beauty") {
+        matchesCat = cat.includes("beauty") || cat.includes("salon") || cat.includes("spa") || cat.includes("health");
+      } else if (selectedCategory === "Fashion") {
+        matchesCat = cat.includes("fashion") || cat.includes("retail") || cat.includes("clothing");
+      } else if (selectedCategory === "Services") {
+        matchesCat = cat.includes("service") || cat.includes("fitness") || cat.includes("entertainment") || cat.includes("other");
+      }
+
+      const matchesSearch =
+        q === "" ||
+        deal.title?.toLowerCase().includes(q) ||
+        deal.description?.toLowerCase().includes(q) ||
+        deal.category?.toLowerCase().includes(q) ||
+        deal.businessId?.name?.toLowerCase().includes(q);
+
+      return matchesCat && matchesSearch;
+    });
+  }, [marketplaceDeals, selectedCategory, dashboardSearch]);
+
+  const aiDealsPool = useMemo(() => {
+    const favDeals = favorites.map((favorite) => favorite.deal || favorite);
+    const combined = [...favDeals, ...marketplaceDeals];
+    const seen = new Set();
+    return combined.filter((d) => {
+      const id = String(d?._id || d?.id || "");
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [favorites, marketplaceDeals]);
 
   if (authLoading) {
     return (
@@ -378,7 +416,7 @@ const CustomerDashboard = () => {
         {/* Bottom Explore Links */}
         <div className="border-t border-[#E6E1DA] pt-5 space-y-3">
           <Link
-            to="/category/all"
+            to="/deals"
             className="flex flex-col items-center gap-1 px-1 py-2 text-[10px] text-center font-bold text-gray-700 hover:text-[#E8503A] rounded-xl hover:bg-orange-50/50 transition-colors"
           >
             <Compass size={16} className="text-[#E8503A]" />
@@ -443,7 +481,12 @@ const CustomerDashboard = () => {
               <span>{loadingData ? "Syncing..." : "Sync"}</span>
             </button>
 
-            <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
+            <button
+              type="button"
+              onClick={() => setActiveTab("profile")}
+              className="flex items-center gap-2 pl-3 border-l border-gray-200 cursor-pointer"
+              title="Account Profile"
+            >
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#FF4A2F] to-[#E8503A] text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
                 {user?.name?.[0] || "U"}
               </div>
@@ -451,13 +494,23 @@ const CustomerDashboard = () => {
                 <div className="text-xs font-bold text-gray-900 leading-tight">{user?.name}</div>
                 <div className="text-[10px] uppercase font-semibold text-emerald-600">Verified Shopper</div>
               </div>
-            </div>
+            </button>
           </div>
         </header>
 
         <div className="dashboard-commerce-nav">
           <div className="dashboard-commerce-brand">
-            <button type="button" className="dashboard-menu-button" aria-label="Open dashboard navigation">
+            <button
+              type="button"
+              onClick={() => {
+                const tabs = ["overview", "vouchers", "favorites", "orders", "profile", "ai"];
+                const nextIdx = (tabs.indexOf(activeTab) + 1) % tabs.length;
+                setActiveTab(tabs[nextIdx]);
+              }}
+              className="dashboard-menu-button cursor-pointer"
+              aria-label="Switch dashboard section"
+              title="Switch dashboard tab"
+            >
               <span />
               <span />
               <span />
@@ -466,21 +519,41 @@ const CustomerDashboard = () => {
               HitMe<span className="text-[#E8503A]">Up</span>
             </Link>
           </div>
-          <button type="button" className="dashboard-location-button">
+          <button
+            type="button"
+            onClick={() => navigate("/deals")}
+            className="dashboard-location-button cursor-pointer"
+            title="Open live deal map & discovery"
+          >
             <MapPin size={16} className="text-[#E8503A]" />
             <span className="text-left">
-              <span className="block text-[9px] font-bold uppercase tracking-wider text-gray-400">Delivering to</span>
-              <span className="block text-xs font-extrabold text-gray-900">Your current location</span>
+              <span className="block text-[9px] font-bold uppercase tracking-wider text-gray-400">Explore nearby</span>
+              <span className="block text-xs font-extrabold text-gray-900">View Deal Map & Stores</span>
             </span>
           </button>
           <div className="dashboard-search">
             <Search size={16} className="text-gray-400" />
             <input
               value={dashboardSearch}
-              onChange={(event) => setDashboardSearch(event.target.value)}
-              placeholder="Search deals, restaurants, or categories"
+              onChange={(event) => {
+                setDashboardSearch(event.target.value);
+                if (activeTab !== "overview" && activeTab !== "vouchers") {
+                  setActiveTab("overview");
+                }
+              }}
+              placeholder="Search deals, vouchers, restaurants, or categories"
               aria-label="Search deals"
             />
+            {dashboardSearch && (
+              <button
+                type="button"
+                onClick={() => setDashboardSearch("")}
+                className="text-gray-400 hover:text-gray-700 cursor-pointer"
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -507,16 +580,25 @@ const CustomerDashboard = () => {
           {activeTab === "overview" && (
             <div className="space-y-7">
               <div className="dashboard-category-row">
-                {["All deals", "Food & dining", "Beauty", "Fashion", "Services", "Nearby"].map((category, index) => (
+                {["All deals", "Food & dining", "Beauty", "Fashion", "Services", "Nearby"].map((category) => (
                   <button
                     key={category}
                     type="button"
-                    className={`dashboard-category-pill ${index === 0 ? "active" : ""}`}
+                    onClick={() => {
+                      if (category === "Nearby") {
+                        navigate("/deals");
+                      } else {
+                        setSelectedCategory(category);
+                      }
+                    }}
+                    className={`dashboard-category-pill cursor-pointer ${selectedCategory === category ? "active" : ""
+                      }`}
                   >
                     {category}
                   </button>
                 ))}
               </div>
+
               {/* Hero Welcome Banner */}
               <div className="dashboard-minimal-hero relative rounded-[30px] p-7 sm:p-10 overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-8">
                 <div className="space-y-3 relative z-10 max-w-xl">
@@ -540,21 +622,29 @@ const CustomerDashboard = () => {
                     <QrCode size={16} />
                     <span>View Digital Passes</span>
                   </button>
+                  <button
+                    onClick={() => setActiveTab("ai")}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-gray-300 bg-white px-4 py-3 text-xs font-bold text-gray-800 transition-all cursor-pointer"
+                  >
+                    <Sparkles size={14} className="text-[#E8503A]" />
+                    <span>Ask AI Concierge</span>
+                  </button>
                   <Link
-                    to="/#deals"
+                    to="/deals"
                     className="inline-flex items-center gap-1.5 rounded-xl border border-gray-300 bg-white px-4 py-3 text-xs font-bold text-gray-800 transition-all"
                   >
                     <span>Browse Marketplace</span>
                     <ArrowRight size={14} />
                   </Link>
                 </div>
-
-                {/* Subtle background circle glow */}
               </div>
 
               {/* 4 Stat Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="dashboard-minimal-stat rounded-[24px] border p-5">
+                <div
+                  onClick={() => setActiveTab("vouchers")}
+                  className="dashboard-minimal-stat rounded-[24px] border p-5 cursor-pointer hover:border-[#E8503A]/50 transition"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider">Active Passes</span>
                     <span className="dashboard-minimal-icon flex h-8 w-8 items-center justify-center rounded-xl">
@@ -565,13 +655,16 @@ const CustomerDashboard = () => {
                   <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-black">{activeVouchers.length}</p>
                     <span className="text-xs font-bold flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-gray-400" /> Live
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live
                     </span>
                   </div>
                   <p className="text-[11px] text-gray-500 mt-1">Ready for in-store redemption</p>
                 </div>
 
-                <div className="dashboard-minimal-stat rounded-[24px] border p-5">
+                <div
+                  onClick={() => setActiveTab("favorites")}
+                  className="dashboard-minimal-stat rounded-[24px] border p-5 cursor-pointer hover:border-[#E8503A]/50 transition"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider">Saved Wishlist</span>
                     <span className="dashboard-minimal-icon flex h-8 w-8 items-center justify-center rounded-xl">
@@ -595,7 +688,10 @@ const CustomerDashboard = () => {
                   <p className="text-[11px] text-gray-500 mt-1">Saved from flash discounts</p>
                 </div>
 
-                <div className="rounded-[24px] border border-[#E6E1DA] bg-white p-5 shadow-[0_10px_30px_rgba(53,42,33,0.04)]">
+                <div
+                  onClick={() => setActiveTab("orders")}
+                  className="rounded-[24px] border border-[#E6E1DA] bg-white p-5 shadow-[0_10px_30px_rgba(53,42,33,0.04)] cursor-pointer hover:border-[#E8503A]/50 transition"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Orders Made</span>
                     <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-100 text-gray-700">
@@ -606,6 +702,58 @@ const CustomerDashboard = () => {
                   <p className="text-[11px] text-gray-400 mt-1">Checkout & voucher receipts</p>
                 </div>
               </div>
+
+              {/* Filtered Live Marketplace Deals (when category pill or search is used, or live feed) */}
+              {(selectedCategory !== "All deals" || dashboardSearch.trim() !== "" || filteredMarketplaceDeals.length > 0) && (
+                <div className="rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-7 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                    <div>
+                      <h3 className="font-extrabold text-gray-900 text-base">
+                        {selectedCategory === "All deals" ? "Live Flash Deals" : `${selectedCategory} Deals`}
+                        {dashboardSearch.trim() ? ` matching "${dashboardSearch}"` : ""}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {filteredMarketplaceDeals.length} active promotion{filteredMarketplaceDeals.length === 1 ? "" : "s"} available right now
+                      </p>
+                    </div>
+                    <Link
+                      to="/deals"
+                      className="text-xs font-bold text-[#E8503A] hover:underline flex items-center gap-1"
+                    >
+                      <span>Open Full Discovery</span>
+                      <ArrowRight size={14} />
+                    </Link>
+                  </div>
+
+                  {filteredMarketplaceDeals.length === 0 ? (
+                    <div className="py-8 text-center space-y-2">
+                      <p className="text-xs font-semibold text-gray-600">
+                        No deals found in {selectedCategory} {dashboardSearch ? `for "${dashboardSearch}"` : ""}.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory("All deals");
+                          setDashboardSearch("");
+                        }}
+                        className="text-xs font-bold text-[#E8503A] hover:underline cursor-pointer"
+                      >
+                        Reset filters
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredMarketplaceDeals.slice(0, 6).map((deal) => (
+                        <FavoriteCard
+                          key={deal._id || deal.id}
+                          deal={deal}
+                          onRemove={null}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Active Passes Section */}
               <div className="rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-7 shadow-xs space-y-4">
@@ -628,7 +776,7 @@ const CustomerDashboard = () => {
                     title="No active passes right now"
                     description="Claim limited-time flash deals to generate instant QR passes you can redeem at stores."
                     actionLabel="Discover Flash Deals"
-                    actionHref="/#deals"
+                    actionHref="/deals"
                   />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -694,19 +842,17 @@ const CustomerDashboard = () => {
                     <button
                       key={f.key}
                       onClick={() => setVoucherFilter(f.key)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        voucherFilter === f.key
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${voucherFilter === f.key
                           ? "bg-white text-gray-900 shadow-2xs"
                           : "text-gray-500 hover:text-gray-900"
-                      }`}
+                        }`}
                     >
                       <span>{f.label}</span>
                       <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                          voucherFilter === f.key
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${voucherFilter === f.key
                             ? "bg-[#E8503A]/10 text-[#E8503A]"
                             : "bg-gray-200 text-gray-600"
-                        }`}
+                          }`}
                       >
                         {f.count}
                       </span>
@@ -747,11 +893,11 @@ const CustomerDashboard = () => {
                     {voucherSearch
                       ? "No passes match your search query. Try clearing the search bar."
                       : voucherFilter === "active"
-                      ? "You don't have any active unredeemed passes right now."
-                      : "Claim vouchers on any flash promotion to unlock instant discounts."}
+                        ? "You don't have any active unredeemed passes right now."
+                        : "Claim vouchers on any flash promotion to unlock instant discounts."}
                   </p>
                   <Link
-                    to="/#deals"
+                    to="/deals"
                     className="inline-flex items-center gap-1.5 rounded-xl bg-[#E8503A] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#D43A26] transition shadow-xs mt-2"
                   >
                     <span>Browse Flash Marketplace</span>
@@ -783,7 +929,7 @@ const CustomerDashboard = () => {
                   <p className="text-xs text-gray-500">Track and claim your bookmarked flash deals before they expire</p>
                 </div>
                 <Link
-                  to="/#deals"
+                  to="/deals"
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E8503A] hover:underline"
                 >
                   <Sparkles size={14} />
@@ -801,7 +947,7 @@ const CustomerDashboard = () => {
                     Click the heart icon on any deal card to save it here for fast tracking and instant claiming!
                   </p>
                   <Link
-                    to="/#deals"
+                    to="/deals"
                     className="inline-flex items-center gap-1.5 rounded-xl bg-[#E8503A] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#D43A26] transition shadow-xs mt-2"
                   >
                     <span>Explore Flash Deals</span>
@@ -837,7 +983,7 @@ const CustomerDashboard = () => {
                     title="No orders placed yet"
                     description="Your checkout and payment history will be safely tracked here."
                     actionLabel="View Live Deals"
-                    actionHref="/#deals"
+                    actionHref="/deals"
                   />
                 </div>
               ) : (
@@ -846,6 +992,7 @@ const CustomerDashboard = () => {
                     <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-bold">
                       <tr>
                         <th className="px-6 py-3.5">Order Number</th>
+                        <th className="px-6 py-3.5">Deal</th>
                         <th className="px-6 py-3.5">Amount</th>
                         <th className="px-6 py-3.5">Status</th>
                         <th className="px-6 py-3.5">Date</th>
@@ -857,18 +1004,20 @@ const CustomerDashboard = () => {
                           <td className="px-6 py-4 font-mono font-bold text-gray-900">
                             {order.orderNumber || order._id}
                           </td>
+                          <td className="px-6 py-4 font-bold text-gray-800">
+                            {order.dealId?.title || "Flash Deal Voucher"}
+                          </td>
                           <td className="px-6 py-4 font-extrabold text-[#E8503A]">
-                            Rs. {Number(order.amount).toLocaleString()}
+                            Rs. {Number(order.amount || 0).toLocaleString()}
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase ${
-                                order.status === "PAID" || order.status === "COMPLETED"
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase ${order.status === "PAID" || order.status === "COMPLETED"
                                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                   : order.status === "PENDING"
-                                  ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                  : "bg-red-50 text-red-700 border border-red-200"
-                              }`}
+                                    ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                    : "bg-red-50 text-red-700 border border-red-200"
+                                }`}
                             >
                               {order.status || "PAID"}
                             </span>
@@ -988,10 +1137,6 @@ const CustomerDashboard = () => {
                     </div>
                   </div>
                 )}
-
-                {activeTab === "ai" && (
-                  <AICommandCenter mode="customer" deals={favorites.map((favorite) => favorite.deal || favorite)} user={user} />
-                )}
               </div>
 
               {/* Password & Security Card */}
@@ -1003,11 +1148,10 @@ const CustomerDashboard = () => {
 
                 {passwordMsg.text && (
                   <div
-                    className={`p-3 rounded-xl text-xs font-semibold ${
-                      passwordMsg.type === "success"
+                    className={`p-3 rounded-xl text-xs font-semibold ${passwordMsg.type === "success"
                         ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                         : "bg-red-50 text-red-800 border border-red-200"
-                    }`}
+                      }`}
                   >
                     {passwordMsg.text}
                   </div>
@@ -1060,6 +1204,23 @@ const CustomerDashboard = () => {
                 </form>
               </div>
             </div>
+          )}
+
+          {/* TAB 6: AI COMMAND CENTER (Top-Level Tab) */}
+          {activeTab === "ai" && (
+            <AICommandCenter
+              mode="customer"
+              deals={aiDealsPool}
+              user={user}
+              onSelectRecommendedDeal={(deal) => {
+                const id = deal._id || deal.dealId || deal.id;
+                if (id) {
+                  navigate(`/deals?deal=${id}`);
+                } else {
+                  navigate("/deals");
+                }
+              }}
+            />
           )}
         </main>
       </div>
@@ -1144,13 +1305,12 @@ const CustomerDashboard = () => {
             {/* Status & Instructions */}
             <div className="pt-2 text-xs text-gray-500 leading-relaxed space-y-1">
               <span
-                className={`inline-block mb-1.5 rounded-full px-3 py-0.5 text-[11px] font-black uppercase tracking-wider ${
-                  selectedVoucherForQR.status === "ACTIVE"
+                className={`inline-block mb-1.5 rounded-full px-3 py-0.5 text-[11px] font-black uppercase tracking-wider ${selectedVoucherForQR.status === "ACTIVE"
                     ? "bg-emerald-100 text-emerald-800"
                     : selectedVoucherForQR.status === "REDEEMED"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-gray-100 text-gray-600"
-                }`}
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
               >
                 Status: {selectedVoucherForQR.status}
               </span>
@@ -1270,7 +1430,6 @@ const VoucherCard = ({ voucher, onShowQR, onCopyCode, copiedCode, onReview }) =>
   const business = deal.businessId || {};
   const isActive = voucher.status === "ACTIVE" && (!voucher.expiresAt || new Date(voucher.expiresAt) > new Date());
   const isRedeemed = voucher.status === "REDEEMED";
-  const isExpired = voucher.status === "EXPIRED" || (voucher.expiresAt && new Date(voucher.expiresAt) < new Date() && !isRedeemed);
 
   return (
     <div
@@ -1284,13 +1443,12 @@ const VoucherCard = ({ voucher, onShowQR, onCopyCode, copiedCode, onReview }) =>
             {deal.category || "Flash Deal"}
           </span>
           <span
-            className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide border flex items-center gap-1 ${
-              isActive
+            className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide border flex items-center gap-1 ${isActive
                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                 : isRedeemed
-                ? "bg-blue-50 text-blue-700 border-blue-200"
-                : "bg-gray-100 text-gray-500 border-gray-200"
-            }`}
+                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                  : "bg-gray-100 text-gray-500 border-gray-200"
+              }`}
           >
             {isActive && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />}
             {voucher.status}
@@ -1405,15 +1563,17 @@ const FavoriteCard = ({ deal, onRemove }) => {
             alt={deal.title}
             className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div className="absolute top-2.5 right-2.5">
-            <button
-              onClick={(e) => onRemove(dealId, e)}
-              className="h-8 w-8 rounded-full bg-white text-rose-500 hover:bg-white hover:scale-110 flex items-center justify-center shadow-md transition cursor-pointer"
-              title="Remove from saved"
-            >
-              <Heart size={15} className="fill-rose-500 text-rose-500" />
-            </button>
-          </div>
+          {onRemove && (
+            <div className="absolute top-2.5 right-2.5">
+              <button
+                onClick={(e) => onRemove(dealId, e)}
+                className="h-8 w-8 rounded-full bg-white text-rose-500 hover:bg-white hover:scale-110 flex items-center justify-center shadow-md transition cursor-pointer"
+                title="Remove from saved"
+              >
+                <Heart size={15} className="fill-rose-500 text-rose-500" />
+              </button>
+            </div>
+          )}
           <div className="absolute bottom-2.5 left-2.5">
             <span className="rounded-full bg-black/80 px-2.5 py-0.5 text-[10px] font-bold text-white">
               {deal.category || "Flash Deal"}
@@ -1458,11 +1618,10 @@ const SidebarBtn = ({ icon, label, badge = null, badgeColor = "gray", active = f
   <button
     onClick={onClick}
     title={label}
-    className={`relative w-full flex flex-col items-center justify-center gap-1 px-1 py-3 rounded-2xl text-[10px] font-bold transition-all cursor-pointer ${
-      active
+    className={`relative w-full flex flex-col items-center justify-center gap-1 px-1 py-3 rounded-2xl text-[10px] font-bold transition-all cursor-pointer ${active
         ? "bg-[#E8503A]/10 text-[#E8503A] shadow-sm"
         : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-    }`}
+      }`}
   >
     <div className="flex flex-col items-center gap-1">
       {icon}
@@ -1470,15 +1629,14 @@ const SidebarBtn = ({ icon, label, badge = null, badgeColor = "gray", active = f
     </div>
     {badge !== null && (
       <span
-        className={`absolute right-1 top-1 rounded-full px-1.5 py-0.5 text-[9px] font-black ${
-          active
+        className={`absolute right-1 top-1 rounded-full px-1.5 py-0.5 text-[9px] font-black ${active
             ? "bg-[#E8503A] text-white"
             : badgeColor === "rose"
-            ? "bg-rose-100 text-rose-700"
-            : badgeColor === "orange"
-            ? "bg-orange-100 text-[#E8503A]"
-            : "bg-gray-200 text-gray-700"
-        }`}
+              ? "bg-rose-100 text-rose-700"
+              : badgeColor === "orange"
+                ? "bg-orange-100 text-[#E8503A]"
+                : "bg-gray-200 text-gray-700"
+          }`}
       >
         {badge}
       </span>
@@ -1489,9 +1647,8 @@ const SidebarBtn = ({ icon, label, badge = null, badgeColor = "gray", active = f
 const MobileTabBtn = ({ label, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-      active ? "bg-[#E8503A] text-white" : "bg-gray-100 text-gray-700"
-    }`}
+    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${active ? "bg-[#E8503A] text-white" : "bg-gray-100 text-gray-700"
+      }`}
   >
     {label}
   </button>

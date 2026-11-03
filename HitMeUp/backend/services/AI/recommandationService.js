@@ -9,7 +9,7 @@ const recommendDeals = async ({
         You are an AI recommendation assistant for HitMeUp,
         a real-time flash deal marketplace.
         
-        recommend the most relavent deals for the user.
+        Recommend the most relevant deals for the user.
         
         User Preferences:
         ${JSON.stringify(userPreferences, null, 2)}
@@ -17,7 +17,7 @@ const recommendDeals = async ({
         Available Deals:
         ${JSON.stringify(availableDeals, null, 2)}
         
-        return ONLY valid JSON:
+        Return ONLY valid JSON:
         
         {
             "recommendations" : [
@@ -27,7 +27,7 @@ const recommendDeals = async ({
                 }
             ]
         }
-        Rcommend a maximum of 3 deals.
+        Recommend a maximum of 3 deals.
         `;
 
         const response = await getNvidiaClient().chat.completions.create({
@@ -43,13 +43,17 @@ const recommendDeals = async ({
         });
 
         const result = response.choices[0].message.content;
-        return JSON.parse(result);
+        const cleanResult = result
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
+        return JSON.parse(cleanResult);
     } catch (error) {
         console.error("AI Deal Recommendation Error:", error);
         throw error;
     }
-}
+};
 
 module.exports = {
     recommendDeals,
-}
+};

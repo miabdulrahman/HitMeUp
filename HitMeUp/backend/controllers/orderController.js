@@ -4,6 +4,7 @@ const crypto = require("crypto");
 
 const Order = require("../models/Order");
 const Deal = require("../models/Deal");
+const Business = require("../models/Business");
 
 const DEAL_SERVICE_URL = process.env.DEAL_SERVICE_URL;
 
@@ -39,7 +40,6 @@ async function getDeal(dealId) {
     return null;
   }
 }
-
 
 // CREATE ORDER
 const createOrder = async (req, res) => {
@@ -244,18 +244,27 @@ const cancelOrder = async (req, res) => {
 // GET ORDERS FOR BUSINESS (Business Owner View)
 const getBusinessOrders = async (req, res) => {
   try {
-    const businessId = req.user.businessId;
+    let businessId = req.user.businessId;
 
     if (!businessId) {
-      return res.status(403).json({
-        success: false,
-        message: "No business profile associated with this account"
+      const business = await Business.findOne({ ownerId: req.user._id });
+      if (business) {
+        businessId = business._id;
+      }
+    }
+
+    if (!businessId) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        totalRevenue: 0,
+        data: []
       });
     }
 
     // Find all deals belonging to this business
     const businessDeals = await Deal.find({ businessId }, "_id title discountedPrice");
-    const dealIds = businessDeals.map(d => d._id);
+    const dealIds = businessDeals.map((d) => d._id);
 
     const orders = await Order.find({ dealId: { $in: dealIds } })
       .populate("customerId", "name email phone")
@@ -263,7 +272,7 @@ const getBusinessOrders = async (req, res) => {
       .sort({ createdAt: -1 });
 
     const totalRevenue = orders
-      .filter(o => o.status === "PAID" || o.status === "COMPLETED")
+      .filter((o) => o.status === "PAID" || o.status === "COMPLETED")
       .reduce((sum, o) => sum + (o.amount || 0), 0);
 
     return res.status(200).json({

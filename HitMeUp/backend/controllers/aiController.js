@@ -1,6 +1,8 @@
+const mongoose = require("mongoose");
 const AIActivityLog = require("../models/AIActivityLog");
 const FraudFlag = require("../models/froudFlag");
 const FoodFlag = require("../models/FoodFlag");
+const Deal = require("../models/Deal");
 
 const { generateDeal } = require("../services/AI/dealCreationService");
 const { recommendDeals } = require("../services/AI/recommandationService");
@@ -10,7 +12,6 @@ const { generateTarget } = require("../services/AI/targettingService");
 const { logAIActivity } = require("../services/AI/aiLogService");
 const { generateInsights } = require("../services/AI/insightService");
 const { getAnalyticService } = require("../services/AI/analyticsService");
-
 
 const generateDealController = async (req, res) => {
   try {
@@ -22,7 +23,6 @@ const generateDealController = async (req, res) => {
       targetCustomers,
     } = req.body;
 
-    console.log(req.body)
     if (
       !businessName ||
       !businessType ||
@@ -46,7 +46,7 @@ const generateDealController = async (req, res) => {
 
     await logAIActivity({
       feature: "deal_generation",
-      userId: req.user?.id || null,
+      userId: req.user?.id || req.user?._id || null,
       input: req.body,
       output: deal,
       status: "success",
@@ -63,7 +63,7 @@ const generateDealController = async (req, res) => {
     try {
       await logAIActivity({
         feature: "deal_generation",
-        userId: req.user?.id || null,
+        userId: req.user?.id || req.user?._id || null,
         input: req.body,
         output: {},
         status: "failed",
@@ -82,49 +82,62 @@ const generateDealController = async (req, res) => {
 
 const recommendDealsController = async (req, res) => {
   try {
-    const { userPreferences, availableDeals, } = req.body;
+    const { userPreferences, availableDeals } = req.body;
 
-    if (!userPreferences || !availableDeals) {
+    if (!userPreferences) {
       return res.status(400).json({
-        message: "userPreferences and availableDeals are required",
+        success: false,
+        message: "userPreferences is required",
       });
+    }
+
+    // If availableDeals is empty or not provided, load active marketplace deals from DB
+    let dealsPool = Array.isArray(availableDeals) ? availableDeals : [];
+    if (dealsPool.length === 0) {
+      const activeDbDeals = await Deal.find({ status: "active" })
+        .sort({ createdAt: -1 })
+        .limit(15)
+        .select("_id title category description discountedPrice originalPrice discountPercentage")
+        .lean();
+
+      dealsPool = activeDbDeals.map((d) => ({
+        dealId: String(d._id),
+        title: d.title,
+        category: d.category,
+        description: d.description,
+        price: d.discountedPrice ?? d.originalPrice,
+        discountPercentage: d.discountPercentage,
+      }));
     }
 
     const recommendations = await recommendDeals({
       userPreferences,
-      availableDeals,
+      availableDeals: dealsPool,
     });
 
     await logAIActivity({
       feature: "recommendation",
-      userId: req.user?.id || null,
-
+      userId: req.user?.id || req.user?._id || null,
       input: {
         userPreferences,
-        availableDeals,
+        availableDealsCount: dealsPool.length,
       },
-
       output: recommendations,
-
       status: "success",
     });
 
     return res.status(200).json({
       success: true,
       recommendations,
-    })
-
+    });
   } catch (error) {
-    console.log("Reccomment Deal Error: ", error);
+    console.error("Recommend Deal Error: ", error);
 
     await logAIActivity({
       feature: "recommendation",
-      userId: req.user?.id || null,
-
+      userId: req.user?.id || req.user?._id || null,
       input: req.body,
-
       output: {},
-
       status: "failed",
       errorMessage: error.message,
     });
@@ -132,10 +145,9 @@ const recommendDealsController = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to generate deal recommendations",
-    })
-
+    });
   }
-}
+};
 
 const detectFraudController = async (req, res) => {
   try {
@@ -148,7 +160,7 @@ const detectFraudController = async (req, res) => {
     if (!activityType || !activityData) {
       return res.status(400).json({
         success: false,
-        message: "ActivityType and Activitydata is required",
+        message: "activityType and activityData are required",
       });
     }
 
@@ -157,27 +169,31 @@ const detectFraudController = async (req, res) => {
       activityData,
     });
 
+    const validUserId =
+      userId && mongoose.Types.ObjectId.isValid(userId)
+        ? userId
+        : req.user?._id || null;
+
     const fraudfalg = await FraudFlag.create({
-      userId: userId || null,
+      userId: validUserId,
       activityType,
       input: activityData,
-      isSuspicious: fraudResult.isSuspicious,
-      riskLevel: fraudResult.riskLevel,
-      reason: fraudResult.reason,
-    })
+      isSuspicious: Boolean(fraudResult.isSuspicious),
+      riskLevel: ["low", "medium", "high"].includes(fraudResult.riskLevel)
+        ? fraudResult.riskLevel
+        : "low",
+      reason: fraudResult.reason || "Evaluated by AI Fraud Detection",
+    });
 
     await logAIActivity({
       feature: "fraud_detection",
-      userId: req.user?.id || userId,
-
+      userId: validUserId,
       input: {
-        userId,
+        userId: validUserId,
         activityType,
         activityData,
       },
-
       output: fraudResult,
-
       status: "success",
     });
 
@@ -191,22 +207,18 @@ const detectFraudController = async (req, res) => {
     console.error("Fraud Detection Controller Error:", error);
     await logAIActivity({
       feature: "fraud_detection",
-      userId: req.user?.id || req.body?.userId || null,
-
+      userId: req.user?.id || req.user?._id || null,
       input: req.body,
-
       output: {},
-
       status: "failed",
       errorMessage: error.message,
     });
     return res.status(500).json({
       success: false,
-      message: "faild to detect fraud",
-    })
+      message: "Failed to detect fraud",
+    });
   }
-
-}
+};
 
 const detectFoodSafetyController = async (req, res) => {
   try {
@@ -215,35 +227,41 @@ const detectFoodSafetyController = async (req, res) => {
     if (!productName) {
       return res.status(400).json({
         success: false,
-        message: "Productname is required",
-      })
+        message: "Product name is required",
+      });
     }
 
     const foodResult = await detectFoodSafety({
       productName,
       productDescription,
-    })
+    });
+
+    const validDealId =
+      dealId && mongoose.Types.ObjectId.isValid(dealId) ? dealId : undefined;
 
     const foodFlag = await FoodFlag.create({
-      dealId,
+      ...(validDealId ? { dealId: validDealId } : {}),
       productName,
-      isFood: foodResult.isFood,
-      isPotentiallyUnsafe: foodResult.isPotentiallyUnsafe,
-      riskLevel: foodResult.riskLevel,
-      reason: foodResult.reason,
-      recommendations: foodResult.recommendations,
-    })
+      isFood: Boolean(foodResult.isFood),
+      isPotentiallyUnsafe: Boolean(foodResult.isPotentiallyUnsafe),
+      riskLevel: ["low", "medium", "high", "large"].includes(foodResult.riskLevel)
+        ? foodResult.riskLevel
+        : "low",
+      reason: foodResult.reason || "Evaluated by AI Food Safety",
+      recommendations: Array.isArray(foodResult.recommendations)
+        ? foodResult.recommendations
+        : [],
+    });
 
     await logAIActivity({
       feature: "food_safety",
-      userId: req.user?.id || null,
-
+      userId: req.user?.id || req.user?._id || null,
       input: {
-        dealId, productName, productDescription
+        dealId: validDealId,
+        productName,
+        productDescription,
       },
-
       output: foodResult,
-
       status: "success",
     });
 
@@ -252,17 +270,14 @@ const detectFoodSafetyController = async (req, res) => {
       message: "Food safety analysis completed",
       result: foodResult,
       foodFlag,
-    })
+    });
   } catch (error) {
     console.error("Food safety controller error:", error);
     await logAIActivity({
       feature: "food_safety",
-      userId: req.user?.id || null,
-
+      userId: req.user?.id || req.user?._id || null,
       input: req.body,
-
       output: {},
-
       status: "failed",
       errorMessage: error.message,
     });
@@ -271,9 +286,9 @@ const detectFoodSafetyController = async (req, res) => {
       success: false,
       message: "Food safety detection failed",
       error: error.message,
-    })
+    });
   }
-}
+};
 
 const generateTargetingController = async (req, res) => {
   try {
@@ -287,9 +302,9 @@ const generateTargetingController = async (req, res) => {
 
     if (!dealTitle) {
       return res.status(400).json({
-        success: flase,
+        success: false,
         message: "Deal title is required",
-      })
+      });
     }
 
     const targetingResult = await generateTarget({
@@ -298,12 +313,11 @@ const generateTargetingController = async (req, res) => {
       category,
       price,
       discount,
-    })
+    });
 
     await logAIActivity({
       feature: "targeting",
-      userId: req.user?.id || null,
-
+      userId: req.user?.id || req.user?._id || null,
       input: {
         dealTitle,
         dealDescription,
@@ -311,9 +325,7 @@ const generateTargetingController = async (req, res) => {
         price,
         discount,
       },
-
       output: targetingResult,
-
       status: "success",
     });
 
@@ -321,18 +333,15 @@ const generateTargetingController = async (req, res) => {
       success: true,
       message: "Target audience generated successfully",
       targetting: targetingResult,
-    })
+    });
   } catch (error) {
-    console.error("Targetting controller error", error);
+    console.error("Targeting controller error:", error);
 
     await logAIActivity({
       feature: "targeting",
-      userId: req.user?.id || null,
-
+      userId: req.user?.id || req.user?._id || null,
       input: req.body,
-
       output: {},
-
       status: "failed",
       errorMessage: error.message,
     });
@@ -341,51 +350,48 @@ const generateTargetingController = async (req, res) => {
       success: false,
       message: "Targeting generation failed",
       error: error.message,
-    })
+    });
   }
-}
-
+};
 
 const generateInsightsController = async (req, res) => {
   try {
-    const analytics = await getAnalyticService();
-
-    console.log("analytics data", analytics);
+    // Pass req.user so analytics and AI insights are generated specifically for the logged-in seller
+    const analytics = await getAnalyticService(req.user);
     const insights = await generateInsights(analytics);
 
     await logAIActivity({
       feature: "insights",
-      userId: req.user?.id || null,
+      userId: req.user?.id || req.user?._id || null,
       input: analytics,
       output: insights,
       status: "success",
-    })
+    });
 
     return res.status(200).json({
       success: true,
       message: "AI insights generated successfully",
       analytics,
       insights,
-    })
+    });
   } catch (error) {
-    console.error("insights controller error ", error);
+    console.error("Insights controller error:", error);
 
     await logAIActivity({
       feature: "insights",
-      userId: req.user?.id || null,
+      userId: req.user?.id || req.user?._id || null,
       input: {},
       output: {},
       status: "failed",
       errorMessage: error.message,
-    })
+    });
 
     return res.status(500).json({
       success: false,
       message: "Failed to generate AI insights",
-    })
+    });
   }
-}
-
+};
 
 module.exports = {
   generateDealController,

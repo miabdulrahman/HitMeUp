@@ -313,9 +313,7 @@ img {
   margin: 0 auto;
 }
 
-.dashboard-seller-main.dashboard-view-home > *:not(.dashboard-section-home) {
-  display: none;
-}
+/* Home view shows overview, redeem, and deals */
 
 .dashboard-seller-main.dashboard-view-deals > *:not(.dashboard-section-deals) {
   display: none;
@@ -329,9 +327,7 @@ img {
   display: none;
 }
 
-.dashboard-seller-main.dashboard-view-store {
-  display: none;
-}
+.dashboard-seller-main.dashboard-view-store > *:not(.dashboard-section-store) { display: none; }
 
 .dashboard-seller-main.dashboard-view-redeem .seller-redeem-card {
   display: block;

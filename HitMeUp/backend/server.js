@@ -28,11 +28,14 @@ const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const voucherRoutes = require("./routes/voucherRoutes");
 const discoveryRoutes = require("./routes/discoveryRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+// Set JSON limit high enough for image data URLs if uploaded as base64
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 
 // Reusable MongoDB connection for serverless (Vercel) & traditional servers
 const connectDB = async () => {
@@ -84,6 +87,9 @@ app.get("/", (req, res) => {
 // Member 1: Auth & Business Endpoints
 app.use("/api/auth", authRoutes);
 app.use("/api/businesses", businessRoutes);
+
+// Image Upload Endpoint (Cloudinary with WebP conversion)
+app.use("/api/upload", uploadRoutes);
 
 // AI routes
 app.use("/api/ai", airoutes);

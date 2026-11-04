@@ -226,3 +226,24 @@ body:has(.dashboard-page) {
   max-width: 760px;
   margin: 0 auto;
 }
+
+/* Full-screen Hero Ken Burns Animation */
+@keyframes heroKenBurns {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.08) translate3d(-1%, -1%, 0);
+  }
+}
+
+.hero-bg-zoom {
+  animation: heroKenBurns 14s ease-out forwards;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg-zoom {
+    animation: none;
+  }
+}

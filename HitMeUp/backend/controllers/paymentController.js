@@ -1,135 +1,82 @@
 const mongoose = require("mongoose");
-const crypto = require("crypto");
-const QRCode = require("qrcode");
-
-const Order = require("../models/Order");
 const Payment = require("../models/Payment");
-const Voucher = require("../models/Voucher");
+const Order = require("../models/Order");
+const Deal = require("../models/Deal");
+const Business = require("../models/Business");
+const paymentService = require("../services/paymentService");
+const transactionService = require("../services/transactionService");
+const receiptService = require("../services/receiptService");
 
-function generateTransactionId() {
-  return `TXN-${Date.now()}-${crypto
-    .randomBytes(4)
-    .toString("hex")
-    .toUpperCase()}`;
-}
-
-function generateVoucherCode() {
-  return `HMU-${crypto
-    .randomBytes(5)
-    .toString("hex")
-    .toUpperCase()}`;
-}
-
-// CREATE PAYMENT
-const createPayment = async (req, res) => {
+// GET /api/payments/my-payments - Authenticated customer's payments
+const getMyPayments = async (req, res) => {
   try {
-    const customerId = req.user._id;
-    const { orderId } = req.body;
+    const customerId = req.user._id || req.user.id;
 
-    if (!orderId) {
-      return res.status(400).json({
-        success: false,
-        message: "Order ID is required"
-      });
-    }
+    const payments = await Payment.find({ customerId })
+      .populate({
+        path: "orderId",
+        select: "orderNumber dealSnapshot totalAmount amount currency status orderStatus"
+      })
+      .sort({ createdAt: -1 });
 
-    if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Order ID"
-      });
-    }
-
-    const order = await Order.findOne({
-      _id: orderId,
-      customerId
-    });
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
-    }
-
-    if (order.status !== "PENDING") {
-      return res.status(400).json({
-        success: false,
-        message: `Order is already ${order.status}`
-      });
-    }
-
-    const existingPayment = await Payment.findOne({
-      orderId,
-      customerId,
-      status: "PENDING"
-    });
-
-    if (existingPayment) {
-      return res.status(200).json({
-        success: true,
-        message: "Existing payment found",
-        data: existingPayment
-      });
-    }
-
-    const payment = await Payment.create({
-      orderId: order._id,
-      customerId,
-      amount: order.amount,
-      currency: order.currency,
-      provider: "DEMO",
-      status: "PENDING"
-    });
-
-    order.paymentId = payment._id;
-    await order.save();
-
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
-      message: "Payment created successfully",
-      data: {
-        payment,
-        checkout: {
-          provider: "DEMO",
-          message:
-            "Replace this section with your selected payment gateway checkout."
-        }
-      }
+      count: payments.length,
+      data: payments,
+      payments
     });
   } catch (error) {
-    console.error("Create Payment Error:", error);
-
+    console.error("Get My Payments Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to create payment"
+      message: "Failed to retrieve payments"
     });
   }
 };
 
-// VERIFY PAYMENT
-const verifyPayment = async (req, res) => {
-  return res.status(403).json({
-    success: false,
-    message:
-      "Direct payment confirmation is disabled. Verified gateway payment is required."
-  });
+// GET /api/payments - Role-scoped payments list (Admin or Seller)
+const getAllPayments = async (req, res) => {
+  try {
+    const roleFilter = await transactionService.getRoleFilter(req.user);
+    const { status, page = 1, limit = 10 } = req.query;
+
+    const filter = { ...roleFilter };
+    if (status && status !== "ALL") {
+      filter.status = status.toUpperCase();
+    }
+
+    const skip = (Math.max(1, Number(page)) - 1) * Math.max(1, Number(limit));
+    const parsedLimit = Math.min(100, Math.max(1, Number(limit)));
+
+    const [payments, totalCount] = await Promise.all([
+      Payment.find(filter)
+        .populate("customerId", "name email phone")
+        .populate("orderId", "orderNumber dealSnapshot totalAmount")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parsedLimit),
+      Payment.countDocuments(filter)
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      payments,
+      totalCount,
+      totalPages: Math.ceil(totalCount / parsedLimit),
+      currentPage: Number(page)
+    });
+  } catch (error) {
+    console.error("Get All Payments Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve payments list"
+    });
+  }
 };
 
-// PAYMENT WEBHOOK
-const paymentWebhook = async (req, res) => {
-  return res.status(403).json({
-    success: false,
-    message:
-      "Payment webhook is disabled until secure gateway verification is configured."
-  });
-};
-
-// GET PAYMENT BY ID
+// GET /api/payments/:id - Single payment record
 const getPaymentById = async (req, res) => {
   try {
-    const customerId = req.user._id || req.user.id;
-
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({
         success: false,
@@ -137,10 +84,9 @@ const getPaymentById = async (req, res) => {
       });
     }
 
-    const payment = await Payment.findOne({
-      _id: req.params.id,
-      customerId
-    }).populate("orderId");
+    const payment = await Payment.findById(req.params.id)
+      .populate("orderId")
+      .populate("customerId", "name email phone");
 
     if (!payment) {
       return res.status(404).json({
@@ -149,23 +95,197 @@ const getPaymentById = async (req, res) => {
       });
     }
 
+    // Role check: customer must own it, unless seller/admin
+    if (
+      req.user.role !== "admin" &&
+      req.user.role !== "business" &&
+      req.user.role !== "seller" &&
+      String(payment.customerId?._id || payment.customerId) !== String(req.user._id)
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to view this payment"
+      });
+    }
+
     return res.status(200).json({
       success: true,
-      data: payment
+      data: payment,
+      payment
     });
   } catch (error) {
-    console.error("Get Payment Error:", error);
-
+    console.error("Get Payment By ID Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to get payment"
+      message: "Failed to retrieve payment details"
     });
   }
 };
 
+// POST /api/payments/:id/refund - Simulated Refund Processing
+const refundPayment = async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Payment ID format"
+      });
+    }
+
+    const { reason } = req.body;
+
+    const result = await paymentService.refundPayment({
+      paymentId: req.params.id,
+      user: req.user,
+      reason
+    });
+
+    return res.status(200).json({
+      success: true,
+      ...result
+    });
+  } catch (error) {
+    console.error("Refund Payment Error:", error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Failed to process refund"
+    });
+  }
+};
+
+// GET /api/payments/dashboard/summary - MongoDB aggregation metrics
+const getDashboardSummary = async (req, res) => {
+  try {
+    const summary = await transactionService.getDashboardSummary(req.user);
+
+    return res.status(200).json({
+      success: true,
+      data: summary,
+      ...summary
+    });
+  } catch (error) {
+    console.error("Dashboard Summary Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load dashboard metrics"
+    });
+  }
+};
+
+// GET /api/payments/:id/receipt - Formatted Receipt Data
+const getReceipt = async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Payment ID format"
+      });
+    }
+
+    const receipt = await receiptService.getReceiptByPaymentId(req.params.id);
+
+    if (!receipt) {
+      // If payment was success but receipt not yet generated, attempt to generate it
+      const payment = await Payment.findById(req.params.id);
+      if (payment && payment.status === "SUCCESS") {
+        const order = await Order.findById(payment.orderId);
+        if (order) {
+          const newReceipt = await receiptService.createReceiptForPayment({
+            order,
+            payment
+          });
+          return res.status(200).json({
+            success: true,
+            receipt: newReceipt,
+            data: newReceipt
+          });
+        }
+      }
+
+      return res.status(404).json({
+        success: false,
+        message: "Receipt not found for this payment"
+      });
+    }
+
+    // Role check: customer must own it, unless seller/admin
+    if (
+      req.user.role !== "admin" &&
+      req.user.role !== "business" &&
+      req.user.role !== "seller" &&
+      String(receipt.customerId?._id || receipt.customerId) !== String(req.user._id)
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to access this receipt"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      receipt,
+      data: receipt
+    });
+  } catch (error) {
+    console.error("Get Receipt Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load receipt"
+    });
+  }
+};
+
+// Backward-compatibility: create payment
+const createPayment = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    if (!orderId) {
+      return res.status(400).json({
+        success: false,
+        message: "Order ID is required"
+      });
+    }
+
+    const session = await paymentService.createCheckoutSession({
+      orderId,
+      user: req.user
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Payment session created",
+      data: session
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Failed to create payment"
+    });
+  }
+};
+
+const verifyPayment = async (req, res) => {
+  return res.status(403).json({
+    success: false,
+    message: "Direct client confirmation is disabled. Use /api/gateway/process."
+  });
+};
+
+const paymentWebhook = async (req, res) => {
+  return res.status(403).json({
+    success: false,
+    message: "Direct webhook is disabled. Use HitMeUp Pay simulation gateway."
+  });
+};
+
 module.exports = {
+  getMyPayments,
+  getAllPayments,
+  getPaymentById,
+  refundPayment,
+  getDashboardSummary,
+  getReceipt,
   createPayment,
   verifyPayment,
-  paymentWebhook,
-  getPaymentById
+  paymentWebhook
 };

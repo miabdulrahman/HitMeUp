@@ -80,13 +80,12 @@ function Navbar() {
       >
         <nav className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
           <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1F1B16] font-mono text-[13px] font-medium text-[#FDFBF7] transition-colors duration-150 group-hover:bg-[#D94832]">
-                H
-              </span>
-              <span className="text-[18px] font-semibold tracking-[-0.03em] text-[#1F1B16]">
-                HitMeUp
-              </span>
+            <Link to="/" className="flex items-center group py-0.5" aria-label="HitMeUp Home">
+              <img
+                src="/logo.png"
+                alt="HitMeUp"
+                className="h-9 w-auto object-contain transition-transform duration-150 group-hover:scale-[1.02]"
+              />
             </Link>
 
             <div className="hidden items-center gap-1 lg:flex">

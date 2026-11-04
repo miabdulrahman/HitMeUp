@@ -27,6 +27,7 @@ function App() {
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/categories" element={<CategoryPage />} />
           <Route path="/deals" element={<CategoryPage />} />
+          <Route path="/map" element={<CategoryPage defaultView="map" />} />
           <Route path="/search" element={<CategoryPage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />

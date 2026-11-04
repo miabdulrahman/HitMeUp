@@ -9,8 +9,6 @@ import {
   EyeOff,
   UserPlus,
   ArrowLeft,
-  Sparkles,
-  Zap,
   ShoppingBag,
   Store,
   CheckCircle2,
@@ -21,7 +19,7 @@ import {
   MapPin,
   Building2,
   Check,
-  X
+  X,
 } from "lucide-react";
 import { searchLocations } from "../../data/sriLankaLocations";
 import { useAuth } from "../../context/useAuth";
@@ -37,7 +35,7 @@ const BUSINESS_CATEGORIES = [
   "Fitness",
   "Entertainment",
   "Groceries",
-  "Other"
+  "Other",
 ];
 
 const Register = () => {
@@ -50,7 +48,7 @@ const Register = () => {
     email: "",
     password: "",
     phone: "",
-    role: "customer", // "customer" or "business"
+    role: "customer",
     businessName: "",
     businessCategory: "Restaurant",
     city: "",
@@ -61,13 +59,11 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Auto-suggestion state for Sri Lanka locations / Colombo areas
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [isCityOpen, setIsCityOpen] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const cityContainerRef = useRef(null);
 
-  // Close suggestion dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -103,7 +99,10 @@ const Register = () => {
 
   const handleCityKeyDown = (e) => {
     if (!isCityOpen || citySuggestions.length === 0) {
-      if ((e.key === "ArrowDown" || e.key === "Enter") && formData.city?.trim()) {
+      if (
+        (e.key === "ArrowDown" || e.key === "Enter") &&
+        formData.city?.trim()
+      ) {
         const matches = searchLocations(formData.city, 20);
         setCitySuggestions(matches);
         setIsCityOpen(matches.length > 0);
@@ -122,7 +121,10 @@ const Register = () => {
         prev > 0 ? prev - 1 : citySuggestions.length - 1
       );
     } else if (e.key === "Enter") {
-      if (activeSuggestionIndex >= 0 && activeSuggestionIndex < citySuggestions.length) {
+      if (
+        activeSuggestionIndex >= 0 &&
+        activeSuggestionIndex < citySuggestions.length
+      ) {
         e.preventDefault();
         handleSelectCity(citySuggestions[activeSuggestionIndex]);
       }
@@ -131,7 +133,6 @@ const Register = () => {
     }
   };
 
-  // Compute password strength score (0-4)
   const getPasswordStrength = (pwd) => {
     if (!pwd) return 0;
     let score = 0;
@@ -147,15 +148,23 @@ const Register = () => {
   const getStrengthLabel = (score) => {
     switch (score) {
       case 1:
-        return { text: "Weak", color: "bg-red-500", textCol: "text-red-500" };
+        return { text: "Weak", color: "bg-[#B91C1C]", textCol: "text-[#B91C1C]" };
       case 2:
-        return { text: "Fair", color: "bg-amber-500", textCol: "text-amber-500" };
+        return { text: "Fair", color: "bg-[#B45309]", textCol: "text-[#B45309]" };
       case 3:
-        return { text: "Good", color: "bg-blue-500", textCol: "text-blue-500" };
+        return { text: "Good", color: "bg-[#1F1B16]", textCol: "text-[#1F1B16]" };
       case 4:
-        return { text: "Strong", color: "bg-emerald-500", textCol: "text-emerald-500" };
+        return {
+          text: "Strong",
+          color: "bg-[#166534]",
+          textCol: "text-[#166534]",
+        };
       default:
-        return { text: "Min 6 chars", color: "bg-gray-200", textCol: "text-gray-400" };
+        return {
+          text: "Min 6 characters",
+          color: "bg-[#E6E0D6]",
+          textCol: "text-[#7B7266]",
+        };
     }
   };
 
@@ -178,7 +187,7 @@ const Register = () => {
     setError("");
 
     if (!agreeTerms) {
-      setError("Please agree to the Terms of Service to create an account.");
+      setError("Please agree to the terms of service to create an account.");
       return;
     }
 
@@ -188,7 +197,7 @@ const Register = () => {
     }
 
     if (formData.role === "business" && !formData.phone?.trim()) {
-      setError("Contact phone number is required to register a merchant business.");
+      setError("A contact phone number is required to register a store.");
       return;
     }
 
@@ -218,7 +227,9 @@ const Register = () => {
       }
     } catch (err) {
       console.error("Registration error:", err);
-      setError(err.message || "Failed to create account. Please check your information.");
+      setError(
+        err.message || "Could not create account. Please check your details."
+      );
     } finally {
       setLoading(false);
     }
@@ -227,273 +238,252 @@ const Register = () => {
   const isBusiness = formData.role === "business";
 
   return (
-    <div className="relative min-h-screen w-full bg-[#FAF8F5] text-[#1A1A1A] flex items-center justify-center p-4 sm:p-6 lg:p-10 overflow-hidden selection:bg-[#E8503A] selection:text-white">
-      {/* Ambient background glows */}
-      <div className="pointer-events-none absolute -top-40 -left-40 h-[480px] w-[480px] rounded-full bg-gradient-to-br from-[#FF4A2F]/15 to-[#FFB703]/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 h-[460px] w-[460px] rounded-full bg-gradient-to-tr from-[#E8503A]/10 to-[#10B981]/10 blur-3xl" />
-
-      {/* Main Container Card */}
-      <div className="relative w-full max-w-[1080px] bg-white rounded-3xl sm:rounded-[32px] shadow-[0_24px_70px_rgba(40,20,10,0.08)] border border-black/[0.04] overflow-hidden grid grid-cols-1 lg:grid-cols-12">
-        {/* Left Brand Showcase Panel (Desktop) */}
-        <div className="relative lg:col-span-5 bg-gradient-to-br from-[#121824] via-[#1B2333] to-[#0F141E] p-8 sm:p-10 lg:p-12 text-white flex flex-col justify-between overflow-hidden">
-          {/* Subtle geometric background orbs */}
-          <div className="pointer-events-none absolute top-0 left-0 h-64 w-64 rounded-full bg-[#E8503A]/20 blur-2xl" />
-          <div className="pointer-events-none absolute bottom-10 right-0 h-48 w-48 rounded-full bg-[#FFD19A]/10 blur-xl" />
-
-          {/* Top Brand & Back Nav */}
-          <div className="relative z-10 flex items-center justify-between">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 group"
-              title="HitMeUp Home"
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#FF4A2F] to-[#E8503A] text-white shadow-md shadow-[#E8503A]/30 group-hover:scale-105 transition-transform duration-200">
-                <Zap size={20} className="fill-white" />
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#F7F4EE] p-4 text-[#1F1B16] sm:p-6 lg:p-10">
+      <div className="grid w-full max-w-[1040px] grid-cols-1 overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_2px_12px_rgba(31,27,22,0.05)] lg:grid-cols-12">
+        {/* Left Brand Showcase Panel */}
+        <div className="flex flex-col justify-between border-b border-[#E6E0D6] bg-[#1F1B16] p-8 text-[#FDFBF7] sm:p-10 lg:col-span-5 lg:border-b-0 lg:border-r">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="inline-flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#FDFBF7] font-mono text-[14px] font-medium text-[#1F1B16]">
+                H
               </span>
-              <span className="text-xl font-black tracking-tight text-white">
-                HitMe<span className="text-[#FF6647]">Up</span>
+              <span className="text-[18px] font-semibold tracking-[-0.03em] text-[#FDFBF7]">
+                HitMeUp
               </span>
             </Link>
 
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/10"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-[12px] font-medium text-[#EFE9DF] transition-colors hover:bg-white/10"
             >
-              <ArrowLeft size={13} />
+              <ArrowLeft size={13} strokeWidth={1.5} />
               <span>Home</span>
             </Link>
           </div>
 
-          {/* Center Showcase Narrative - changes context based on chosen role */}
-          <div className="relative z-10 my-8 lg:my-0 space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-[#FFD19A] border border-white/10 backdrop-blur-md">
-              <Sparkles size={12} />
-              <span>{isBusiness ? "For Merchants & Store Owners" : "For Deal Hunters & Shoppers"}</span>
-            </div>
-
-            <div className="space-y-3">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[1.15] text-white">
+          <div className="my-8 space-y-6 lg:my-0">
+            <div className="space-y-2.5">
+              <p className="text-[12px] font-medium text-[#A89F91]">
+                {isBusiness
+                  ? "For merchants & store owners"
+                  : "For neighborhood shoppers"}
+              </p>
+              <h1 className="text-[26px] sm:text-[30px] font-medium leading-[1.15] tracking-[-0.025em] text-[#FDFBF7]">
                 {isBusiness ? (
                   <>
-                    Turn slow hours into{" "}
-                    <span className="bg-gradient-to-r from-[#FF7B60] via-[#FFA97A] to-[#FFD19A] bg-clip-text text-transparent">
-                      record sales.
+                    Publish timed passes to{" "}
+                    <span className="serif font-normal text-[#D94832]">
+                      fill quiet store hours
                     </span>
                   </>
                 ) : (
                   <>
-                    Never pay full price{" "}
-                    <span className="bg-gradient-to-r from-[#FF7B60] via-[#FFA97A] to-[#FFD19A] bg-clip-text text-transparent">
-                      at nearby spots.
+                    Claim local markdowns and{" "}
+                    <span className="serif font-normal text-[#D94832]">
+                      redeem at the counter
                     </span>
                   </>
                 )}
               </h1>
-              <p className="text-sm text-gray-300/90 leading-relaxed font-normal max-w-sm">
+              <p className="max-w-sm text-[14px] leading-[1.6] text-[#A89F91]">
                 {isBusiness
-                  ? "Launch flash deals in minutes, attract immediate foot traffic, and eliminate excess capacity with AI automation."
-                  : "Discover flash deals up to 70% off within walking distance. Buy vouchers instantly and redeem in store with a single QR scan."}
+                  ? "Set batch limits, pin your shop on the street map, and verify customer QR codes from one workspace."
+                  : "Browse live neighborhood deals, reserve free walk-in passes, and present your QR code at checkout."}
               </p>
             </div>
 
-            {/* Key Value Prop List */}
-            <div className="space-y-3">
+            <div className="space-y-3 border-t border-white/10 pt-5">
               {isBusiness ? (
                 <>
-                  <div className="flex items-center gap-3 text-xs text-gray-200">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
-                      <TrendingUp size={12} />
+                  <div className="flex items-center gap-3 text-[13px] text-[#EFE9DF]">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5 text-[#D94832]">
+                      <TrendingUp size={13} strokeWidth={1.5} />
                     </span>
-                    <span>Fill quiet afternoons and slow weekdays on-demand</span>
+                    <span>Cap exact voucher quantities per shift</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-200">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
-                      <Sparkles size={12} />
+                  <div className="flex items-center gap-3 text-[13px] text-[#EFE9DF]">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5 text-[#D94832]">
+                      <MapPin size={13} strokeWidth={1.5} />
                     </span>
-                    <span>AI auto-generates compelling discounts and copy</span>
+                    <span>Pin your storefront on the discovery map</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-200">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">
-                      <ShieldCheck size={12} />
+                  <div className="flex items-center gap-3 text-[13px] text-[#EFE9DF]">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5 text-[#D94832]">
+                      <ShieldCheck size={13} strokeWidth={1.5} />
                     </span>
-                    <span>Automatic Business Profile created with zero setup fees</span>
+                    <span>Verify serial codes at the counter register</span>
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="flex items-center gap-3 text-xs text-gray-200">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
-                      <Ticket size={12} />
+                  <div className="flex items-center gap-3 text-[13px] text-[#EFE9DF]">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5 text-[#D94832]">
+                      <Ticket size={13} strokeWidth={1.5} />
                     </span>
-                    <span>Digital QR vouchers stored securely on your phone</span>
+                    <span>Serial QR passes stored in your account</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-200">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
-                      <Zap size={12} />
+                  <div className="flex items-center gap-3 text-[13px] text-[#EFE9DF]">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5 text-[#D94832]">
+                      <MapPin size={13} strokeWidth={1.5} />
                     </span>
-                    <span>Real-time location alerts when you are near active deals</span>
+                    <span>Filter active offers by street distance</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-200">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">
-                      <ShieldCheck size={12} />
+                  <div className="flex items-center gap-3 text-[13px] text-[#EFE9DF]">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5 text-[#D94832]">
+                      <ShieldCheck size={13} strokeWidth={1.5} />
                     </span>
-                    <span>100% verified authentic local restaurants & shops</span>
+                    <span>All prices listed clearly in Sri Lankan Rupees (Rs.)</span>
                   </div>
                 </>
               )}
             </div>
-
-            {/* Testimonial Snippet */}
-            <div className="rounded-2xl bg-white/[0.06] backdrop-blur-md border border-white/10 p-3.5 text-xs text-gray-300">
-              <p className="italic text-white/90">
-                {isBusiness
-                  ? "“HitMeUp helped us turn Tuesday afternoon lulls into our 3rd busiest shift of the week.”"
-                  : "“I saved over $80 on cafes and dinners near my office in just the first two weeks!”"}
-              </p>
-              <div className="mt-2 flex items-center gap-2 text-[11px] font-semibold text-[#FFD19A]">
-                <span>{isBusiness ? "— Dave M., Brew & Bites Cafe" : "— Sarah K., Colombo Foodie"}</span>
-              </div>
-            </div>
           </div>
 
-          {/* Bottom Trust Row */}
-          <div className="relative z-10 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-gray-300">
-            <span className="text-[11px] text-white/80 font-medium">Over 850+ stores active</span>
-            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-semibold">
-              <CheckCircle2 size={12} /> Instant Merchant Profile Setup
+          <div className="flex items-center justify-between border-t border-white/10 pt-5 text-[12px] text-[#A89F91]">
+            <span>{isBusiness ? "Merchant workspace" : "Shopper passbook"}</span>
+            <span className="font-mono text-[11px] text-[#EFE9DF]">
+              Rs. 0 setup fee
             </span>
           </div>
         </div>
 
         {/* Right Form Panel */}
-        <div className="lg:col-span-7 p-8 sm:p-12 lg:p-14 flex flex-col justify-center">
-          <div className="max-w-md mx-auto w-full">
-            {/* Header */}
-            <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E8503A] uppercase tracking-wider">
-                <span>Join HitMeUp</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1A1A1A] tracking-tight">
-                {isBusiness ? "Register your Business" : "Create your account"}
+        <div className="flex flex-col justify-center p-8 sm:p-12 lg:col-span-7">
+          <div className="mx-auto w-full max-w-md">
+            <div className="space-y-1">
+              <p className="text-[12px] font-medium text-[#7B7266]">
+                New account
+              </p>
+              <h2 className="text-[24px] sm:text-[28px] font-medium tracking-[-0.025em] text-[#1F1B16]">
+                {isBusiness ? "Register your store" : "Create your account"}
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+              <p className="text-[14px] text-[#5E554A]">
                 {isBusiness
-                  ? "Set up your merchant account to start publishing flash offers."
-                  : "Choose your account type below to get started in seconds."}
+                  ? "Set up your merchant profile to publish flash passes."
+                  : "Select your account type below to get started."}
               </p>
             </div>
 
-            {/* Interactive Account Role Selector */}
+            {/* Role Selector */}
             <div className="mt-5 grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => handleRoleSelect("customer")}
-                className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative ${
+                className={`relative rounded-xl border p-3.5 text-left transition-colors cursor-pointer ${
                   !isBusiness
-                    ? "border-[#E8503A] bg-[#E8503A]/[0.04] shadow-xs"
-                    : "border-gray-200 bg-white hover:border-gray-300"
+                    ? "border-[#1F1B16] bg-[#F7F4EE]"
+                    : "border-[#E6E0D6] bg-white hover:bg-[#F7F4EE]/60"
                 }`}
               >
                 {!isBusiness && (
-                  <span className="absolute top-2.5 right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#E8503A] text-white">
-                    <CheckCircle2 size={11} />
+                  <span className="absolute right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full bg-[#1F1B16] text-white">
+                    <CheckCircle2 size={11} strokeWidth={2} />
                   </span>
                 )}
                 <div
-                  className={`h-9 w-9 rounded-xl flex items-center justify-center mb-2 ${
-                    !isBusiness ? "bg-[#E8503A] text-white" : "bg-gray-100 text-gray-600"
+                  className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg border ${
+                    !isBusiness
+                      ? "border-[#1F1B16] bg-[#1F1B16] text-white"
+                      : "border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A]"
                   }`}
                 >
-                  <ShoppingBag size={18} />
+                  <ShoppingBag size={15} strokeWidth={1.5} />
                 </div>
-                <div className="text-xs font-bold text-gray-900">Shopper</div>
-                <div className="text-[11px] text-gray-500 mt-0.5">Find & buy deals</div>
+                <div className="text-[13px] font-medium text-[#1F1B16]">
+                  Shopper
+                </div>
+                <div className="mt-0.5 text-[11px] text-[#7B7266]">
+                  Claim &amp; redeem passes
+                </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleRoleSelect("business")}
-                className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative ${
+                className={`relative rounded-xl border p-3.5 text-left transition-colors cursor-pointer ${
                   isBusiness
-                    ? "border-[#E8503A] bg-[#E8503A]/[0.04] shadow-xs"
-                    : "border-gray-200 bg-white hover:border-gray-300"
+                    ? "border-[#1F1B16] bg-[#F7F4EE]"
+                    : "border-[#E6E0D6] bg-white hover:bg-[#F7F4EE]/60"
                 }`}
               >
                 {isBusiness && (
-                  <span className="absolute top-2.5 right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#E8503A] text-white">
-                    <CheckCircle2 size={11} />
+                  <span className="absolute right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full bg-[#1F1B16] text-white">
+                    <CheckCircle2 size={11} strokeWidth={2} />
                   </span>
                 )}
                 <div
-                  className={`h-9 w-9 rounded-xl flex items-center justify-center mb-2 ${
-                    isBusiness ? "bg-[#E8503A] text-white" : "bg-gray-100 text-gray-600"
+                  className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg border ${
+                    isBusiness
+                      ? "border-[#1F1B16] bg-[#1F1B16] text-white"
+                      : "border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A]"
                   }`}
                 >
-                  <Store size={18} />
+                  <Store size={15} strokeWidth={1.5} />
                 </div>
-                <div className="text-xs font-bold text-gray-900">Merchant</div>
-                <div className="text-[11px] text-gray-500 mt-0.5">Sell flash deals</div>
+                <div className="text-[13px] font-medium text-[#1F1B16]">
+                  Merchant
+                </div>
+                <div className="mt-0.5 text-[11px] text-[#7B7266]">
+                  Publish store deals
+                </div>
               </button>
             </div>
 
-            {/* Error Alert Banner */}
             {error && (
               <div
-                className="mt-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5 animate-fadeIn"
+                className="mt-4 flex items-start gap-2.5 rounded-lg border border-[#B91C1C]/25 bg-[#B91C1C]/5 p-3.5 text-[13px] text-[#B91C1C]"
                 role="alert"
               >
-                <AlertCircle size={16} className="text-red-600 mt-0.5 shrink-0" />
-                <div className="leading-relaxed font-medium">{error}</div>
+                <AlertCircle size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" />
+                <div>{error}</div>
               </div>
             )}
 
-            {/* Register Form */}
             <form onSubmit={handleRegister} className="mt-5 space-y-3.5">
-              {/* If Merchant: Show Business Name & Category first */}
               {isBusiness && (
                 <>
                   <div className="space-y-1">
                     <label
                       htmlFor="businessName"
-                      className="block text-xs font-bold text-gray-700 tracking-wide"
+                      className="block text-[13px] font-medium text-[#1F1B16]"
                     >
-                      Business / Store Name
+                      Store name
                     </label>
                     <div className="relative flex items-center">
-                      <div className="pointer-events-none absolute left-3.5 text-gray-400">
-                        <Store size={17} />
+                      <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
+                        <Store size={16} strokeWidth={1.5} />
                       </div>
                       <input
                         id="businessName"
                         type="text"
                         name="businessName"
                         required={isBusiness}
-                        placeholder="e.g. Bella Italia Trattoria or Urban Wear"
+                        placeholder="e.g. Commons Bakehouse"
                         value={formData.businessName}
                         onChange={handleChange}
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                        className="h-10 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-4 text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div className="space-y-1">
                       <label
                         htmlFor="businessCategory"
-                        className="block text-xs font-bold text-gray-700 tracking-wide"
+                        className="block text-[13px] font-medium text-[#1F1B16]"
                       >
-                        Business Category
+                        Category
                       </label>
                       <div className="relative flex items-center">
-                        <div className="pointer-events-none absolute left-3.5 text-gray-400">
-                          <Building2 size={16} />
+                        <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
+                          <Building2 size={15} strokeWidth={1.5} />
                         </div>
                         <select
                           id="businessCategory"
                           name="businessCategory"
                           value={formData.businessCategory}
                           onChange={handleChange}
-                          className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-3 text-sm font-medium text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all cursor-pointer"
+                          className="h-10 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-3 text-[13px] font-medium text-[#1F1B16] focus:border-[#D94832] focus:outline-none cursor-pointer"
                         >
                           {BUSINESS_CATEGORIES.map((cat) => (
                             <option key={cat} value={cat}>
@@ -504,28 +494,25 @@ const Register = () => {
                       </div>
                     </div>
 
-                    <div ref={cityContainerRef} className="space-y-1 relative">
+                    <div ref={cityContainerRef} className="relative space-y-1">
                       <div className="flex items-center justify-between">
                         <label
                           htmlFor="city"
-                          className="block text-xs font-bold text-gray-700 tracking-wide"
+                          className="block text-[13px] font-medium text-[#1F1B16]"
                         >
-                          Store City / Area
+                          City or neighborhood
                         </label>
-                        <span className="text-[10px] font-semibold text-gray-400">
-                          Sri Lanka
-                        </span>
                       </div>
                       <div className="relative flex items-center">
-                        <div className="pointer-events-none absolute left-3.5 text-gray-400">
-                          <MapPin size={16} />
+                        <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
+                          <MapPin size={15} strokeWidth={1.5} />
                         </div>
                         <input
                           id="city"
                           type="text"
                           name="city"
                           autoComplete="off"
-                          placeholder="e.g. Colombo 03, Kandy, Galle..."
+                          placeholder="e.g. Colombo 03, Kandy"
                           value={formData.city}
                           onFocus={() => {
                             if (formData.city && formData.city.trim().length > 0) {
@@ -538,7 +525,7 @@ const Register = () => {
                           }}
                           onChange={handleCityInputChange}
                           onKeyDown={handleCityKeyDown}
-                          className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-8 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                          className="h-10 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-8 text-[13px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
                         />
                         {formData.city && (
                           <button
@@ -548,18 +535,16 @@ const Register = () => {
                               setCitySuggestions([]);
                               setIsCityOpen(false);
                             }}
-                            className="absolute right-2.5 p-1 text-gray-400 hover:text-gray-600 rounded-lg cursor-pointer transition"
+                            className="absolute right-2.5 p-1 text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
                             title="Clear area"
                           >
-                            <X size={14} />
+                            <X size={14} strokeWidth={1.5} />
                           </button>
                         )}
                       </div>
 
-                      {/* Floating Auto-suggestions Dropdown */}
                       {isCityOpen && citySuggestions.length > 0 && (
-                        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border border-gray-200/90 bg-white shadow-2xl max-h-56 overflow-y-auto divide-y divide-gray-100 py-1.5 animate-fadeIn">
-                          
+                        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto divide-y divide-[#E6E0D6] rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] py-1 shadow-lg">
                           {citySuggestions.map((loc, idx) => {
                             const isHighlighted = activeSuggestionIndex === idx;
                             const isExactSelected = formData.city === loc;
@@ -569,20 +554,26 @@ const Register = () => {
                                 type="button"
                                 onClick={() => handleSelectCity(loc)}
                                 onMouseEnter={() => setActiveSuggestionIndex(idx)}
-                                className={`w-full flex items-center justify-between px-3.5 py-2 text-xs font-semibold text-left transition cursor-pointer ${
-                                  isHighlighted
-                                    ? "bg-[#FFF0ED] text-[#E8503A]"
-                                    : isExactSelected
-                                    ? "bg-gray-50 text-[#E8503A] font-bold"
-                                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                className={`flex w-full items-center justify-between px-3 py-2 text-left text-[12px] transition-colors cursor-pointer ${
+                                  isHighlighted || isExactSelected
+                                    ? "bg-[#EFE9DF] font-medium text-[#1F1B16]"
+                                    : "text-[#5E554A] hover:bg-[#F7F4EE]"
                                 }`}
                               >
                                 <div className="flex items-center gap-2 truncate">
-                                  <MapPin size={13} className="text-[#E8503A] shrink-0" />
+                                  <MapPin
+                                    size={12}
+                                    strokeWidth={1.5}
+                                    className="shrink-0 text-[#D94832]"
+                                  />
                                   <span className="truncate">{loc}</span>
                                 </div>
                                 {isExactSelected && (
-                                  <Check size={13} className="text-[#E8503A] shrink-0 ml-2" />
+                                  <Check
+                                    size={12}
+                                    strokeWidth={1.5}
+                                    className="ml-2 shrink-0 text-[#166534]"
+                                  />
                                 )}
                               </button>
                             );
@@ -594,69 +585,70 @@ const Register = () => {
                 </>
               )}
 
-              {/* Full Name / Business Owner Name */}
               <div className="space-y-1">
                 <label
                   htmlFor="name"
-                  className="block text-xs font-bold text-gray-700 tracking-wide"
+                  className="block text-[13px] font-medium text-[#1F1B16]"
                 >
-                  {isBusiness ? "Account Owner Full Name" : "Full name"}
+                  {isBusiness ? "Owner full name" : "Full name"}
                 </label>
                 <div className="relative flex items-center">
-                  <div className="pointer-events-none absolute left-3.5 text-gray-400">
-                    <User size={17} />
+                  <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
+                    <User size={16} strokeWidth={1.5} />
                   </div>
                   <input
                     id="name"
                     type="text"
                     name="name"
                     required
-                    placeholder={isBusiness ? "e.g. Dave Miller" : "e.g. Alex Silva"}
+                    placeholder="e.g. Kasun Perera"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                    className="h-10 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-4 text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
                   />
                 </div>
               </div>
 
-              {/* Email Address & Phone Number in 2-Col on SM screens */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Email */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1">
                   <label
                     htmlFor="email"
-                    className="block text-xs font-bold text-gray-700 tracking-wide"
+                    className="block text-[13px] font-medium text-[#1F1B16]"
                   >
-                    {isBusiness ? "Business Email" : "Email address"}
+                    {isBusiness ? "Business email" : "Email address"}
                   </label>
                   <div className="relative flex items-center">
-                    <div className="pointer-events-none absolute left-3.5 text-gray-400">
-                      <Mail size={16} />
+                    <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
+                      <Mail size={15} strokeWidth={1.5} />
                     </div>
                     <input
                       id="email"
                       type="email"
                       name="email"
                       required
-                      placeholder={isBusiness ? "store@example.com" : "alex@example.com"}
+                      placeholder="name@example.com"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                      className="h-10 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-3 text-[13px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
                     />
                   </div>
                 </div>
 
-                {/* Phone */}
                 <div className="space-y-1">
                   <label
                     htmlFor="phone"
-                    className="block text-xs font-bold text-gray-700 tracking-wide"
+                    className="block text-[13px] font-medium text-[#1F1B16]"
                   >
-                    Phone {isBusiness ? <span className="text-[#E8503A]">*</span> : <span className="text-gray-400 font-normal">(Optional)</span>}
+                    Phone{" "}
+                    {isBusiness ? (
+                      <span className="text-[#D94832]">*</span>
+                    ) : (
+                      <span className="font-normal text-[#7B7266]">(optional)</span>
+                    )}
                   </label>
                   <div className="relative flex items-center">
-                    <div className="pointer-events-none absolute left-3.5 text-gray-400">
-                      <Phone size={16} />
+                    <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
+                      <Phone size={15} strokeWidth={1.5} />
                     </div>
                     <input
                       id="phone"
@@ -666,30 +658,29 @@ const Register = () => {
                       placeholder="+94 77 123 4567"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                      className="h-10 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-3 text-[13px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Password */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor={passwordInputId}
-                    className="block text-xs font-bold text-gray-700 tracking-wide"
+                    className="block text-[13px] font-medium text-[#1F1B16]"
                   >
                     Password
                   </label>
                   {formData.password && (
-                    <span className={`text-[11px] font-bold ${strengthInfo.textCol}`}>
+                    <span className={`text-[11px] font-medium ${strengthInfo.textCol}`}>
                       {strengthInfo.text}
                     </span>
                   )}
                 </div>
                 <div className="relative flex items-center">
-                  <div className="pointer-events-none absolute left-3.5 text-gray-400">
-                    <Lock size={17} />
+                  <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
+                    <Lock size={16} strokeWidth={1.5} />
                   </div>
                   <input
                     id={passwordInputId}
@@ -697,29 +688,32 @@ const Register = () => {
                     name="password"
                     required
                     minLength={6}
-                    placeholder="Create a password (min. 6 chars)"
+                    placeholder="At least 6 characters"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                    className="h-10 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-10 text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 p-1 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                    className="absolute right-3 p-1 text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                    {showPassword ? (
+                      <EyeOff size={16} strokeWidth={1.5} />
+                    ) : (
+                      <Eye size={16} strokeWidth={1.5} />
+                    )}
                   </button>
                 </div>
 
-                {/* Password Strength Indicator Bar */}
                 {formData.password && (
-                  <div className="pt-1.5 flex items-center gap-1.5">
+                  <div className="flex items-center gap-1 pt-1">
                     {[1, 2, 3, 4].map((level) => (
                       <div
                         key={level}
-                        className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
-                          pwdStrength >= level ? strengthInfo.color : "bg-gray-200"
+                        className={`h-1 flex-1 rounded-full ${
+                          pwdStrength >= level ? strengthInfo.color : "bg-[#E6E0D6]"
                         }`}
                       />
                     ))}
@@ -727,52 +721,56 @@ const Register = () => {
                 )}
               </div>
 
-              {/* Terms Checkbox */}
               <div className="pt-1">
-                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <label className="flex items-start gap-2.5 select-none cursor-pointer">
                   <input
                     type="checkbox"
                     checked={agreeTerms}
                     onChange={(e) => setAgreeTerms(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#E8503A] focus:ring-[#E8503A] cursor-pointer"
+                    className="mt-0.5 h-4 w-4 rounded border-[#E6E0D6] accent-[#D94832] cursor-pointer"
                   />
-                  <span className="text-xs text-gray-600 leading-normal">
-                    I agree to HitMeUp's{" "}
-                    <span className="text-[#E8503A] underline font-medium">Terms of Service</span> and{" "}
-                    <span className="text-[#E8503A] underline font-medium">Privacy Policy</span>.
+                  <span className="text-[12px] leading-normal text-[#5E554A]">
+                    I agree to HitMeUp&apos;s{" "}
+                    <span className="font-medium text-[#1F1B16] underline">
+                      terms of service
+                    </span>{" "}
+                    and{" "}
+                    <span className="font-medium text-[#1F1B16] underline">
+                      privacy policy
+                    </span>
                   </span>
                 </label>
               </div>
 
-              {/* Submit CTA Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 h-12 rounded-xl bg-gradient-to-r from-[#FF4A2F] via-[#E8503A] to-[#DC3822] text-white font-bold text-sm tracking-wide shadow-[0_10px_25px_rgba(232,80,58,0.28)] hover:shadow-[0_14px_30px_rgba(232,80,58,0.38)] hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+                className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#D94832] text-[14px] font-medium text-white transition-colors duration-150 hover:bg-[#C23B26] disabled:opacity-60 cursor-pointer"
               >
                 {loading ? (
                   <>
-                    <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>Creating account & business profile...</span>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>Creating account...</span>
                   </>
                 ) : (
                   <>
-                    <UserPlus size={17} />
-                    <span>{isBusiness ? "Register Store & Start Selling" : "Create Account & Start Saving"}</span>
+                    <UserPlus size={16} strokeWidth={1.5} />
+                    <span>
+                      {isBusiness ? "Register store" : "Create shopper account"}
+                    </span>
                   </>
                 )}
               </button>
             </form>
 
-            {/* Switch to Login link */}
-            <div className="mt-6 pt-5 border-t border-gray-100 text-center">
-              <p className="text-xs text-gray-600 font-normal">
+            <div className="mt-6 border-t border-[#E6E0D6] pt-5 text-center">
+              <p className="text-[13px] text-[#5E554A]">
                 Already have an account?{" "}
                 <Link
                   to="/login"
-                  className="font-bold text-[#E8503A] hover:text-[#C53522] hover:underline transition-colors"
+                  className="font-medium text-[#D94832] hover:underline"
                 >
-                  Sign in here &rarr;
+                  Sign in &rarr;
                 </Link>
               </p>
             </div>

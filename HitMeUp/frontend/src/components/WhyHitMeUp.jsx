@@ -22,79 +22,85 @@ function WhyHitMeUp() {
 
   const features = [
     {
-      title: "Location-first discovery",
-      description: "Find deals within walking distance. Map-based browsing shows what's live around you right now.",
+      title: "Street-level map browsing",
+      description:
+        "See which shops on your street have active passes right now and filter by walking distance.",
     },
     {
-      title: "QR voucher system",
-      description: "Every purchase generates a digital voucher with a unique QR code. Walk in, scan, done.",
+      title: "Serial QR voucher passes",
+      description:
+        "Every claimed deal issues a unique HMU serial code and QR pass you can present at the counter.",
     },
     {
-      title: "AI-powered recommendations",
-      description: "Get personalized deal suggestions based on your location, preferences, and purchase history.",
+      title: "Context-aware suggestions",
+      description:
+        "Surface lunch, afternoon coffee, or retail markdowns matched to your saved categories and time of day.",
     },
     {
-      title: "Verified secure payments",
-      description: "Payment gateway integration with full verification. Protected transactions every time.",
+      title: "Pay online or at the counter",
+      description:
+        "Reserve free-to-claim counter passes or complete verified card checkout before you arrive.",
     },
     {
-      title: "Real-time flash deals",
-      description: "Deals go live and expire in real time. Countdown timers keep you in the loop.",
+      title: "Fixed-window stock counts",
+      description:
+        "Merchants cap the exact number of passes per batch so offers stay honored when you walk in.",
     },
     {
-      title: "Reviews & favorites",
-      description: "Save deals you love, read reviews from other customers, and build your local deal map.",
+      title: "Saved shops & verified reviews",
+      description:
+        "Bookmark neighborhood merchants and read feedback from shoppers who redeemed passes in person.",
     },
   ];
 
   return (
     <section
       id="about"
-      className="border-t border-[#F0F0F0] bg-white py-24"
+      className="border-b border-[#E6E0D6] bg-[#FDFBF7] py-20"
     >
       <div
         ref={sectionRef}
         className="reveal mx-auto max-w-[1200px] px-6"
       >
-        <div className="grid gap-16 lg:grid-cols-[1fr_1.4fr]">
-
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.5fr] lg:gap-16">
           {/* Left — sticky heading */}
-          <div className="lg:sticky lg:top-32 lg:self-start">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.15em] text-[#E8503A]">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <p className="text-[13px] font-medium text-[#7B7266]">
               Why HitMeUp
             </p>
 
-            <h2 className="mt-3 text-[32px] font-extrabold leading-[1.15] tracking-[-0.03em] text-[#1A1A1A]">
-              Built for how
-              <br />
-              people actually
-              <br />
-              <span className="serif text-[#E8503A]">find good deals.</span>
+            <h2 className="mt-2 text-[28px] sm:text-[32px] font-medium leading-[1.12] tracking-[-0.025em] text-[#1F1B16]">
+              Built for how people{" "}
+              <span className="serif font-normal text-[#D94832]">
+                actually shop locally
+              </span>
             </h2>
 
-            <p className="mt-5 max-w-[360px] text-[15px] leading-[1.7] text-[#6A6A6A]">
-              Not another coupon app. HitMeUp is a real-time marketplace that
-              connects nearby businesses with nearby customers.
+            <p className="mt-4 max-w-[38ch] text-[15px] leading-[1.65] text-[#5E554A]">
+              Instead of cluttered coupon books or expired promo codes, HitMeUp
+              issues live counter passes tied to real inventory at nearby stores.
             </p>
           </div>
 
-          {/* Right — feature list */}
-          <div className="grid gap-px overflow-hidden rounded-xl border border-[#F0F0F0] bg-[#F0F0F0] sm:grid-cols-2">
-            {features.map((feature) => (
+          {/* Right — 1px hairline ledger grid */}
+          <div className="grid gap-px overflow-hidden rounded-xl border border-[#E6E0D6] bg-[#E6E0D6] sm:grid-cols-2">
+            {features.map((feature, idx) => (
               <div
                 key={feature.title}
-                className="group bg-white p-7 transition-colors duration-200 hover:bg-[#FAFAFA]"
+                className="bg-[#FDFBF7] p-6 transition-colors duration-150 hover:bg-[#F7F4EE]"
               >
-                <h3 className="text-[15px] font-bold text-[#1A1A1A]">
+                <span className="font-mono text-[11px] text-[#7B7266] tabular-nums">
+                  0{idx + 1}
+                </span>
+                <h3 className="mt-2 text-[16px] font-medium text-[#1F1B16]">
                   {feature.title}
                 </h3>
-                <p className="mt-2 text-[14px] leading-[1.7] text-[#8A8A8A]">
+                <p className="mt-1.5 text-[14px] leading-[1.6] text-[#5E554A]">
                   {feature.description}
                 </p>
               </div>
             ))}
           </div>
-
         </div>
       </div>
     </section>

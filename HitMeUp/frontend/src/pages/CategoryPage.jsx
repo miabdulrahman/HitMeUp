@@ -1,36 +1,26 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import {
-  Sparkles,
-  ArrowLeft,
   Search,
-  Filter,
-  SlidersHorizontal,
-  ChevronDown,
-  Clock,
   MapPin,
-  Heart,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  RefreshCw,
   LayoutGrid,
   Navigation,
-  Compass,
-  Map as MapIcon
+  Map as MapIcon,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import DealCard from "../components/DealCard";
 import DealDetailModal from "../components/DealDetailModal";
 import MapDiscoveryView from "../components/MapDiscoveryView";
 import { categories, normalizeCategory, getCategorySlug } from "../data/categories";
-import { discoveryApi, dealApi } from "../services/api";
+import { discoveryApi } from "../services/api";
+import { isDealExpired } from "../utils/dealTimer";
 
-function CategoryPage() {
+function CategoryPage({ defaultView }) {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Selected Category (default to slug or "all")
   const currentCategory = useMemo(() => {
     if (!slug || slug === "all") return null;
     return (
@@ -50,23 +40,37 @@ function CategoryPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Discovery View Modes: "grid" vs "map"
-  const [viewMode, setViewMode] = useState("grid");
+  // Parse viewMode from URL query (?view=map) or /map route or defaultView prop
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const initialView =
+    searchParams.get("view") === "map" ||
+    location.pathname === "/map" ||
+    defaultView === "map"
+      ? "map"
+      : "grid";
+  const [viewMode, setViewMode] = useState(initialView);
 
-  // Geolocation & Nearby Mode (Member 3)
   const [nearbyMode, setNearbyMode] = useState(false);
-  const [nearbyRadius, setNearbyRadius] = useState(15); // in km
+  const [nearbyRadius, setNearbyRadius] = useState(15);
   const [userLocation, setUserLocation] = useState(null);
   const [locating, setLocating] = useState(false);
   const [nearbyFallback, setNearbyFallback] = useState(null);
 
-  // Sync state when URL param slug changes
+  // Sync viewMode if URL changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("view") === "map" || location.pathname === "/map" || defaultView === "map") {
+      setViewMode("map");
+    } else if (params.get("view") === "grid") {
+      setViewMode("grid");
+    }
+  }, [location.search, location.pathname, defaultView]);
+
   useEffect(() => {
     setActiveSlug(slug || "all");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [slug]);
 
-  // Fetch backend deals via Discovery API
   useEffect(() => {
     let isMounted = true;
     const fetchCategoryDeals = async () => {
@@ -76,76 +80,86 @@ function CategoryPage() {
         const catName = currentCategory ? currentCategory.name : undefined;
 
         if (nearbyMode && userLocation) {
-          // Call Member 3 Nearby API with coordinates
           const response = await discoveryApi.getNearbyDeals({
             lat: userLocation.latitude,
             lng: userLocation.longitude,
             radius: nearbyRadius,
-            category: catName
+            category: catName,
           });
           liveDeals = response.deals || [];
           if (response.isFallback) {
             setNearbyFallback({
               message: response.message,
               count: response.count,
-              radius: nearbyRadius
+              radius: nearbyRadius,
             });
           } else {
             setNearbyFallback(null);
           }
         } else {
           setNearbyFallback(null);
-          // Call Member 3 Discovery Search API
           const response = await discoveryApi.searchDeals({
             category: catName,
-            sortBy
+            sortBy,
           });
           liveDeals = response.deals || [];
         }
 
         if (isMounted) {
           if (Array.isArray(liveDeals)) {
-            const formattedLiveDeals = liveDeals.map((d) => {
-              const displayCat = normalizeCategory(d.category);
-              const catSlug = getCategorySlug(d.category);
-              const locationCity =
-                d.businessId?.address?.city ||
-                (typeof d.businessId?.address === "string" ? d.businessId?.address : "Colombo, Sri Lanka");
+            const formattedLiveDeals = liveDeals
+              .filter((d) => !isDealExpired(d))
+              .map((d) => {
+                const displayCat = normalizeCategory(d.category);
+                const catSlug = getCategorySlug(d.category);
+                const locationCity =
+                  d.businessId?.address?.city ||
+                  (typeof d.businessId?.address === "string"
+                    ? d.businessId?.address
+                    : "Colombo, Sri Lanka");
 
-              return {
-                id: d._id,
-                _id: d._id,
-                title: d.title,
-                business: d.businessId?.name || d.businessName || "Verified Merchant",
-                businessId: d.businessId,
-                category: displayCat,
-                categorySlug: catSlug,
-                price: `Rs. ${d.discountedPrice?.toLocaleString() || "0"}`,
-                rawPrice: d.discountedPrice,
-                oldPrice: `Rs. ${d.originalPrice?.toLocaleString() || "0"}`,
-                rawOldPrice: d.originalPrice,
-                discount: `${d.discountPercentage || 0}% OFF`,
-                discountPercentage: d.discountPercentage || 0,
-                image:
-                  d.imageUrl ||
-                  d.image ||
-                  "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
-                time: "Limited time",
-                distance: d.distanceText || (d.distanceKm !== undefined ? `${d.distanceKm} km away` : locationCity),
-                location: locationCity,
-                rating: 4.8,
-                reviewsCount: 35,
-                vouchersLeft: d.availableQuantity || 10,
-                description: d.description,
-                isFavorited: d.isFavorited || false,
-                highlights: [
-                  "Instant digital voucher",
-                  "Valid for direct redemption",
-                  "Verified local merchant",
-                ],
-                terms: d.terms || "Present digital voucher code upon arrival.",
-              };
-            });
+                return {
+                  id: d._id,
+                  _id: d._id,
+                  title: d.title,
+                  business:
+                    d.businessId?.name || d.businessName || "Local merchant",
+                  businessId: d.businessId,
+                  category: displayCat,
+                  categorySlug: catSlug,
+                  price: `Rs. ${d.discountedPrice?.toLocaleString() || "0"}`,
+                  rawPrice: d.discountedPrice,
+                  oldPrice: `Rs. ${d.originalPrice?.toLocaleString() || "0"}`,
+                  rawOldPrice: d.originalPrice,
+                  discount: `${d.discountPercentage || 0}% off`,
+                  discountPercentage: d.discountPercentage || 0,
+                  image:
+                    d.imageUrl ||
+                    d.image ||
+                    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+                  endDate: d.endDate,
+                  startDate: d.startDate,
+                  durationHours: d.durationHours,
+                  status: d.status,
+                  distance:
+                    d.distanceText ||
+                    (d.distanceKm !== undefined
+                      ? `${d.distanceKm} km away`
+                      : locationCity),
+                  location: locationCity,
+                  rating: 4.8,
+                  reviewsCount: 35,
+                  vouchersLeft: d.availableQuantity || 10,
+                  description: d.description,
+                  isFavorited: d.isFavorited || false,
+                  highlights: [
+                    "Digital QR voucher pass",
+                    "Valid for counter redemption",
+                    "Verified neighborhood store",
+                  ],
+                  terms: d.terms || "Present digital voucher code upon arrival.",
+                };
+              });
 
             setDealsList(formattedLiveDeals);
           } else {
@@ -153,7 +167,10 @@ function CategoryPage() {
           }
         }
       } catch (err) {
-        console.error("Failed to fetch category deals from discovery API:", err.message);
+        console.error(
+          "Failed to fetch category deals from discovery API:",
+          err.message
+        );
         if (isMounted) setDealsList([]);
       } finally {
         if (isMounted) setLoading(false);
@@ -167,7 +184,6 @@ function CategoryPage() {
     };
   }, [currentCategory, nearbyMode, userLocation, nearbyRadius, sortBy]);
 
-  // Request user GPS location for nearby discovery
   const handleToggleNearby = () => {
     if (nearbyMode) {
       setNearbyMode(false);
@@ -184,14 +200,13 @@ function CategoryPage() {
       (pos) => {
         setUserLocation({
           latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude
+          longitude: pos.coords.longitude,
         });
         setNearbyMode(true);
         setLocating(false);
       },
       (err) => {
         console.warn("Location permission denied or unavailable:", err.message);
-        // Fallback to Colombo coordinates
         setUserLocation({ latitude: 6.9271, longitude: 79.8612 });
         setNearbyMode(true);
         setLocating(false);
@@ -199,26 +214,24 @@ function CategoryPage() {
     );
   };
 
-  // Toggle favorite helper
-  const handleToggleFavorite = async (e, dealId) => {
-    e.stopPropagation();
-    setDealsList((prev) =>
-      prev.map((d) =>
-        d.id === dealId ? { ...d, isFavorited: !d.isFavorited } : d
-      )
-    );
-    try {
-      await discoveryApi.toggleFavorite(dealId);
-    } catch (err) {
-      console.warn("Favorite sync failed:", err.message);
+  const handleSwitchView = (mode) => {
+    setViewMode(mode);
+    const params = new URLSearchParams(location.search);
+    if (mode === "map") {
+      params.set("view", "map");
+    } else {
+      params.delete("view");
     }
+    const nextSearch = params.toString();
+    navigate(nextSearch ? `?${nextSearch}` : location.pathname, { replace: true });
   };
 
-  // Filter and sort items
   const filteredDeals = useMemo(() => {
     return dealsList
       .filter((deal) => {
-        // Category match
+        // Enforce strictly active/unexpired
+        if (isDealExpired(deal)) return false;
+
         const dealSlug = deal.categorySlug || getCategorySlug(deal.category);
         const matchesCategory =
           activeSlug === "all" ||
@@ -226,10 +239,11 @@ function CategoryPage() {
           deal.category?.toLowerCase() === activeSlug.toLowerCase() ||
           (currentCategory &&
             (dealSlug === currentCategory.slug.toLowerCase() ||
-             deal.category?.toLowerCase() === currentCategory.name.toLowerCase() ||
-             getCategorySlug(deal.category) === currentCategory.slug.toLowerCase()));
+              deal.category?.toLowerCase() ===
+                currentCategory.name.toLowerCase() ||
+              getCategorySlug(deal.category) ===
+                currentCategory.slug.toLowerCase()));
 
-        // Search query match
         const matchesQuery =
           !searchQuery.trim() ||
           deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -252,7 +266,7 @@ function CategoryPage() {
         if (sortBy === "rating_desc") {
           return (b.rating || 0) - (a.rating || 0);
         }
-        return 0; // Default recommended
+        return 0;
       });
   }, [dealsList, activeSlug, searchQuery, sortBy, currentCategory]);
 
@@ -264,107 +278,100 @@ function CategoryPage() {
   const IconComponent = currentCategory ? currentCategory.icon : LayoutGrid;
 
   return (
-    <div className="min-h-screen bg-[#F7F5F2] flex flex-col">
-      {/* Top Navigation */}
+    <div className="flex min-h-screen flex-col bg-[#F7F4EE]">
       <Navbar />
 
-      {/* Main Content Area */}
-      <main className="flex-1 pt-24 pb-20">
-        {/* Category Hero / Header Banner */}
-        <section className="border-b border-gray-200/70 bg-white py-12 px-6">
-          <div className="mx-auto max-w-[1240px]">
-            {/* Breadcrumb Navigation */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-6">
-              <Link to="/" className="hover:text-[#E8503A] transition">
+      <main className="flex-1 pt-16 pb-20">
+        {/* Category Header */}
+        <section className="border-b border-[#E6E0D6] bg-[#FDFBF7] px-6 py-10">
+          <div className="mx-auto max-w-[1200px]">
+            {/* Breadcrumb */}
+            <div className="mb-5 flex items-center gap-2 text-[12px] text-[#7B7266]">
+              <Link to="/" className="hover:text-[#1F1B16]">
                 Home
               </Link>
               <span>/</span>
-              <Link to="/categories" className="hover:text-[#E8503A] transition">
+              <Link to="/categories" className="hover:text-[#1F1B16]">
                 Categories
               </Link>
               <span>/</span>
-              <span className="text-gray-900 font-bold">
-                {currentCategory ? currentCategory.name : "All Categories"}
+              <span className="font-medium text-[#1F1B16]">
+                {currentCategory ? currentCategory.name : "All categories"}
               </span>
             </div>
 
-            {/* Banner Header Info */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
               <div className="flex items-start gap-4">
-                <div
-                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-white shadow-md"
-                  style={{
-                    backgroundColor: currentCategory ? currentCategory.color : "#172026",
-                  }}
-                >
-                  <IconComponent size={32} strokeWidth={2} />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#E6E0D6] bg-[#F7F4EE] text-[#1F1B16]">
+                  <IconComponent size={22} strokeWidth={1.5} />
                 </div>
 
                 <div>
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-xs font-black uppercase tracking-widest text-[#E8503A]">
-                      Flash Marketplace
-                    </span>
-                    {currentCategory?.badge && (
-                      <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-amber-800 border border-amber-200">
-                        {currentCategory.badge}
-                      </span>
-                    )}
-                  </div>
-                  <h1 className="mt-1 text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
-                    {currentCategory ? currentCategory.name : "All Flash Deals"}
+                  <p className="text-[12px] font-medium text-[#7B7266]">
+                    Neighborhood directory
+                  </p>
+                  <h1 className="mt-0.5 text-[28px] sm:text-[32px] font-medium tracking-[-0.025em] text-[#1F1B16]">
+                    {viewMode === "map"
+                      ? "Interactive Street Map"
+                      : currentCategory
+                      ? currentCategory.name
+                      : "All flash deals"}
                   </h1>
-                  <p className="mt-2 text-sm text-gray-600 max-w-xl">
-                    {currentCategory
+                  <p className="mt-1.5 max-w-[56ch] text-[14px] text-[#5E554A]">
+                    {viewMode === "map"
+                      ? "Explore all verified merchant shops flagged across Colombo with active, unexpired counter passes."
+                      : currentCategory
                       ? currentCategory.description
-                      : "Explore limited-time discounts, empty table specials, and flash promotions across all verified merchants in your area."}
+                      : "Browse active unexpired counter passes across cafes, retail shops, and local services."}
                   </p>
                 </div>
               </div>
 
-              {/* View Switcher: Grid vs Map */}
-              <div className="flex items-center gap-2 self-start md:self-center bg-gray-100 p-1.5 rounded-2xl border border-gray-200">
+              {/* View Switcher: Grid vs Full Street Map */}
+              <div className="flex items-center gap-1 self-start rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] p-1 md:self-center">
                 <button
-                  onClick={() => setViewMode("grid")}
-                  className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+                  type="button"
+                  onClick={() => handleSwitchView("grid")}
+                  className={`flex h-8 items-center gap-1.5 rounded-md px-3 text-[12px] font-medium transition-colors cursor-pointer ${
                     viewMode === "grid"
-                      ? "bg-white text-gray-900 shadow-xs"
-                      : "text-gray-600 hover:text-gray-900"
+                      ? "bg-[#1F1B16] text-[#FDFBF7]"
+                      : "text-[#5E554A] hover:text-[#1F1B16]"
                   }`}
                 >
-                  <LayoutGrid size={15} />
-                  <span>Grid View</span>
+                  <LayoutGrid size={14} strokeWidth={1.5} />
+                  <span>Grid view</span>
                 </button>
 
                 <button
-                  onClick={() => setViewMode("map")}
-                  className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
+                  type="button"
+                  onClick={() => handleSwitchView("map")}
+                  className={`flex h-8 items-center gap-1.5 rounded-md px-3 text-[12px] font-medium transition-colors cursor-pointer ${
                     viewMode === "map"
-                      ? "bg-[#E8503A] text-white shadow-xs"
-                      : "text-gray-600 hover:text-gray-900"
+                      ? "bg-[#D94832] text-white shadow-xs"
+                      : "text-[#5E554A] hover:text-[#1F1B16]"
                   }`}
                 >
-                  <MapIcon size={15} />
-                  <span>Interactive Map</span>
+                  <MapIcon size={14} strokeWidth={1.5} />
+                  <span>Street map</span>
                 </button>
               </div>
             </div>
 
-            {/* Category Filter Pills */}
-            <div className="mt-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {/* Category Filter Row */}
+            <div className="mt-7 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               <button
                 onClick={() => {
                   setActiveSlug("all");
-                  navigate("/categories");
+                  navigate(viewMode === "map" ? "/categories?view=map" : "/categories");
                 }}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-3.5 text-[13px] font-medium transition-colors cursor-pointer ${
                   activeSlug === "all"
-                    ? "bg-[#172026] text-white shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-[#1F1B16] text-[#FDFBF7]"
+                    : "border border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A] hover:text-[#1F1B16]"
                 }`}
               >
-                <LayoutGrid size={15} />
-                <span>All Deals</span>
+                <LayoutGrid size={14} strokeWidth={1.5} />
+                <span>All deals</span>
               </button>
 
               {categories.map((cat) => {
@@ -375,15 +382,16 @@ function CategoryPage() {
                     key={cat.id}
                     onClick={() => {
                       setActiveSlug(cat.slug);
-                      navigate(`/category/${cat.slug}`);
+                      const target = `/category/${cat.slug}${viewMode === "map" ? "?view=map" : ""}`;
+                      navigate(target);
                     }}
-                    className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-3.5 text-[13px] font-medium transition-colors cursor-pointer ${
                       isActive
-                        ? "bg-[#E8503A] text-white shadow-md shadow-[#E8503A]/25"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        ? "bg-[#D94832] text-white"
+                        : "border border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A] hover:text-[#1F1B16]"
                     }`}
                   >
-                    <CatIcon size={15} />
+                    <CatIcon size={14} strokeWidth={1.5} />
                     <span>{cat.name}</span>
                   </button>
                 );
@@ -393,282 +401,193 @@ function CategoryPage() {
         </section>
 
         {/* Deals Listing & Filter Section */}
-        <section className="mx-auto max-w-[1240px] px-6 py-8">
-          {/* Controls Bar: Search + Nearby + Sort Dropdown */}
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm mb-8">
-            {/* Search within category */}
-            <div className="relative flex-1">
-              <Search
-                size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={`Search within ${currentCategory ? currentCategory.name : "deals"}...`}
-                className="w-full rounded-xl bg-gray-50 pl-10 pr-4 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 border border-transparent focus:border-[#E8503A] focus:bg-white focus:outline-none transition"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600 cursor-pointer"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-
-            {/* Member 3: Nearby Geolocation Discovery Controls */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={handleToggleNearby}
-                disabled={locating}
-                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
-                  nearbyMode
-                    ? "bg-[#E8503A] text-white shadow-sm"
-                    : "border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                <Navigation size={14} className={locating ? "animate-spin" : ""} />
-                <span>{locating ? "Locating..." : nearbyMode ? "Nearby Active" : "Find Nearby Deals"}</span>
-              </button>
-
-              {nearbyMode && (
-                <select
-                  value={nearbyRadius}
-                  onChange={(e) => setNearbyRadius(Number(e.target.value))}
-                  className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:border-[#E8503A] transition cursor-pointer"
-                >
-                  <option value={5}>Within 5 km</option>
-                  <option value={15}>Within 15 km</option>
-                  <option value={30}>Within 30 km</option>
-                  <option value={50}>Within 50 km</option>
-                </select>
-              )}
-
-              {/* Sort Filter */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                  Sort:
-                </span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:border-[#E8503A] transition cursor-pointer"
-                >
-                  <option value="recommended">Featured & Recommended</option>
-                  <option value="discount_desc">Highest Discount (%)</option>
-                  <option value="price_asc">Price: Low to High</option>
-                  <option value="price_desc">Price: High to Low</option>
-                  <option value="rating_desc">Highest Customer Rating</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Fallback notification when no deals are directly within radius */}
-          {nearbyMode && nearbyFallback && (
-            <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/90 p-4 text-amber-900 shadow-sm animate-in fade-in">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                  <MapPin size={20} />
-                </div>
-                <div>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-amber-950">
-                    No Deals Directly Within {nearbyFallback.radius} km
-                  </h4>
-                  <p className="text-xs text-amber-800 mt-0.5">
-                    We didn't find active flash promotions in your immediate neighborhood, so we're displaying all available active offers sorted by proximity!
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => setNearbyRadius(50)}
-                  className="rounded-xl bg-amber-200/80 px-3.5 py-1.5 text-xs font-bold text-amber-950 hover:bg-amber-300 transition cursor-pointer"
-                >
-                  Expand Radius to 50km
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Conditional Rendering: Interactive Map Discovery vs Grid */}
+        <section className="mx-auto max-w-[1200px] px-6 py-8">
           {viewMode === "map" ? (
-            <MapDiscoveryView onSelectDeal={handleOpenDeal} />
-          ) : loading ? (
-            /* Loading skeletons */
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col h-80 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm animate-pulse"
-                >
-                  <div className="h-44 w-full rounded-xl bg-gray-200" />
-                  <div className="mt-4 h-4 w-1/3 rounded bg-gray-200" />
-                  <div className="mt-2 h-5 w-3/4 rounded bg-gray-200" />
-                  <div className="mt-auto flex justify-between items-center pt-3 border-t border-gray-100">
-                    <div className="h-5 w-1/4 rounded bg-gray-200" />
-                    <div className="h-8 w-1/3 rounded-xl bg-gray-200" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : filteredDeals.length > 0 ? (
-            /* Deals Grid */
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
-              {filteredDeals.map((deal) => (
-                <div
-                  key={deal.id}
-                  onClick={() => handleOpenDeal(deal)}
-                  className="group relative flex flex-col h-full overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-gray-300 cursor-pointer"
-                >
-                  {/* Image Cover */}
-                  <div className="relative h-48 w-full overflow-hidden bg-gray-100">
-                    <img
-                      src={deal.image}
-                      alt={deal.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-108"
-                      loading="lazy"
-                    />
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-
-                    {/* Discount Badge */}
-                    <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#E8503A] px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-white shadow-md">
-                      <Sparkles size={11} />
-                      {deal.discount}
-                    </div>
-
-                    {/* Favorite Heart Button (Member 3) */}
-                    <button
-                      onClick={(e) => handleToggleFavorite(e, deal.id)}
-                      className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md shadow-sm transition-all duration-200 active:scale-90 ${
-                        deal.isFavorited
-                          ? "bg-[#E8503A] text-white"
-                          : "bg-white/90 text-gray-600 hover:bg-white hover:text-[#E8503A]"
-                      }`}
-                      aria-label="Save to favorites"
-                    >
-                      <Heart size={15} className={deal.isFavorited ? "fill-white" : ""} />
-                    </button>
-
-                    {/* Category Tag */}
-                    <div className="absolute bottom-3 left-3 rounded-lg bg-black/60 px-2.5 py-0.5 text-[11px] font-semibold text-white/95 backdrop-blur-md">
-                      {deal.category}
-                    </div>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="flex flex-1 flex-col justify-between p-5">
-                    <div>
-                      {/* Merchant name */}
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-[#E8503A]">
-                        {deal.business}
-                      </p>
-
-                      {/* Title */}
-                      <h3 className="mt-1 text-base font-bold leading-snug text-gray-900 group-hover:text-[#E8503A] transition-colors line-clamp-2">
-                        {deal.title}
-                      </h3>
-
-                      {/* Location & Time */}
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-700">
-                          <MapPin size={12} className="text-[#E8503A]" />
-                          {deal.distance}
-                        </span>
-
-                        <span className="inline-flex items-center gap-1 rounded-md bg-[#FFF0ED] px-2 py-0.5 text-[11px] font-bold text-[#E8503A]">
-                          <Clock size={12} />
-                          {deal.time}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Price and Action Row */}
-                    <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
-                      <div className="flex flex-col">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-lg font-black text-gray-900">
-                            {deal.price}
-                          </span>
-                          {deal.oldPrice && (
-                            <span className="text-xs font-semibold text-gray-400 line-through">
-                              {deal.oldPrice}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] font-medium text-emerald-600">
-                          {deal.vouchersLeft ? `${deal.vouchersLeft} left` : "Flash deal active"}
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenDeal(deal);
-                        }}
-                        className="inline-flex items-center gap-1 rounded-xl bg-[#172026] px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-all duration-200 group-hover:bg-[#E8503A] active:scale-95"
-                      >
-                        <span>View Deal</span>
-                        <ArrowRight size={13} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            /* Full Street Map View */
+            <div className="w-full">
+              <MapDiscoveryView onSelectDeal={handleOpenDeal} fullView={true} />
             </div>
           ) : (
-            /* Empty State */
-            <div className="rounded-3xl border border-dashed border-gray-300 bg-white py-16 px-6 text-center shadow-sm">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 text-[#E8503A] mb-4">
-                <Search size={28} />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900">
-                No matching flash deals found
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 max-w-md mx-auto">
-                {nearbyMode
-                  ? `No deals found within ${nearbyRadius} km of your location. Try widening the radius filter.`
-                  : `We couldn't find any deals matching "${searchQuery}" in this category. Try clearing your search or browsing another category.`}
-              </p>
-              <div className="mt-6 flex justify-center gap-3">
-                {nearbyMode && (
+            <>
+              {/* Controls Bar */}
+              <div className="mb-7 flex flex-col items-stretch justify-between gap-3 rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] p-3.5 lg:flex-row lg:items-center">
+                <div className="relative flex-1">
+                  <Search
+                    size={16}
+                    strokeWidth={1.5}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7B7266]"
+                  />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={`Filter ${
+                      currentCategory ? currentCategory.name.toLowerCase() : "deals"
+                    } by store or item...`}
+                    className="h-9 w-full rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] pl-9 pr-14 text-[13px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:bg-white focus:outline-none"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-medium text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
                   <button
-                    onClick={() => setNearbyMode(false)}
-                    className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-200 transition"
+                    onClick={handleToggleNearby}
+                    disabled={locating}
+                    className={`flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-[12px] font-medium transition-colors cursor-pointer ${
+                      nearbyMode
+                        ? "bg-[#D94832] text-white"
+                        : "border border-[#E6E0D6] bg-[#F7F4EE] text-[#1F1B16] hover:bg-[#EFE9DF]"
+                    }`}
                   >
-                    Disable Nearby Filter
+                    <Navigation
+                      size={13}
+                      strokeWidth={1.5}
+                      className={locating ? "animate-spin" : ""}
+                    />
+                    <span>
+                      {locating
+                        ? "Locating..."
+                        : nearbyMode
+                        ? "Nearby filter on"
+                        : "Near my location"}
+                    </span>
                   </button>
-                )}
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-200 transition"
-                  >
-                    Clear Search
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    setActiveSlug("all");
-                    navigate("/categories");
-                  }}
-                  className="rounded-xl bg-[#E8503A] px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-[#D4402C] transition"
-                >
-                  View All Categories
-                </button>
+
+                  {nearbyMode && (
+                    <select
+                      value={nearbyRadius}
+                      onChange={(e) => setNearbyRadius(Number(e.target.value))}
+                      className="h-9 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-3 text-[12px] font-medium text-[#1F1B16] focus:border-[#D94832] focus:outline-none cursor-pointer"
+                    >
+                      <option value={5}>Within 5 km</option>
+                      <option value={15}>Within 15 km</option>
+                      <option value={30}>Within 30 km</option>
+                      <option value={50}>Within 50 km</option>
+                    </select>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[12px] text-[#7B7266]">Sort by</span>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="h-9 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-3 text-[12px] font-medium text-[#1F1B16] focus:border-[#D94832] focus:outline-none cursor-pointer"
+                    >
+                      <option value="recommended">Recommended</option>
+                      <option value="discount_desc">Largest discount</option>
+                      <option value="price_asc">Price: low to high</option>
+                      <option value="price_desc">Price: high to low</option>
+                      <option value="rating_desc">Customer rating</option>
+                    </select>
+                  </div>
+                </div>
               </div>
-            </div>
+
+              {/* Fallback notice */}
+              {nearbyMode && nearbyFallback && (
+                <div className="mb-6 flex flex-col items-start justify-between gap-3 rounded-xl border border-[#B45309]/30 bg-[#B45309]/5 p-4 text-[#1F1B16] sm:flex-row sm:items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#B45309]/25 bg-[#FDFBF7] text-[#B45309]">
+                      <MapPin size={16} strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h4 className="text-[13px] font-medium text-[#1F1B16]">
+                        No active deals within {nearbyFallback.radius} km
+                      </h4>
+                      <p className="mt-0.5 text-[12px] text-[#5E554A]">
+                        Showing all active offers sorted by distance from your
+                        current coordinates.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setNearbyRadius(50)}
+                    className="shrink-0 rounded-lg border border-[#E6E0D6] bg-[#FDFBF7] px-3 py-1.5 text-[12px] font-medium text-[#1F1B16] hover:bg-[#EFE9DF] cursor-pointer"
+                  >
+                    Expand to 50 km
+                  </button>
+                </div>
+              )}
+
+              {loading ? (
+                <div className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex h-80 flex-col rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] p-4"
+                    >
+                      <div className="h-40 w-full rounded-lg bg-[#EFE9DF]" />
+                      <div className="mt-4 h-3.5 w-1/3 rounded bg-[#EFE9DF]" />
+                      <div className="mt-2 h-4 w-3/4 rounded bg-[#EFE9DF]" />
+                      <div className="mt-auto flex items-center justify-between border-t border-[#E6E0D6] pt-3">
+                        <div className="h-4 w-1/4 rounded bg-[#EFE9DF]" />
+                        <div className="h-7 w-1/3 rounded-lg bg-[#EFE9DF]" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredDeals.length > 0 ? (
+                <div className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {filteredDeals.map((deal) => (
+                    <DealCard key={deal.id} deal={deal} onOpen={handleOpenDeal} />
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] px-6 py-16 text-center">
+                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A]">
+                    <Search size={18} strokeWidth={1.5} />
+                  </div>
+                  <h3 className="text-[16px] font-medium text-[#1F1B16]">
+                    No unexpired deals found
+                  </h3>
+                  <p className="mx-auto mt-1 max-w-md text-[13px] text-[#7B7266]">
+                    {nearbyMode
+                      ? `No active unexpired deals within ${nearbyRadius} km of your location. Try expanding the distance filter.`
+                      : `No active unexpired deals matched "${searchQuery}" in this category.`}
+                  </p>
+                  <div className="mt-5 flex justify-center gap-2.5">
+                    {nearbyMode && (
+                      <button
+                        onClick={() => setNearbyMode(false)}
+                        className="rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-3.5 py-2 text-[12px] font-medium text-[#1F1B16] hover:bg-[#EFE9DF]"
+                      >
+                        Turn off distance filter
+                      </button>
+                    )}
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-3.5 py-2 text-[12px] font-medium text-[#1F1B16] hover:bg-[#EFE9DF]"
+                      >
+                        Clear search
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        setActiveSlug("all");
+                        navigate("/categories");
+                      }}
+                      className="rounded-lg bg-[#D94832] px-3.5 py-2 text-[12px] font-medium text-white hover:bg-[#C23B26]"
+                    >
+                      All categories
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </section>
       </main>
 
-      {/* Footer */}
       <Footer />
 
-      {/* Item / Deal Detail Modal */}
       <DealDetailModal
         deal={selectedDeal}
         isOpen={modalOpen}

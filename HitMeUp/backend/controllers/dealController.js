@@ -267,12 +267,23 @@ const getDeals = async (req, res) => {
     } = req.query;
 
     const query = {};
+    const now = new Date();
 
-    // By default, public listing only returns 'active' deals
+    // Auto-expire deals that have passed their end date
+    await Deal.updateMany(
+      { status: "active", endDate: { $lte: now } },
+      { $set: { status: "expired" } }
+    ).exec();
+
+    // By default, public listing only returns 'active' deals that have not expired
     if (status && status !== "all") {
       query.status = status.toLowerCase();
+      if (status.toLowerCase() === "active") {
+        query.endDate = { $gt: now };
+      }
     } else if (!status) {
       query.status = "active";
+      query.endDate = { $gt: now };
     }
 
     if (category && category !== "All") {
@@ -317,22 +328,18 @@ const getDeals = async (req, res) => {
       Deal.countDocuments(query)
     ]);
 
-    // Check & mark expired deals in background
-    const now = new Date();
-    deals.forEach((d) => {
-      if (d.status === "active" && d.endDate < now) {
-        d.status = "expired";
-        Deal.updateOne({ _id: d._id }, { status: "expired" }).exec();
-      }
-    });
+    // Filter out any newly expired deals from the returned payload
+    const validDeals = (!status || status.toLowerCase() === "active")
+      ? deals.filter((d) => d.status === "active" && (!d.endDate || new Date(d.endDate) > now))
+      : deals;
 
     return res.status(200).json({
       success: true,
-      count: deals.length,
-      total,
+      count: validDeals.length,
+      total: validDeals.length,
       page: Number(page),
-      totalPages: Math.ceil(total / Number(limit)),
-      deals
+      totalPages: Math.ceil(validDeals.length / Number(limit)),
+      deals: validDeals
     });
   } catch (error) {
     console.error("Get Deals Error:", error);

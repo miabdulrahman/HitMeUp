@@ -2,34 +2,43 @@ import { Link } from "react-router-dom";
 
 function Footer() {
   return (
-    <footer className="border-t border-[#F0F0F0] bg-white">
+    <footer className="bg-[#FDFBF7] text-[#1F1B16]">
       <div className="mx-auto max-w-[1200px] px-6 py-14">
-
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
-
           {/* Brand */}
           <div>
-            <a href="#home" className="text-[20px] font-black tracking-[-0.03em] text-[#1A1A1A]">
-              HitMe<span className="text-[#E8503A]">Up</span>
+            <a href="#home" className="inline-flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#1F1B16] font-mono text-[12px] font-medium text-[#FDFBF7]">
+                H
+              </span>
+              <span className="text-[17px] font-semibold tracking-[-0.03em] text-[#1F1B16]">
+                HitMeUp
+              </span>
             </a>
 
-            <p className="mt-4 max-w-[260px] text-[14px] leading-[1.7] text-[#8A8A8A]">
-              Real-time location-based flash deal marketplace with AI.
-              Built by Group E, Faculty of Technology, Southeastern University of Sri Lanka.
+            <p className="mt-3.5 max-w-[280px] text-[13px] leading-[1.65] text-[#5E554A]">
+              Location-based flash deal marketplace and QR voucher counter pass
+              system. Built by Group E, Faculty of Technology, South Eastern
+              University of Sri Lanka.
             </p>
           </div>
 
           {/* Explore */}
           <div>
-            <h4 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-[#8A8A8A]">
+            <h4 className="text-[12px] font-medium text-[#7B7266]">
               Explore
             </h4>
-            <div className="mt-4 flex flex-col gap-3">
-              {[["Flash Deals", "#deals"], ["Categories", "#categories"], ["How It Works", "#how-it-works"], ["About", "#about"]].map(([label, href]) => (
+            <div className="mt-3.5 flex flex-col gap-2.5">
+              {[
+                ["Nearby deals", "#deals"],
+                ["Categories", "#categories"],
+                ["How it works", "#how-it-works"],
+                ["About", "#about"],
+              ].map(([label, href]) => (
                 <a
                   key={label}
                   href={href}
-                  className="text-[14px] text-[#4A4A4A] transition-colors duration-200 hover:text-[#1A1A1A]"
+                  className="text-[13px] text-[#5E554A] transition-colors duration-150 hover:text-[#1F1B16]"
                 >
                   {label}
                 </a>
@@ -37,17 +46,22 @@ function Footer() {
             </div>
           </div>
 
-          {/* Business */}
+          {/* Merchants */}
           <div>
-            <h4 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-[#8A8A8A]">
-              For Business
+            <h4 className="text-[12px] font-medium text-[#7B7266]">
+              For merchants
             </h4>
-            <div className="mt-4 flex flex-col gap-3">
-              {["Register", "Create Deals", "AI Deal Creator", "Analytics"].map((link) => (
+            <div className="mt-3.5 flex flex-col gap-2.5">
+              {[
+                "Register store",
+                "Publish flash deals",
+                "POS voucher lookup",
+                "Store analytics",
+              ].map((link) => (
                 <Link
                   key={link}
                   to="/register"
-                  className="text-[14px] text-[#4A4A4A] transition-colors duration-200 hover:text-[#1A1A1A]"
+                  className="text-[13px] text-[#5E554A] transition-colors duration-150 hover:text-[#1F1B16]"
                 >
                   {link}
                 </Link>
@@ -55,31 +69,38 @@ function Footer() {
             </div>
           </div>
 
-          {/* Legal */}
+          {/* Account */}
           <div>
-            <h4 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-[#8A8A8A]">
-              Legal
+            <h4 className="text-[12px] font-medium text-[#7B7266]">
+              Account
             </h4>
-            <div className="mt-4 flex flex-col gap-3">
-              {["Privacy Policy", "Terms of Service", "Contact"].map((link) => (
-                <a
-                  key={link}
-                  href="#about"
-                  className="text-[14px] text-[#4A4A4A] transition-colors duration-200 hover:text-[#1A1A1A]"
-                >
-                  {link}
-                </a>
-              ))}
+            <div className="mt-3.5 flex flex-col gap-2.5">
+              <Link
+                to="/login"
+                className="text-[13px] text-[#5E554A] transition-colors duration-150 hover:text-[#1F1B16]"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/register"
+                className="text-[13px] text-[#5E554A] transition-colors duration-150 hover:text-[#1F1B16]"
+              >
+                Create account
+              </Link>
+              <a
+                href="#about"
+                className="text-[13px] text-[#5E554A] transition-colors duration-150 hover:text-[#1F1B16]"
+              >
+                Terms &amp; privacy
+              </a>
             </div>
           </div>
-
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-[#F0F0F0] pt-6 text-[13px] text-[#CACACA] sm:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-[#E6E0D6] pt-6 text-[12px] text-[#7B7266] sm:flex-row">
           <p>© 2026 HitMeUp. All rights reserved.</p>
-          <p>BICT · Group E · Southeastern University of Sri Lanka</p>
+          <p>BICT · Group E · South Eastern University of Sri Lanka</p>
         </div>
-
       </div>
     </footer>
   );

@@ -1,6 +1,18 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { categories } from "../data/categories";
+
+const CATEGORY_SUBTITLES = {
+  food: "Cafes & bakeries",
+  fashion: "Apparel & footwear",
+  electronics: "Audio & accessories",
+  home: "Decor & cleaning",
+  health: "Spas & clinics",
+  sports: "Gyms & courts",
+  services: "Salons & detailing",
+  games: "Arcades & lounges",
+};
 
 function CategorySection() {
   const sectionRef = useRef(null);
@@ -26,59 +38,63 @@ function CategorySection() {
   return (
     <section
       id="categories"
-      className="border-t border-[#F0F0F0] bg-white py-20"
+      className="border-b border-[#E6E0D6] bg-[#F7F4EE] py-20"
     >
       <div
         ref={sectionRef}
         className="reveal mx-auto max-w-[1200px] px-6"
       >
-        <div className="flex items-end justify-between">
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-[13px] font-semibold uppercase tracking-[0.15em] text-[#E8503A]">
+            <p className="text-[13px] font-medium text-[#7B7266]">
               Browse by category
             </p>
-            <h2 className="mt-2 text-[28px] font-extrabold tracking-[-0.03em] text-[#1A1A1A]">
-              What are you looking for?
+            <h2 className="mt-1.5 text-[28px] font-medium tracking-[-0.025em] text-[#1F1B16]">
+              What are you looking for today?
             </h2>
           </div>
 
           <button
             onClick={() => navigate("/categories")}
-            className="hidden text-[14px] font-semibold text-[#4A4A4A] transition-colors hover:text-[#E8503A] sm:block cursor-pointer"
+            className="hidden items-center gap-1.5 rounded-lg border border-[#E6E0D6] bg-[#FDFBF7] px-3.5 py-2 text-[13px] font-medium text-[#1F1B16] transition-colors duration-150 hover:bg-[#EFE9DF] sm:inline-flex cursor-pointer"
           >
-            View all →
+            <span>All categories</span>
+            <ArrowRight size={14} strokeWidth={1.5} />
           </button>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-          {categories.map((category, i) => {
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+          {categories.map((category) => {
             const Icon = category.icon;
+            const subtitle =
+              CATEGORY_SUBTITLES[category.slug] || "Local passes";
 
             return (
               <button
                 key={category.name}
-                onClick={() => navigate(`/category/${category.slug || category.name.toLowerCase()}`)}
-                className="group flex flex-col items-center gap-3 rounded-xl border border-[#F0F0F0] bg-white p-5 transition-all duration-200 hover:border-[#E8E8E8] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:-translate-y-1 cursor-pointer"
-                style={{ transitionDelay: `${i * 30}ms` }}
+                onClick={() =>
+                  navigate(`/category/${category.slug || category.name.toLowerCase()}`)
+                }
+                className="group flex flex-col items-start justify-between gap-5 rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] p-4 text-left transition-colors duration-150 hover:border-[#1F1B16]/35 hover:bg-[#EFE9DF]/65 cursor-pointer"
               >
-                <div
-                  className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F7F5F2] text-[#4A4A4A] transition-colors duration-200 group-hover:text-white"
-                  style={{
-                    "--hover-bg": category.color || "#1A1A1A",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = category.color || "#1A1A1A")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-                >
-                  <Icon size={22} strokeWidth={1.8} />
+                <div className="flex w-full items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A] transition-colors duration-150 group-hover:border-[#1F1B16] group-hover:bg-[#1F1B16] group-hover:text-[#FDFBF7]">
+                    <Icon size={18} strokeWidth={1.5} />
+                  </div>
+                  <ArrowUpRight
+                    size={14}
+                    strokeWidth={1.5}
+                    className="text-[#7B7266] opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                  />
                 </div>
 
-                <div className="text-center">
-                  <p className="text-[13px] font-bold text-[#4A4A4A] group-hover:text-[#1A1A1A]">
+                <div>
+                  <p className="text-[14px] font-medium text-[#1F1B16]">
                     {category.name}
                   </p>
-                  <span className="text-[10px] font-semibold text-gray-400 group-hover:text-[#E8503A]">
-                    Explore &rarr;
-                  </span>
+                  <p className="mt-0.5 text-[11px] text-[#7B7266]">
+                    {subtitle}
+                  </p>
                 </div>
               </button>
             );

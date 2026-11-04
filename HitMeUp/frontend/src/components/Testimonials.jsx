@@ -20,61 +20,69 @@ function Testimonials() {
     return () => observer.disconnect();
   }, []);
 
-  const testimonials = [
+  const notes = [
     {
-      text: "Found a 40% dinner deal two blocks from my apartment. The QR voucher made it seamless — just walked in and scanned.",
-      name: "Sarah M.",
-      role: "Customer",
-      image: "https://i.pravatar.cc/100?img=47",
+      text: "Claimed an afternoon coffee and pastry pass two streets away from my office on Duplication Road. Showed the QR code at the register and paid the discounted LKR rate directly.",
+      name: "Nadeesha K.",
+      role: "Shopper · Kollupitiya",
+      initials: "NK",
+      serial: "HMU-4108",
     },
     {
-      text: "Our Tuesday evenings used to be dead. HitMeUp's AI suggested a student deal that actually brought people in. Revenue is up 35%.",
-      name: "Rizwan K.",
-      role: "Restaurant Owner",
-      image: "https://i.pravatar.cc/100?img=68",
+      text: "Instead of discounting our full menu all week, we release 15 counter passes between 3 PM and 6 PM when tables are quiet. The POS lookup verifies each serial in seconds.",
+      name: "M. Rizwan",
+      role: "Cafe owner · Wellawatte",
+      initials: "MR",
+      serial: "HMU-7824",
     },
     {
-      text: "I check HitMeUp every morning before heading out. The location-based deals are genuinely useful — not just spam offers.",
-      name: "Emily R.",
-      role: "Customer",
-      image: "https://i.pravatar.cc/100?img=32",
+      text: "The map view makes it easy to see which bakeries and salons actually have passes left before walking over, rather than guessing if a promotion is still valid.",
+      name: "Dilshan S.",
+      role: "Shopper · Nugegoda",
+      initials: "DS",
+      serial: "HMU-5931",
     },
   ];
 
   return (
-    <section className="border-t border-[#F0F0F0] bg-white py-24">
+    <section className="border-b border-[#E6E0D6] bg-[#FDFBF7] py-20">
       <div
         ref={sectionRef}
         className="reveal mx-auto max-w-[1200px] px-6"
       >
-        <p className="text-[13px] font-semibold uppercase tracking-[0.15em] text-[#E8503A]">
-          What people say
+        <p className="text-[13px] font-medium text-[#7B7266]">
+          In the neighborhood
         </p>
 
-        <h2 className="mt-3 text-[32px] font-extrabold tracking-[-0.03em] text-[#1A1A1A]">
-          Real stories, real savings
+        <h2 className="mt-1.5 text-[28px] sm:text-[32px] font-medium tracking-[-0.025em] text-[#1F1B16]">
+          How shoppers and counters use HitMeUp
         </h2>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {testimonials.map((t) => (
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {notes.map((item) => (
             <div
-              key={t.name}
-              className="flex flex-col justify-between rounded-xl border border-[#F0F0F0] bg-[#FAFAFA] p-7"
+              key={item.name}
+              className="flex flex-col justify-between rounded-xl border border-[#E6E0D6] bg-[#F7F4EE] p-6"
             >
-              <p className="text-[15px] leading-[1.75] text-[#4A4A4A]">
-                "{t.text}"
-              </p>
+              <div>
+                <div className="flex items-center justify-between text-[11px] font-mono text-[#7B7266]">
+                  <span>Verified redemption</span>
+                  <span>{item.serial}</span>
+                </div>
+                <p className="mt-4 text-[14px] leading-[1.65] text-[#1F1B16]">
+                  &ldquo;{item.text}&rdquo;
+                </p>
+              </div>
 
-              <div className="mt-8 flex items-center gap-3 border-t border-[#F0F0F0] pt-5">
-                <img
-                  src={t.image}
-                  alt={t.name}
-                  className="h-10 w-10 rounded-full object-cover"
-                  loading="lazy"
-                />
+              <div className="mt-6 flex items-center gap-3 border-t border-[#E6E0D6] pt-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#E6E0D6] bg-[#FDFBF7] font-mono text-[12px] font-medium text-[#1F1B16]">
+                  {item.initials}
+                </div>
                 <div>
-                  <p className="text-[14px] font-semibold text-[#1A1A1A]">{t.name}</p>
-                  <p className="text-[12px] text-[#8A8A8A]">{t.role}</p>
+                  <p className="text-[13px] font-medium text-[#1F1B16]">
+                    {item.name}
+                  </p>
+                  <p className="text-[12px] text-[#7B7266]">{item.role}</p>
                 </div>
               </div>
             </div>

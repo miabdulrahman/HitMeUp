@@ -7,17 +7,12 @@ import AICommandCenter from "../../components/AICommandCenter";
 import SellerLocationMapPicker from "../../components/SellerLocationMapPicker";
 import {
   LogOut,
-  ArrowLeft,
-  ShieldCheck,
-  PlusCircle,
-  Tag,
+  Plus,
   Clock,
   Edit3,
   Trash2,
   Play,
   Pause,
-  Sparkles,
-  Percent,
   Search,
   X,
   AlertCircle,
@@ -32,7 +27,9 @@ import {
   LayoutGrid,
   List,
   Share2,
-  Compass
+  Compass,
+  BarChart3,
+  Wand2
 } from "lucide-react";
 
 const SellerDashboard = () => {
@@ -41,7 +38,6 @@ const SellerDashboard = () => {
   const { user: authUser, logout, loading: authLoading } = useAuth();
   const user = location.state?.user || authUser;
 
-  // Role Guard: Customers are redirected to customer dashboard, unauthenticated to login
   useEffect(() => {
     if (!authLoading) {
       if (!user) {
@@ -55,7 +51,6 @@ const SellerDashboard = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Business Profile State
   const [businessProfile, setBusinessProfile] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -70,16 +65,14 @@ const SellerDashboard = () => {
     longitude: "",
   });
 
-  // Deals State
   const [deals, setDeals] = useState([]);
   const [rawMetrics, setRawMetrics] = useState({ total: 0, active: 0, draft: 0, expired: 0, cancelled: 0 });
   const [loadingDeals, setLoadingDeals] = useState(true);
-  const [activeFilter, setActiveFilter] = useState("all"); // all, active, draft, expired
+  const [activeFilter, setActiveFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("grid"); // grid or table
+  const [viewMode, setViewMode] = useState("grid");
   const [lastSynced, setLastSynced] = useState(null);
 
-  // Deal Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
@@ -87,12 +80,10 @@ const SellerDashboard = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [copiedId, setCopiedId] = useState(null);
 
-  // Voucher POS Quick-Redeem State
   const [voucherCodeInput, setVoucherCodeInput] = useState("");
   const [redeemLoading, setRedeemLoading] = useState(false);
   const [redeemResult, setRedeemResult] = useState(null);
 
-  // Deal Form State
   const initialFormState = {
     title: "",
     description: "",
@@ -106,14 +97,12 @@ const SellerDashboard = () => {
   };
   const [formData, setFormData] = useState(initialFormState);
 
-  // AI Deal Generation State
   const [aiProduct, setAiProduct] = useState("");
   const [aiTargetCustomer, setAiTargetCustomer] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [showAiHelper, setShowAiHelper] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
 
-  // Fetch Business Profile
   const fetchBusinessProfile = async () => {
     try {
       const res = await businessApi.getMyBusiness();
@@ -137,7 +126,6 @@ const SellerDashboard = () => {
     }
   };
 
-  // Fetch Business Deals
   const fetchMyDeals = async () => {
     try {
       setLoadingDeals(true);
@@ -162,7 +150,6 @@ const SellerDashboard = () => {
     }
   }, [user]);
 
-  // Dynamic Calculated Metrics (Combines backend metrics with live deals data fallback)
   const metrics = useMemo(() => {
     const totalCount = deals.length;
     const activeCount = deals.filter((d) => d.status === "active").length;
@@ -195,7 +182,6 @@ const SellerDashboard = () => {
     setTimeout(() => setToastMessage(""), 4000);
   };
 
-  // Form Field Change & Dynamic Price Calculation
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -205,7 +191,6 @@ const SellerDashboard = () => {
     if (formError) setFormError("");
   };
 
-  // Calculated Price preview
   const originalPriceNum = Number(formData.originalPrice) || 0;
   const discountPctNum = Number(formData.discountPercentage) || 0;
   const calculatedDiscountedPrice = originalPriceNum > 0
@@ -213,7 +198,6 @@ const SellerDashboard = () => {
     : 0;
   const savingsAmount = originalPriceNum - calculatedDiscountedPrice;
 
-  // Open Create Modal
   const handleOpenCreate = () => {
     setIsProfileModalOpen(false);
     setEditingDeal(null);
@@ -228,7 +212,6 @@ const SellerDashboard = () => {
     setIsModalOpen(true);
   };
 
-  // Open Edit Modal
   const handleOpenEdit = (deal) => {
     setIsProfileModalOpen(false);
     setEditingDeal(deal);
@@ -248,20 +231,18 @@ const SellerDashboard = () => {
     setIsModalOpen(true);
   };
 
-  // Open Store Profile Modal / View
   const handleOpenStoreModal = () => {
     setIsModalOpen(false);
     setActiveSection("store");
     setIsProfileModalOpen(true);
   };
 
-  // AI Deal Generation Trigger
   const handleGenerateAIDeal = async () => {
     const productName = aiProduct.trim();
     const originalPrice = Number.parseFloat(formData.originalPrice);
 
     if (!productName) {
-      setFormError("Enter a product or service name for AI deal generation (e.g. 'Crispy Chicken Burger').");
+      setFormError("Enter a product or service name to draft copy (e.g. 'Crispy Chicken Burger').");
       return;
     }
 
@@ -285,7 +266,7 @@ const SellerDashboard = () => {
       const generated = response.deal || response.result || response;
 
       if (!generated || typeof generated !== "object") {
-        throw new Error("Invalid AI deal response format");
+        throw new Error("Invalid deal response format");
       }
 
       const updates = {};
@@ -307,7 +288,7 @@ const SellerDashboard = () => {
       }
 
       if (Object.keys(updates).length === 0) {
-        throw new Error("AI did not return readable deal fields. Try a different prompt.");
+        throw new Error("Could not generate readable deal fields. Try a more specific product name.");
       }
 
       setFormData((prev) => ({
@@ -315,16 +296,15 @@ const SellerDashboard = () => {
         ...updates,
       }));
 
-      showToast("NVIDIA AI suggestions applied! Review and launch your flash deal.");
+      showToast("Draft copy applied. Review and publish your deal.");
     } catch (error) {
-      console.error("AI deal generation Error:", error);
-      setFormError(error.message || "Failed to generate AI deal recommendations");
+      console.error("Deal generation error:", error);
+      setFormError(error.message || "Failed to generate deal suggestions");
     } finally {
       setAiLoading(false);
     }
   };
 
-  // Submit Deal (Create or Update)
   const handleSubmitDeal = async (e) => {
     e.preventDefault();
     setFormLoading(true);
@@ -342,7 +322,7 @@ const SellerDashboard = () => {
           status: formData.status,
           terms: formData.terms
         });
-        showToast("Flash deal updated successfully!");
+        showToast("Deal updated.");
       } else {
         await dealApi.createDeal({
           title: formData.title.trim(),
@@ -355,25 +335,24 @@ const SellerDashboard = () => {
           status: formData.status,
           terms: formData.terms
         });
-        showToast("Flash deal launched to marketplace!");
+        showToast("Deal published to the neighborhood feed.");
       }
 
       setIsModalOpen(false);
       fetchMyDeals();
     } catch (err) {
       console.error("Save deal error:", err);
-      setFormError(err.message || "Failed to save flash deal");
+      setFormError(err.message || "Failed to save deal");
     } finally {
       setFormLoading(false);
     }
   };
 
-  // Toggle Status (Publish / Pause)
   const handleToggleStatus = async (deal) => {
     const nextStatus = deal.status === "active" ? "draft" : "active";
     try {
       await dealApi.updateDealStatus(deal._id, nextStatus);
-      showToast(`Deal switched to ${nextStatus === "active" ? "Live" : "Paused"}!`);
+      showToast(`Deal switched to ${nextStatus === "active" ? "Live" : "Paused"}.`);
       fetchMyDeals();
     } catch (err) {
       console.error("Toggle status error:", err);
@@ -381,14 +360,13 @@ const SellerDashboard = () => {
     }
   };
 
-  // Delete Deal
   const handleDeleteDeal = async (dealId) => {
-    if (!window.confirm("Are you sure you want to permanently delete this flash promotion?")) {
+    if (!window.confirm("Permanently delete this deal?")) {
       return;
     }
     try {
       await dealApi.deleteDeal(dealId);
-      showToast("Deal permanently removed.");
+      showToast("Deal deleted.");
       fetchMyDeals();
     } catch (err) {
       console.error("Delete error:", err);
@@ -396,16 +374,14 @@ const SellerDashboard = () => {
     }
   };
 
-  // Copy Deal Link
   const handleCopyLink = (dealId) => {
     const url = `${window.location.origin}/deals?deal=${dealId}`;
     navigator.clipboard?.writeText(url);
     setCopiedId(dealId);
-    showToast("Direct deal link copied to clipboard!");
+    showToast("Deal link copied to clipboard.");
     setTimeout(() => setCopiedId(null), 2500);
   };
 
-  // Submit Store Profile Update
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
@@ -425,11 +401,10 @@ const SellerDashboard = () => {
         }
       };
 
-      // Include GeoJSON location if valid coordinates provided
       if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
         payload.location = {
           type: "Point",
-          coordinates: [lng, lat] // GeoJSON: [longitude, latitude]
+          coordinates: [lng, lat]
         };
       }
 
@@ -437,7 +412,7 @@ const SellerDashboard = () => {
       if (res?.business) {
         setBusinessProfile(res.business);
       }
-      showToast("Store profile & location updated successfully!");
+      showToast("Storefront details and map pin saved.");
       setIsProfileModalOpen(false);
       setActiveSection("home");
     } catch (err) {
@@ -446,7 +421,6 @@ const SellerDashboard = () => {
     }
   };
 
-  // Quick POS Voucher Redemption
   const handleRedeemVoucher = async (e) => {
     e.preventDefault();
     if (!voucherCodeInput.trim()) return;
@@ -462,24 +436,23 @@ const SellerDashboard = () => {
 
       setRedeemResult({
         success: true,
-        message: res.message || "Voucher successfully verified & redeemed!",
+        message: res.message || "Voucher verified and redeemed.",
         data: res.voucher || res.redemption || { code: voucherCodeInput.trim() },
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       });
       setVoucherCodeInput("");
-      showToast("Customer voucher redeemed & recorded!");
+      showToast("Customer voucher redeemed.");
       fetchMyDeals();
     } catch (err) {
       setRedeemResult({
         success: false,
-        message: err.message || "Invalid or already redeemed voucher code. Please check customer pass."
+        message: err.message || "Invalid or already redeemed voucher code. Check customer pass."
       });
     } finally {
       setRedeemLoading(false);
     }
   };
 
-  // Filtered Deals
   const filteredDeals = useMemo(() => {
     return deals.filter((deal) => {
       const matchesFilter =
@@ -496,1385 +469,1187 @@ const SellerDashboard = () => {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF8F5]">
+      <div className="flex min-h-screen items-center justify-center bg-[#FAFAFA]">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 rounded-full border-3 border-[#E8503A] border-t-transparent animate-spin" />
-          <p className="text-xs font-bold text-gray-600 tracking-wide uppercase">Connecting to Merchant Center...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#E4E4E7] border-t-[#D94832]"></div>
+          <p className="text-[13px] font-medium text-[#525252]">Loading merchant workspace...</p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAF8F5] px-4 text-center">
-        <p className="text-sm font-semibold text-gray-700">User session expired.</p>
-        <Link
-          to="/login"
-          className="mt-4 rounded-xl bg-[#E8503A] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#D43A26] transition-colors"
-        >
-          Sign In
-        </Link>
-      </div>
-    );
-  }
-
-  const storeName = businessProfile?.name || user?.businessName || `${user.name}'s Store`;
+  const storeDisplayName = businessProfile?.name || user?.businessName || `${user?.name || "Merchant"}'s Store`;
   const storeCategory = businessProfile?.category || "Restaurant";
   const storeCity = businessProfile?.address?.city || "Colombo";
+  const storeHours = businessProfile?.openingHours || "09:00 AM - 09:00 PM";
+  const hasMapCoordinates =
+    Array.isArray(businessProfile?.location?.coordinates) &&
+    businessProfile.location.coordinates.length === 2 &&
+    businessProfile.location.coordinates[0] !== 0;
 
-  const filterTabs = [
-    { key: "all", label: "All Deals", count: metrics.total },
-    { key: "active", label: "Live & Active", count: metrics.active },
-    { key: "draft", label: "Drafts", count: metrics.draft },
-    { key: "expired", label: "Expired", count: metrics.expired }
+  const navItems = [
+    { key: "home", label: "Overview", icon: LayoutGrid },
+    { key: "deals", label: "Store deals", icon: Layers, count: metrics.total },
+    { key: "redeem", label: "Counter POS", icon: Ticket },
+    { key: "ai", label: "Store insights", icon: BarChart3 },
+    { key: "store", label: "Storefront & map pin", icon: Store },
   ];
 
-  // Enrich user object with seller's business name/type for AICommandCenter
-  const enrichedSellerUser = {
-    ...user,
-    businessName: storeName,
-    businessType: storeCategory,
-  };
+  const sectionTitle = {
+    home: "Merchant overview",
+    deals: "Store deals",
+    redeem: "Counter POS verification",
+    ai: "Store insights",
+    store: "Storefront & map pin"
+  }[activeSection] || "Merchant overview";
 
   return (
-    <div className="dashboard-page dashboard-seller min-h-screen bg-[#F2F0EC] p-0 sm:p-6 lg:p-10 text-[#1A1A1A] pb-20 selection:bg-[#E8503A] selection:text-white">
+    <div className="seller-dashboard-shell active-sec-${activeSection} flex min-h-screen bg-[#FAFAFA] text-[#171717]" data-active-section={activeSection}>
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-2xl bg-[#111827] px-5 py-3 text-xs font-bold text-white shadow-2xl border border-white/10 animate-bounce">
-          <Sparkles size={16} className="text-[#FFB703]" />
+        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-lg border border-[#262626] bg-[#171717] px-4 py-3 text-[13px] font-medium text-white shadow-lg">
+          <CheckCircle2 className="h-4 w-4 text-[#16A34A]" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      <aside className="seller-rail hidden lg:flex flex-col items-center justify-between rounded-l-[30px] border-r border-[#E6E1DA] bg-[#F8F7F4] py-7 px-3">
-        <div className="flex w-full flex-col items-center gap-8">
-          <Link to="/" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8503A] text-lg font-black text-white shadow-lg shadow-[#E8503A]/20">
-            H<span className="text-[#FFD19A]">U</span>
-          </Link>
-          <nav className="flex w-full flex-col items-center gap-4">
-            <button
-              type="button"
-              onClick={() => { setActiveSection("home"); setIsModalOpen(false); setIsProfileModalOpen(false); }}
-              title="Overview"
-              className={`dashboard-rail-icon cursor-pointer ${activeSection === "home" ? "active" : ""}`}
-            >
-              <Store size={19} />
-              <span>Home</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setActiveSection("deals"); setIsModalOpen(false); setIsProfileModalOpen(false); }}
-              title="Deals"
-              className={`dashboard-rail-icon cursor-pointer ${activeSection === "deals" ? "active" : ""}`}
-            >
-              <PlusCircle size={19} />
-              <span>Deals</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setActiveSection("redeem"); setIsModalOpen(false); setIsProfileModalOpen(false); }}
-              title="Redeem voucher"
-              className={`dashboard-rail-icon cursor-pointer ${activeSection === "redeem" ? "active" : ""}`}
-            >
-              <Ticket size={19} />
-              <span>Redeem</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setActiveSection("ai"); setIsModalOpen(false); setIsProfileModalOpen(false); }}
-              title="AI Command Center"
-              className={`dashboard-rail-icon cursor-pointer ${activeSection === "ai" ? "active" : ""}`}
-            >
-              <Sparkles size={19} />
-              <span>AI</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleOpenStoreModal}
-              title="Store location & profile"
-              className={`dashboard-rail-icon cursor-pointer ${activeSection === "store" ? "active" : ""}`}
-            >
-              <MapPin size={19} />
-              <span>Store</span>
-            </button>
-          </nav>
-        </div>
-        <button type="button" onClick={handleLogout} title="Sign out" className="dashboard-rail-icon text-red-500 cursor-pointer">
-          <LogOut size={19} />
-          <span>Exit</span>
-        </button>
-      </aside>
-
-      {/* Top Navigation Bar */}
-      <header className="dashboard-seller-header sticky top-0 z-40 border-b border-[#E6E1DA] bg-white px-6 sm:px-10 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-2xl font-black tracking-tight text-[#1A1A1A]">
-            HitMe<span className="text-[#E8503A]">Up</span>
-          </Link>
-          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-[#E8503A]/10 px-3 py-0.5 text-[11px] font-extrabold text-[#E8503A] uppercase tracking-wider">
-            <span className="h-2 w-2 rounded-full bg-[#E8503A] animate-pulse" />
-            Merchant Center
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 sm:gap-4">
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#E8503A] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#D43A26] transition shadow-xs cursor-pointer"
-          >
-            <PlusCircle size={14} />
-            <span>New Flash Deal</span>
-          </button>
-
-          <Link
-            to="/deals"
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#E8503A] transition"
-          >
-            <ArrowLeft size={14} />
-            <span>Browse Marketplace</span>
-          </Link>
-
-          <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold text-gray-900 leading-tight">{user.name}</p>
-            <p className="text-[10px] uppercase font-semibold text-emerald-600 tracking-wider">
-              {storeName} • Merchant
-            </p>
+      {/* Left Sidebar (240px Desktop App Shell) */}
+      <aside className="hidden w-60 shrink-0 flex-col justify-between border-r border-[#E4E4E7] bg-[#F4F4F5] lg:flex">
+        <div>
+          {/* Brand Header */}
+          <div className="flex h-[60px] items-center justify-between border-b border-[#E4E4E7] px-4">
+            <Link to="/" className="flex items-center gap-2.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#171717] font-mono text-[11px] font-medium text-white">
+                HMU
+              </span>
+              <span className="text-[14px] font-semibold tracking-tight text-[#171717]">
+                HitMeUp
+              </span>
+            </Link>
+            <span className="rounded border border-[#D4D4D8] bg-white px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#525252]">
+              Seller
+            </span>
           </div>
 
+          {/* Primary Action */}
+          <div className="p-3 pb-1">
+            <button
+              type="button"
+              onClick={handleOpenCreate}
+              className="flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-[#D94832] px-3 text-[13px] font-medium text-white transition-colors hover:bg-[#C23B26]"
+            >
+              <Plus className="h-4 w-4" strokeWidth={1.75} />
+              New deal
+            </button>
+          </div>
+
+          {/* Aligned 36px Navigation Rows */}
+          <nav className="p-3 space-y-0.5" aria-label="Merchant workspace">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.key;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => {
+                    if (item.key === "store") {
+                      handleOpenStoreModal();
+                    } else {
+                      setIsProfileModalOpen(false);
+                      setActiveSection(item.key);
+                    }
+                  }}
+                  className={`flex h-9 w-full items-center justify-between rounded-md px-2.5 text-[13px] font-medium transition-colors ${
+                    isActive
+                      ? "bg-[#E4E4E7]/80 text-[#171717]"
+                      : "text-[#525252] hover:bg-[#E4E4E7]/40 hover:text-[#171717]"
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Icon className="h-4 w-4 shrink-0 text-[#525252]" strokeWidth={1.5} />
+                    <span>{item.label}</span>
+                  </span>
+                  {item.count !== undefined && (
+                    <span className="font-mono text-[11px] tabular-nums text-[#737373]">
+                      {item.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            <div className="my-3 border-t border-[#E4E4E7]" />
+
+            <Link
+              to="/deals"
+              className="flex h-9 w-full items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium text-[#525252] transition-colors hover:bg-[#E4E4E7]/40 hover:text-[#171717]"
+            >
+              <Compass className="h-4 w-4 shrink-0 text-[#525252]" strokeWidth={1.5} />
+              <span>Public deal feed</span>
+            </Link>
+          </nav>
+        </div>
+
+        {/* Store Account Footer */}
+        <div className="border-t border-[#E4E4E7] p-3">
+          <div className="mb-2 flex items-center gap-2.5 px-2 py-1.5">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#171717] font-mono text-[11px] font-medium text-white">
+              {storeDisplayName.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-medium text-[#171717]">
+                {storeDisplayName}
+              </p>
+              <p className="truncate text-[11px] text-[#737373]">
+                {storeCategory} · {storeCity}
+              </p>
+            </div>
+          </div>
           <button
+            type="button"
             onClick={handleLogout}
-            className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50/50 transition-colors cursor-pointer shadow-2xs"
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2.5 text-[12px] font-medium text-[#525252] transition-colors hover:bg-[#E4E4E7]/50 hover:text-[#DC2626]"
           >
-            <LogOut size={14} />
-            <span className="hidden sm:inline">Sign Out</span>
+            <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} />
+            Sign out
           </button>
         </div>
-      </header>
+      </aside>
 
       {/* Main Content Area */}
-      <main className={`dashboard-seller-main dashboard-view-${activeSection} mx-auto max-w-7xl bg-white p-5 sm:p-10 space-y-8`}>
-        {/* Mobile & Tablet Horizontal Navigation Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto border-b border-gray-200 pb-3 lg:hidden">
-          {[
-            { key: "home", label: "Overview" },
-            { key: "deals", label: `Deals (${metrics.total})` },
-            { key: "redeem", label: "Redeem Voucher" },
-            { key: "ai", label: "AI Insights" },
-            { key: "store", label: "Store & Map Pin" },
-          ].map((tab) => (
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Single Top Header (60px) */}
+        <header className="sticky top-0 z-30 flex h-[60px] items-center justify-between border-b border-[#E4E4E7] bg-white px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex h-7 w-7 items-center justify-center rounded-md bg-[#171717] font-mono text-[11px] font-medium text-white lg:hidden">
+              HMU
+            </Link>
+            <h1 className="text-[15px] font-semibold text-[#171717]">
+              {sectionTitle}
+            </h1>
+            {lastSynced && (
+              <span className="hidden font-mono text-[11px] tabular-nums text-[#737373] md:inline-block">
+                Synced {lastSynced.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Search Input */}
+            <div className="relative hidden w-56 sm:block">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#737373]" strokeWidth={1.5} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (activeSection !== "deals" && activeSection !== "home") {
+                    setActiveSection("deals");
+                  }
+                }}
+                placeholder="Filter store deals..."
+                className="h-8 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] pl-8 pr-7 text-[12px] text-[#171717] placeholder-[#737373] focus:border-[#171717] focus:bg-white focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#171717]"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
             <button
-              key={tab.key}
+              type="button"
+              onClick={fetchMyDeals}
+              disabled={loadingDeals}
+              title="Refresh store deals"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white px-2.5 text-[12px] font-medium text-[#525252] transition-colors hover:bg-[#F4F4F5] hover:text-[#171717]"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loadingDeals ? "animate-spin text-[#D94832]" : ""}`} strokeWidth={1.5} />
+              <span className="hidden sm:inline">Sync</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleOpenCreate}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[#D94832] px-3 text-[12px] font-medium text-white transition-colors hover:bg-[#C23B26]"
+            >
+              <Plus className="h-3.5 w-3.5" strokeWidth={1.75} />
+              New deal
+            </button>
+          </div>
+        </header>
+
+        {/* Mobile Tab Strip */}
+        <div className="flex items-center gap-1 overflow-x-auto border-b border-[#E4E4E7] bg-[#F4F4F5] px-4 py-2 lg:hidden">
+          {navItems.map((item) => (
+            <button
+              key={item.key}
               type="button"
               onClick={() => {
-                if (tab.key === "store") {
+                if (item.key === "store") {
                   handleOpenStoreModal();
                 } else {
-                  setActiveSection(tab.key);
                   setIsProfileModalOpen(false);
+                  setActiveSection(item.key);
                 }
               }}
-              className={`whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
-                activeSection === tab.key
-                  ? "bg-[#E8503A] text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              className={`shrink-0 rounded-md px-3 py-1.5 text-[12px] font-medium ${
+                activeSection === item.key
+                  ? "bg-[#171717] text-white"
+                  : "text-[#525252]"
               }`}
             >
-              {tab.label}
+              {item.label}
             </button>
           ))}
         </div>
 
-        {activeSection !== "ai" && activeSection !== "store" && (
-          <>
-            <div className="dashboard-section-home dashboard-commerce-nav">
-              <div className="dashboard-commerce-brand">
+        {/* Workspace Canvas */}
+        <main className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6">
+          {/* Store Identity Bar (Shown on Overview & Store) */}
+          {(activeSection === "home" || activeSection === "store") && (
+            <div className="mb-6 flex flex-col justify-between gap-4 rounded-xl border border-[#E4E4E7] bg-white p-5 sm:flex-row sm:items-center">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded border border-[#E4E4E7] bg-[#F4F4F5] px-2 py-0.5 text-[11px] font-medium text-[#525252]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" />
+                    Verified merchant
+                  </span>
+                  <span className="rounded border border-[#E4E4E7] bg-[#FAFAFA] px-2 py-0.5 text-[11px] font-medium text-[#525252]">
+                    {storeCategory}
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 font-mono text-[11px] ${
+                      hasMapCoordinates
+                        ? "border-[#BBF7D0] bg-[#F0FDF4] text-[#16A34A]"
+                        : "border-[#FDE68A] bg-[#FFFBEB] text-[#D97706]"
+                    }`}
+                  >
+                    <MapPin className="h-3 w-3" strokeWidth={1.5} />
+                    {hasMapCoordinates
+                      ? `Pinned ${Number(businessProfile.location.coordinates[1]).toFixed(3)}°N, ${Number(businessProfile.location.coordinates[0]).toFixed(3)}°E`
+                      : "Map pin not set"}
+                  </span>
+                </div>
+
+                <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-[#171717]">
+                  {storeDisplayName}
+                </h2>
+
+                <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#525252]">
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 text-[#737373]" strokeWidth={1.5} />
+                    {businessProfile?.address?.street ? `${businessProfile.address.street}, ${storeCity}` : storeCity}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5 text-[#737373]" strokeWidth={1.5} />
+                    {storeHours}
+                  </span>
+                  {(businessProfile?.phone || user?.phone) && (
+                    <span className="inline-flex items-center gap-1 font-mono text-[11px]">
+                      <Phone className="h-3.5 w-3.5 text-[#737373]" strokeWidth={1.5} />
+                      {businessProfile?.phone || user?.phone}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    const order = ["home", "deals", "redeem", "ai", "store"];
-                    const next = order[(order.indexOf(activeSection) + 1) % order.length];
-                    if (next === "store") {
-                      handleOpenStoreModal();
-                    } else {
-                      setActiveSection(next);
-                      setIsProfileModalOpen(false);
-                    }
-                  }}
-                  className="dashboard-menu-button cursor-pointer"
-                  aria-label="Switch dashboard section"
-                  title="Switch section"
+                  onClick={handleOpenStoreModal}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#D4D4D8] bg-white px-3.5 text-[13px] font-medium text-[#171717] transition-colors hover:bg-[#F4F4F5]"
                 >
-                  <span />
-                  <span />
-                  <span />
+                  <MapPin className="h-3.5 w-3.5 text-[#D94832]" strokeWidth={1.5} />
+                  {hasMapCoordinates ? "Edit store & map pin" : "Pin store on map"}
                 </button>
-                <span className="text-xl font-black tracking-tight text-[#1A1A1A]">Merchant workspace</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleOpenStoreModal}
-                className="dashboard-location-button cursor-pointer"
-                title="Edit Store Profile & Map Location"
-              >
-                <Store size={16} className="text-[#E8503A]" />
-                <span className="text-left">
-                  <span className="block text-[9px] font-bold uppercase tracking-wider text-gray-400">Store status</span>
-                  <span className="block text-xs font-extrabold text-gray-900">
-                    {storeName} • {storeCity}
-                  </span>
-                </span>
-              </button>
-              <div className="dashboard-search">
-                <Search size={16} className="text-gray-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search your deals, categories, and activity..."
-                  aria-label="Search your deals and activity"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="text-gray-400 hover:text-gray-700 cursor-pointer"
-                    aria-label="Clear search"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
               </div>
             </div>
+          )}
 
-            {/* Merchant Store Hero Banner Card */}
-            <div className="dashboard-section-home relative rounded-[30px] border border-[#E6E1DA] bg-white p-7 sm:p-10 shadow-[0_18px_48px_rgba(53,42,33,0.07)] overflow-hidden">
-              <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
-                <div className="flex items-start gap-4 sm:gap-5">
-                  <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF4A2F] via-[#E8503A] to-[#D43A26] text-white shadow-lg shadow-[#E8503A]/25 ring-4 ring-[#E8503A]/10">
-                    <Store size={32} />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                        <ShieldCheck size={13} className="text-emerald-600" />
-                        Verified Store
-                      </span>
-                      <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-bold text-gray-600 uppercase tracking-wide">
-                        {storeCategory}
-                      </span>
-                      {lastSynced && (
-                        <span className="text-[10px] text-gray-400 font-medium">
-                          Synced {lastSynced.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                      )}
-                    </div>
-
-                    <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-none">
-                      {storeName}
-                    </h1>
-
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 pt-0.5">
-                      <span className="flex items-center gap-1 font-medium">
-                        <MapPin size={13} className="text-[#E8503A]" />
-                        {storeCity}
-                      </span>
-                      <span className="flex items-center gap-1 font-medium">
-                        <Phone size={13} className="text-gray-400" />
-                        {businessProfile?.phone || user.phone || "+94 77 123 4567"}
-                      </span>
-                      <span className="flex items-center gap-1 font-medium">
-                        <Clock size={13} className="text-gray-400" />
-                        {businessProfile?.openingHours || "09:00 AM - 09:00 PM"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Header Actions */}
-                <div className="flex flex-wrap items-center gap-2.5 lg:justify-end">
-                  <button
-                    onClick={() => {
-                      fetchBusinessProfile();
-                      fetchMyDeals();
-                      showToast("Data refreshed from database!");
-                    }}
-                    disabled={loadingDeals}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
-                    title="Sync latest database deals"
-                  >
-                    <RefreshCw size={14} className={loadingDeals ? "animate-spin text-[#E8503A]" : "text-gray-500"} />
-                    <span>{loadingDeals ? "Syncing..." : "Sync"}</span>
-                  </button>
-
-                  <button
-                    onClick={handleOpenStoreModal}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-2xs cursor-pointer"
-                  >
-                    <Edit3 size={14} />
-                    <span>Edit Profile</span>
-                  </button>
-
-                  <button
-                    onClick={handleOpenStoreModal}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-4 py-3 text-xs font-bold text-blue-700 hover:bg-blue-100 transition-all shadow-2xs cursor-pointer"
-                    title="Pin your store location on interactive map"
-                  >
-                    <MapPin size={14} className="text-[#E8503A]" />
-                    <span>Pin Store on Map</span>
-                  </button>
-
-                  <button
-                    onClick={handleOpenCreate}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#E8503A] px-4 py-3 text-xs font-bold text-white hover:bg-[#D43A26] transition-all shadow-sm cursor-pointer"
-                  >
-                    <PlusCircle size={15} />
-                    <span>Create Flash Deal</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Real-Time Metrics Overview Cards */}
-            <div className="dashboard-section-home grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Card 1: Total Deals */}
-              <div
-                onClick={() => { setActiveFilter("all"); setActiveSection("deals"); }}
-                className="rounded-[24px] border border-[#E6E1DA] bg-white p-5 shadow-[0_10px_30px_rgba(53,42,33,0.04)] hover:border-gray-300 transition-all cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Total Deals</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-100 text-gray-700">
-                    <Layers size={16} />
-                  </span>
-                </div>
-                <p className="text-3xl font-black text-gray-900">{metrics.total}</p>
-                <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
-                  <span>All flash promotions</span>
+          {/* Numbers-Only Stat Strip (Shown on Overview & Deals) */}
+          {(activeSection === "home" || activeSection === "deals") && (
+            <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <div className="rounded-xl border border-[#E4E4E7] bg-white p-4">
+                <p className="text-[12px] font-medium text-[#525252]">Total deals</p>
+                <p className="mt-1.5 font-mono text-[28px] font-semibold leading-none tabular-nums text-[#171717]">
+                  {metrics.total}
+                </p>
+                <p className="mt-1.5 text-[12px] text-[#737373]">
+                  Avg. {metrics.avgDiscountRate}% off
                 </p>
               </div>
 
-              {/* Card 2: Active Deals */}
-              <div
-                onClick={() => { setActiveFilter("active"); setActiveSection("deals"); }}
-                className="rounded-[24px] border border-emerald-200/70 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-[0_10px_30px_rgba(27,122,74,0.06)] hover:border-emerald-300 transition-all cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Active Deals</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-xs">
-                    <Tag size={16} />
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-black text-emerald-950">{metrics.active}</p>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" /> Live Now
-                  </span>
-                </div>
-                <p className="text-[11px] text-emerald-700/80 mt-1">Live on shopper marketplace</p>
+              <div className="rounded-xl border border-[#E4E4E7] bg-white p-4">
+                <p className="text-[12px] font-medium text-[#525252]">Live in feed</p>
+                <p className="mt-1.5 font-mono text-[28px] font-semibold leading-none tabular-nums text-[#16A34A]">
+                  {metrics.active}
+                </p>
+                <p className="mt-1.5 text-[12px] text-[#737373]">
+                  Claimable right now
+                </p>
               </div>
 
-              {/* Card 3: Draft Deals */}
-              <div
-                onClick={() => { setActiveFilter("draft"); setActiveSection("deals"); }}
-                className="rounded-[24px] border border-amber-200/70 bg-gradient-to-br from-amber-50/80 to-white p-5 shadow-[0_10px_30px_rgba(193,122,26,0.06)] hover:border-amber-300 transition-all cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Draft Deals</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs">
-                    <Clock size={16} />
-                  </span>
-                </div>
-                <p className="text-3xl font-black text-amber-950">{metrics.draft}</p>
-                <p className="text-[11px] text-amber-700/80 mt-1">Ready for scheduled publish</p>
+              <div className="rounded-xl border border-[#E4E4E7] bg-white p-4">
+                <p className="text-[12px] font-medium text-[#525252]">Paused / drafts</p>
+                <p className="mt-1.5 font-mono text-[28px] font-semibold leading-none tabular-nums text-[#D97706]">
+                  {metrics.draft}
+                </p>
+                <p className="mt-1.5 text-[12px] text-[#737373]">
+                  {metrics.expired} expired
+                </p>
               </div>
 
-              {/* Card 4: Voucher Pool & AI Insights Shortcut */}
-              <div
-                onClick={() => setActiveSection("ai")}
-                className="rounded-[24px] border border-[#E6E1DA] bg-white p-5 shadow-[0_10px_30px_rgba(53,42,33,0.04)] hover:border-[#E8503A]/50 transition-all cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Vouchers Pool</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-50 text-[#E8503A]">
-                    <Sparkles size={16} />
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-black text-gray-900">{metrics.totalVouchersPool}</p>
-                  <span className="text-xs font-bold text-[#E8503A]">
-                    ~{metrics.avgDiscountRate}% avg off
-                  </span>
-                </div>
-                <p className="text-[11px] text-gray-400 mt-1">Click to view Store AI Insights</p>
+              <div className="rounded-xl border border-[#E4E4E7] bg-white p-4">
+                <p className="text-[12px] font-medium text-[#525252]">Open voucher pool</p>
+                <p className="mt-1.5 font-mono text-[28px] font-semibold leading-none tabular-nums text-[#171717]">
+                  {metrics.totalVouchersPool}
+                </p>
+                <p className="mt-1.5 text-[12px] text-[#737373]">
+                  Remaining across deals
+                </p>
               </div>
             </div>
+          )}
 
-            {/* Storefront Discovery Pin Status Card */}
-            <div className="dashboard-section-home rounded-2xl border border-gray-200/80 bg-white p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8503A]/10 text-[#E8503A] shrink-0">
-                  <MapPin size={22} />
-                </div>
+          {/* Counter POS Voucher Redemption Card (Shown on Overview & POS) */}
+          {(activeSection === "home" || activeSection === "redeem") && (
+            <div className="seller-redeem-card mb-6 rounded-xl border border-[#E4E4E7] bg-white p-5">
+              <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
                 <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-extrabold text-gray-900">
-                      Storefront Discovery Pin
+                  <div className="flex items-center gap-2">
+                    <Ticket className="h-4 w-4 text-[#D94832]" strokeWidth={1.5} />
+                    <h3 className="text-[15px] font-semibold text-[#171717]">
+                      Counter voucher verification
                     </h3>
-                    {profileForm.latitude && profileForm.longitude ? (
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                        <CheckCircle2 size={11} className="text-emerald-600" />
-                        Pinned ({parseFloat(profileForm.latitude).toFixed(3)}°N, {parseFloat(profileForm.longitude).toFixed(3)}°E)
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
-                        Pin Not Set
-                      </span>
-                    )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {profileForm.latitude && profileForm.longitude
-                      ? `Your store pin is live for buyers on the Discovery Map in ${storeCity}. Click below to adjust or fine-tune.`
-                      : "Pin your storefront on the interactive map so buyers can discover and get directions to your shop."}
+                  <p className="mt-1 text-[13px] text-[#525252]">
+                    Enter the shopper&apos;s voucher code (<span className="font-mono text-[12px] text-[#171717]">HMU-XXXX-XXXXXX</span>) at checkout to verify and mark it redeemed.
                   </p>
                 </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleOpenStoreModal}
-                className="shrink-0 flex items-center gap-1.5 rounded-xl bg-gray-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-[#E8503A] transition-all cursor-pointer shadow-xs"
-              >
-                <Compass size={14} className="text-[#FFB703]" />
-                <span>{profileForm.latitude && profileForm.longitude ? "Adjust Pin on Map" : "Pin Store on Map"}</span>
-              </button>
-            </div>
 
-            {/* POS Customer Voucher Verification & Quick Redemption */}
-            <div className="dashboard-section-redeem seller-redeem-card rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-7 shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-[#E8503A] border border-orange-100">
-                    <Ticket size={22} />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-extrabold text-gray-900">
-                      Customer Voucher Verification & Redemption
-                    </h2>
-                    <p className="text-xs text-gray-500">
-                      Customer presenting a digital voucher or QR pass? Enter their unique voucher code below to redeem.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <form onSubmit={handleRedeemVoucher} className="mt-4 flex flex-col sm:flex-row items-center gap-3">
-                <div className="relative flex-1 w-full">
-                  <Ticket size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <form onSubmit={handleRedeemVoucher} className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
                   <input
                     type="text"
-                    placeholder="e.g. HMU-XXXX-XXXXXX OR ENTER VOUCHER CODE"
                     value={voucherCodeInput}
                     onChange={(e) => setVoucherCodeInput(e.target.value.toUpperCase())}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/60 py-3 pl-10 pr-4 text-xs font-bold text-gray-900 placeholder:text-gray-400 uppercase tracking-wider focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                    placeholder="HMU-8420-CMB"
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-[#FAFAFA] px-3.5 font-mono text-[13px] uppercase tracking-wider text-[#171717] placeholder-[#A3A3A3] focus:border-[#171717] focus:bg-white focus:outline-none sm:w-64"
                   />
-                </div>
-                <button
-                  type="submit"
-                  disabled={redeemLoading || !voucherCodeInput.trim()}
-                  className="w-full sm:w-auto h-11 rounded-xl bg-[#111827] px-6 text-xs font-bold text-white shadow-xs hover:bg-[#E8503A] transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shrink-0"
-                >
-                  {redeemLoading && (
-                    <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  )}
-                  <span>Verify & Redeem Voucher</span>
-                </button>
-              </form>
+                  <button
+                    type="submit"
+                    disabled={redeemLoading || !voucherCodeInput.trim()}
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#171717] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
+                  >
+                    {redeemLoading ? "Verifying..." : "Verify & redeem"}
+                  </button>
+                </form>
+              </div>
 
-              {/* Redemption Feedback Banner */}
               {redeemResult && (
                 <div
-                  className={`mt-4 rounded-2xl p-4 text-xs font-medium flex items-start gap-3 animate-fadeIn ${
+                  className={`mt-4 flex items-center justify-between rounded-lg border px-4 py-3 text-[13px] ${
                     redeemResult.success
-                      ? "bg-emerald-50 border border-emerald-200 text-emerald-900"
-                      : "bg-red-50 border border-red-200 text-red-800"
+                      ? "border-[#BBF7D0] bg-[#F0FDF4] text-[#16A34A]"
+                      : "border-[#FECACA] bg-[#FEF2F2] text-[#DC2626]"
                   }`}
                 >
-                  {redeemResult.success ? (
-                    <CheckCircle2 size={20} className="text-emerald-600 shrink-0 mt-0.5" />
-                  ) : (
-                    <AlertCircle size={20} className="text-red-600 shrink-0 mt-0.5" />
-                  )}
-                  <div className="flex-1 space-y-1">
-                    <p className="font-extrabold text-sm">{redeemResult.message}</p>
-                    {redeemResult.success && (
-                      <p className="text-[11px] text-emerald-700">
-                        Voucher marked as <strong>REDEEMED</strong> at {redeemResult.timestamp}. Customer order fulfilled.
-                      </p>
+                  <div className="flex items-center gap-2">
+                    {redeemResult.success ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                    )}
+                    <span className="font-medium">{redeemResult.message}</span>
+                    {redeemResult.timestamp && (
+                      <span className="font-mono text-[11px] opacity-80">
+                        ({redeemResult.timestamp})
+                      </span>
                     )}
                   </div>
                   <button
+                    type="button"
                     onClick={() => setRedeemResult(null)}
-                    className="text-gray-400 hover:text-gray-600 cursor-pointer p-1"
+                    className="text-xs underline opacity-75 hover:opacity-100"
                   >
-                    <X size={16} />
+                    Dismiss
                   </button>
                 </div>
               )}
             </div>
+          )}
 
-            {/* Deals Management Section */}
-            <div className="dashboard-section-deals rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
-              {/* Section Header & Filters */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-black text-gray-900">Your Flash Promotions</h2>
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-extrabold text-gray-700">
-                      {filteredDeals.length}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-0.5">Filter, pause, edit, and monitor your active deals</p>
-                </div>
+          {/* Store Insights Section (Shown on AI tab) */}
+          {activeSection === "ai" && (
+            <div className="seller-ai-section mb-6">
+              <AICommandCenter
+                mode="seller"
+                deals={deals}
+                businessProfile={businessProfile}
+                metrics={metrics}
+                onSelectDeal={(deal) => handleOpenEdit(deal)}
+              />
+            </div>
+          )}
 
-                <button
-                  type="button"
-                  onClick={handleOpenCreate}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#E8503A] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#D43A26] transition-colors cursor-pointer"
-                >
-                  <PlusCircle size={15} />
-                  <span>Create Flash Deal</span>
-                </button>
-
-                {/* Filter Pills, Search & View Mode Switcher */}
-                <div className="flex flex-wrap items-center gap-3">
-                  {/* Filter Tabs with Dynamic Counters */}
-                  <div className="flex items-center bg-gray-100/80 p-1 rounded-xl">
-                    {filterTabs.map((tab) => (
-                      <button
-                        key={tab.key}
-                        onClick={() => setActiveFilter(tab.key)}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                          activeFilter === tab.key
-                            ? "bg-white text-gray-900 shadow-2xs"
-                            : "text-gray-500 hover:text-gray-900"
+          {/* Store Deals Ledger (Shown on Overview & Store Deals) */}
+          {(activeSection === "home" || activeSection === "deals") && (
+            <div className="seller-deals-section">
+              {/* Filter & View Bar */}
+              <div className="mb-4 flex flex-col justify-between gap-3 rounded-xl border border-[#E4E4E7] bg-white p-3 sm:flex-row sm:items-center">
+                <div className="flex flex-wrap items-center gap-1">
+                  {[
+                    { key: "all", label: "All deals", count: deals.length },
+                    { key: "active", label: "Live", count: deals.filter((d) => d.status === "active").length },
+                    { key: "draft", label: "Paused", count: deals.filter((d) => d.status === "draft").length },
+                    { key: "expired", label: "Expired", count: deals.filter((d) => d.status === "expired").length },
+                  ].map((tab) => (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => setActiveFilter(tab.key)}
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[12px] font-medium transition-colors ${
+                        activeFilter === tab.key
+                          ? "bg-[#171717] text-white"
+                          : "text-[#525252] hover:bg-[#F4F4F5] hover:text-[#171717]"
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      <span
+                        className={`font-mono text-[11px] tabular-nums ${
+                          activeFilter === tab.key ? "text-[#A3A3A3]" : "text-[#737373]"
                         }`}
                       >
-                        <span>{tab.label}</span>
-                        <span
-                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
-                            activeFilter === tab.key
-                              ? "bg-[#E8503A]/10 text-[#E8503A]"
-                              : "bg-gray-200/80 text-gray-600"
-                          }`}
-                        >
-                          {tab.count}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                        {tab.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
 
-                  {/* View Mode Toggle */}
-                  <div className="flex items-center bg-gray-100/80 p-1 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex rounded-md border border-[#E4E4E7] bg-[#F4F4F5] p-0.5">
                     <button
+                      type="button"
                       onClick={() => setViewMode("grid")}
-                      className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                        viewMode === "grid" ? "bg-white text-[#E8503A] shadow-2xs" : "text-gray-400 hover:text-gray-600"
+                      className={`inline-flex h-7 items-center gap-1 rounded px-2.5 text-[12px] font-medium transition-colors ${
+                        viewMode === "grid"
+                          ? "bg-white text-[#171717] shadow-xs"
+                          : "text-[#525252] hover:text-[#171717]"
                       }`}
-                      title="Grid View"
                     >
-                      <LayoutGrid size={15} />
+                      <LayoutGrid className="h-3.5 w-3.5" strokeWidth={1.5} />
+                      Cards
                     </button>
                     <button
+                      type="button"
                       onClick={() => setViewMode("table")}
-                      className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                        viewMode === "table" ? "bg-white text-[#E8503A] shadow-2xs" : "text-gray-400 hover:text-gray-600"
+                      className={`inline-flex h-7 items-center gap-1 rounded px-2.5 text-[12px] font-medium transition-colors ${
+                        viewMode === "table"
+                          ? "bg-white text-[#171717] shadow-xs"
+                          : "text-[#525252] hover:text-[#171717]"
                       }`}
-                      title="Table View"
                     >
-                      <List size={15} />
+                      <List className="h-3.5 w-3.5" strokeWidth={1.5} />
+                      Table
                     </button>
-                  </div>
-
-                  {/* Search bar */}
-                  <div className="relative flex items-center">
-                    <Search size={14} className="absolute left-3 text-gray-400 pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="Search deals..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="rounded-xl border border-gray-200 bg-gray-50/60 py-1.5 pl-8 pr-7 text-xs text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery("")}
-                        className="absolute right-2 text-gray-400 hover:text-gray-600 cursor-pointer"
-                      >
-                        <X size={13} />
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Deals Grid / List */}
+              {/* Deals Content */}
               {loadingDeals ? (
-                <div className="py-20 text-center text-xs text-gray-500 flex flex-col items-center justify-center gap-3">
-                  <span className="h-7 w-7 rounded-full border-2 border-[#E8503A] border-t-transparent animate-spin" />
-                  <span className="font-semibold">Retrieving your deals from database...</span>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-64 animate-pulse rounded-xl border border-[#E4E4E7] bg-white p-5">
+                      <div className="mb-4 h-4 w-24 rounded bg-[#F4F4F5]" />
+                      <div className="mb-2 h-5 w-3/4 rounded bg-[#F4F4F5]" />
+                      <div className="mb-6 h-4 w-full rounded bg-[#F4F4F5]" />
+                      <div className="h-16 rounded-lg bg-[#F4F4F5]" />
+                    </div>
+                  ))}
                 </div>
               ) : filteredDeals.length === 0 ? (
-                <div className="py-16 text-center space-y-3">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-[#E8503A]">
-                    <Tag size={26} />
+                <div className="rounded-xl border border-[#E4E4E7] bg-white p-12 text-center">
+                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] text-[#525252]">
+                    <Layers className="h-5 w-5" strokeWidth={1.5} />
                   </div>
-                  <h3 className="text-base font-bold text-gray-900">No flash deals found</h3>
-                  <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                    {searchQuery || activeFilter !== "all"
-                      ? "Try adjusting your search query or status filter."
-                      : "Launch your first flash deal now to attract customers during quiet store hours!"}
+                  <h3 className="text-[15px] font-semibold text-[#171717]">
+                    {searchQuery
+                      ? `No deals matching "${searchQuery}"`
+                      : activeFilter === "all"
+                      ? "No store deals published yet"
+                      : `No ${activeFilter} deals`}
+                  </h3>
+                  <p className="mx-auto mt-1 max-w-md text-[13px] text-[#525252]">
+                    Create a time-limited neighborhood offer with a fixed voucher cap to start receiving walk-in redemptions.
                   </p>
-                  <button
-                    onClick={handleOpenCreate}
-                    className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-[#E8503A] px-4 py-2 text-xs font-bold text-white hover:bg-[#D43A26] transition-colors cursor-pointer shadow-xs"
-                  >
-                    <PlusCircle size={15} />
-                    <span>Create Flash Deal</span>
-                  </button>
+                  <div className="mt-5 flex justify-center gap-2">
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="inline-flex h-9 items-center rounded-lg border border-[#D4D4D8] bg-white px-4 text-[13px] font-medium text-[#171717] hover:bg-[#F4F4F5]"
+                      >
+                        Clear search
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleOpenCreate}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#D94832] px-4 text-[13px] font-medium text-white hover:bg-[#C23B26]"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create first deal
+                    </button>
+                  </div>
                 </div>
-              ) : viewMode === "grid" ? (
-                /* Cards Grid View */
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              ) : viewMode === "table" ? (
+                /* Compact Ledger Table */
+                <div className="overflow-hidden rounded-xl border border-[#E4E4E7] bg-white">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left">
+                      <thead>
+                        <tr className="border-b border-[#E4E4E7] bg-[#FAFAFA] text-[11px] font-medium text-[#525252]">
+                          <th className=" px-4 py-3">Deal</th>
+                          <th className="px-4 py-3">Category</th>
+                          <th className="px-4 py-3">Price</th>
+                          <th className="px-4 py-3">Discount</th>
+                          <th className="px-4 py-3">Vouchers left</th>
+                          <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E4E4E7] text-[13px]">
+                        {filteredDeals.map((deal) => {
+                          const isLive = deal.status === "active";
+                          const orig = Number(deal.originalPrice) || 0;
+                          const disc =
+                            Number(deal.discountedPrice) ||
+                            Math.round(orig * (1 - (Number(deal.discountPercentage) || 0) / 100));
+                          return (
+                            <tr key={deal._id} className="hover:bg-[#FAFAFA]">
+                              <td className="px-4 py-3">
+                                <p className="font-medium text-[#171717]">{deal.title}</p>
+                                <p className="line-clamp-1 text-[12px] text-[#737373]">{deal.description}</p>
+                              </td>
+                              <td className="px-4 py-3 text-[12px] text-[#525252]">{deal.category}</td>
+                              <td className="px-4 py-3 font-mono tabular-nums">
+                                <span className="font-semibold text-[#171717]">Rs. {disc.toLocaleString()}</span>
+                                <span className="ml-1.5 text-[11px] text-[#737373] line-through">
+                                  Rs. {orig.toLocaleString()}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 font-mono text-[12px] font-medium text-[#D94832]">
+                                -{deal.discountPercentage}%
+                              </td>
+                              <td className="px-4 py-3 font-mono text-[12px] tabular-nums text-[#171717]">
+                                {deal.availableQuantity ?? "—"}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span
+                                  className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-medium ${
+                                    isLive
+                                      ? "border-[#BBF7D0] bg-[#F0FDF4] text-[#16A34A]"
+                                      : "border-[#E4E4E7] bg-[#F4F4F5] text-[#525252]"
+                                  }`}
+                                >
+                                  <span
+                                    className={`h-1.5 w-1.5 rounded-full ${
+                                      isLive ? "bg-[#16A34A]" : "bg-[#737373]"
+                                    }`}
+                                  />
+                                  {isLive ? "Live" : "Paused"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="inline-flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleStatus(deal)}
+                                    className="rounded border border-[#E4E4E7] px-2 py-1 text-[11px] font-medium text-[#525252] hover:bg-[#F4F4F5] hover:text-[#171717]"
+                                  >
+                                    {isLive ? "Pause" : "Publish"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEdit(deal)}
+                                    className="rounded border border-[#E4E4E7] p-1 text-[#525252] hover:bg-[#F4F4F5] hover:text-[#171717]"
+                                    title="Edit deal"
+                                  >
+                                    <Edit3 className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteDeal(deal._id)}
+                                    className="rounded border border-[#E4E4E7] p-1 text-[#525252] hover:border-[#FECACA] hover:bg-[#FEF2F2] hover:text-[#DC2626]"
+                                    title="Delete deal"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                /* Perforated Merchant Deal Cards */
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {filteredDeals.map((deal) => {
-                    const isActive = deal.status === "active";
-                    const isDraft = deal.status === "draft";
-                    const isExpired = deal.status === "expired" || (deal.endDate && new Date(deal.endDate) < new Date());
-                    const discountedPrice = deal.discountedPrice || (deal.originalPrice * (1 - deal.discountPercentage / 100));
-                    const savings = deal.originalPrice - discountedPrice;
+                    const isLive = deal.status === "active";
+                    const orig = Number(deal.originalPrice) || 0;
+                    const disc =
+                      Number(deal.discountedPrice) ||
+                      Math.round(orig * (1 - (Number(deal.discountPercentage) || 0) / 100));
+                    const serialSuffix = String(deal._id || "0000").slice(-4).toUpperCase();
 
                     return (
-                      <div
+                      <article
                         key={deal._id}
-                        className="group rounded-2xl border border-gray-200/90 bg-white p-5 shadow-xs hover:shadow-xl hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between"
+                        className="flex flex-col justify-between overflow-hidden rounded-xl border border-[#E4E4E7] bg-white"
                       >
-                        <div>
-                          {/* Top Badges Strip */}
-                          <div className="flex items-center justify-between gap-2 mb-3">
-                            <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold text-gray-600 uppercase tracking-wide">
-                              {deal.category || "General"}
-                            </span>
+                        <div className="p-5 pb-4">
+                          {/* Top Row */}
+                          <div className="flex items-center justify-between gap-2">
                             <span
-                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide border ${
-                                isActive
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : isDraft
-                                  ? "bg-amber-50 text-amber-700 border-amber-200"
-                                  : isExpired
-                                  ? "bg-gray-100 text-gray-500 border-gray-200"
-                                  : "bg-red-50 text-red-700 border-red-200"
+                              className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-medium ${
+                                isLive
+                                  ? "border-[#BBF7D0] bg-[#F0FDF4] text-[#16A34A]"
+                                  : "border-[#E4E4E7] bg-[#F4F4F5] text-[#525252]"
                               }`}
                             >
-                              {deal.status}
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  isLive ? "bg-[#16A34A]" : "bg-[#737373]"
+                                }`}
+                              />
+                              {isLive ? "Live in feed" : "Paused"}
+                            </span>
+
+                            <span className="rounded bg-[#D94832] px-2 py-0.5 font-mono text-[11px] font-medium tabular-nums text-white">
+                              -{deal.discountPercentage}%
                             </span>
                           </div>
 
                           {/* Title & Description */}
-                          <h3 className="text-sm font-extrabold text-gray-900 line-clamp-1 group-hover:text-[#E8503A] transition-colors">
+                          <h3 className="mt-3 line-clamp-1 text-[16px] font-semibold text-[#171717]">
                             {deal.title}
                           </h3>
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed font-normal">
-                            {deal.description}
+                          <p className="mt-1 line-clamp-2 min-h-[36px] text-[13px] leading-relaxed text-[#525252]">
+                            {deal.description || "Redeemable in store during regular business hours."}
                           </p>
 
-                          {/* Pricing Box with Savings Pill */}
-                          <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-gray-50 to-orange-50/30 border border-gray-100 flex items-center justify-between">
+                          {/* Price & Pool */}
+                          <div className="mt-4 flex items-baseline justify-between rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] px-3.5 py-2.5">
                             <div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-xs text-gray-400 line-through">
-                                  Rs. {Number(deal.originalPrice).toLocaleString()}
+                              <span className="block text-[11px] text-[#737373]">Deal price</span>
+                              <div className="flex items-baseline gap-1.5 font-mono tabular-nums">
+                                <span className="text-[17px] font-semibold text-[#171717]">
+                                  Rs. {disc.toLocaleString()}
                                 </span>
-                                <span className="text-base font-black text-[#E8503A]">
-                                  Rs. {Math.round(discountedPrice).toLocaleString()}
+                                <span className="text-[12px] text-[#737373] line-through">
+                                  Rs. {orig.toLocaleString()}
                                 </span>
                               </div>
-                              {savings > 0 && (
-                                <span className="text-[10px] font-bold text-emerald-600">
-                                  Save Rs. {Math.round(savings).toLocaleString()}
-                                </span>
-                              )}
                             </div>
-
-                            <span className="rounded-lg bg-[#E8503A] px-2.5 py-1 text-xs font-black text-white shadow-2xs">
-                              {deal.discountPercentage}% OFF
-                            </span>
-                          </div>
-
-                          {/* Availability & Duration Progress */}
-                          <div className="mt-3 text-[11px] text-gray-500 space-y-1.5">
-                            <div className="flex items-center justify-between">
-                              <span className="flex items-center gap-1">
-                                <Clock size={12} className="text-gray-400" />
-                                <span>Ends: {deal.endDate ? new Date(deal.endDate).toLocaleDateString() : "Limited Time"}</span>
+                            <div className="text-right">
+                              <span className="block text-[11px] text-[#737373]">Vouchers left</span>
+                              <span className="font-mono text-[14px] font-semibold tabular-nums text-[#171717]">
+                                {deal.availableQuantity ?? 30}
                               </span>
-                              <span className="font-bold text-gray-700">{deal.availableQuantity ?? 0} vouchers left</span>
-                            </div>
-
-                            <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                              <div
-                                className="bg-[#E8503A] h-full rounded-full transition-all"
-                                style={{ width: `${Math.min(100, Math.max(15, (deal.availableQuantity || 30)))}%` }}
-                              />
                             </div>
                           </div>
                         </div>
 
-                        {/* Actions Row */}
-                        <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-                          <button
-                            onClick={() => handleToggleStatus(deal)}
-                            className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                              isActive
-                                ? "bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200"
-                                : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
-                            }`}
-                          >
-                            {isActive ? <Pause size={13} /> : <Play size={13} />}
-                            <span>{isActive ? "Pause" : "Go Live"}</span>
-                          </button>
+                        {/* Perforated Divider */}
+                        <div className="ticket-divider-app my-0.5" />
 
-                          <button
-                            onClick={() => handleCopyLink(deal._id)}
-                            className="p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-200"
-                            title="Copy deal link"
-                          >
-                            {copiedId === deal._id ? <Check size={15} className="text-emerald-600" /> : <Share2 size={15} />}
-                          </button>
+                        {/* Card Footer Actions */}
+                        <div className="flex items-center justify-between px-5 py-3">
+                          <span className="font-mono text-[11px] text-[#737373]">
+                            HMU-{serialSuffix}
+                          </span>
 
-                          <button
-                            onClick={() => handleOpenEdit(deal)}
-                            className="p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-200"
-                            title="Edit Deal"
-                          >
-                            <Edit3 size={15} />
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleStatus(deal)}
+                              className={`inline-flex h-7 items-center gap-1 rounded border px-2.5 text-[11px] font-medium transition-colors ${
+                                isLive
+                                  ? "border-[#E4E4E7] bg-white text-[#525252] hover:bg-[#F4F4F5] hover:text-[#171717]"
+                                  : "border-[#16A34A]/30 bg-[#F0FDF4] text-[#16A34A] hover:bg-[#DCFCE7]"
+                              }`}
+                            >
+                              {isLive ? (
+                                <>
+                                  <Pause className="h-3 w-3" /> Pause
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="h-3 w-3" /> Publish
+                                </>
+                              )}
+                            </button>
 
-                          <button
-                            onClick={() => handleDeleteDeal(deal._id)}
-                            className="p-2 rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer border border-transparent hover:border-red-200"
-                            title="Delete Deal"
-                          >
-                            <Trash2 size={15} />
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyLink(deal._id)}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-[#E4E4E7] bg-white text-[#525252] hover:bg-[#F4F4F5] hover:text-[#171717]"
+                              title="Share deal link"
+                            >
+                              {copiedId === deal._id ? (
+                                <Check className="h-3.5 w-3.5 text-[#16A34A]" />
+                              ) : (
+                                <Share2 className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(deal)}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-[#E4E4E7] bg-white text-[#525252] hover:bg-[#F4F4F5] hover:text-[#171717]"
+                              title="Edit deal"
+                            >
+                              <Edit3 className="h-3.5 w-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteDeal(deal._id)}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-[#E4E4E7] bg-white text-[#525252] hover:border-[#FECACA] hover:bg-[#FEF2F2] hover:text-[#DC2626]"
+                              title="Delete deal"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      </article>
                     );
                   })}
                 </div>
-              ) : (
-                /* Table View */
-                <div className="overflow-x-auto rounded-2xl border border-gray-200">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
-                      <tr>
-                        <th className="p-3.5">Deal Title</th>
-                        <th className="p-3.5">Category</th>
-                        <th className="p-3.5">Original</th>
-                        <th className="p-3.5">Flash Price</th>
-                        <th className="p-3.5">Discount</th>
-                        <th className="p-3.5">Status</th>
-                        <th className="p-3.5 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 font-medium text-gray-800">
-                      {filteredDeals.map((deal) => {
-                        const discounted = deal.discountedPrice || (deal.originalPrice * (1 - deal.discountPercentage / 100));
-                        return (
-                          <tr key={deal._id} className="hover:bg-gray-50/70 transition">
-                            <td className="p-3.5 font-bold text-gray-900 max-w-[200px] truncate">{deal.title}</td>
-                            <td className="p-3.5">{deal.category || "General"}</td>
-                            <td className="p-3.5 text-gray-400 line-through">Rs. {Number(deal.originalPrice).toLocaleString()}</td>
-                            <td className="p-3.5 font-extrabold text-[#E8503A]">Rs. {Math.round(discounted).toLocaleString()}</td>
-                            <td className="p-3.5 font-bold">{deal.discountPercentage}%</td>
-                            <td className="p-3.5">
-                              <span
-                                className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase ${
-                                  deal.status === "active"
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : "bg-gray-100 text-gray-600 border border-gray-200"
-                                }`}
-                              >
-                                {deal.status}
-                              </span>
-                            </td>
-                            <td className="p-3.5 text-right space-x-1">
-                              <button
-                                onClick={() => handleToggleStatus(deal)}
-                                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer"
-                              >
-                                {deal.status === "active" ? "Pause" : "Live"}
-                              </button>
-                              <button
-                                onClick={() => handleOpenEdit(deal)}
-                                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 cursor-pointer"
-                                title="Edit"
-                              >
-                                <Edit3 size={14} />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteDeal(deal._id)}
-                                className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 cursor-pointer"
-                                title="Delete"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
               )}
             </div>
-          </>
-        )}
+          )}
+        </main>
+      </div>
 
-        {activeSection === "ai" && (
-          <div className="dashboard-section-ai">
-            <AICommandCenter
-              mode="seller"
-              deals={deals}
-              user={enrichedSellerUser}
-              onApplyGeneratedDeal={(generated) => {
-                const rawDiscount = String(
-                  generated.discountPercentage ??
-                  generated.discount ??
-                  generated.suggestedDiscount ??
-                  30
-                ).replace(/[^0-9.]/g, "");
-                const parsedDiscount = Number(rawDiscount);
-
-                setEditingDeal(null);
-                setFormData({
-                  ...initialFormState,
-                  title: generated.title || "",
-                  description: generated.description || "",
-                  category: businessProfile?.category || "Restaurant",
-                  originalPrice: generated.originalPrice || "",
-                  discountPercentage:
-                    Number.isFinite(parsedDiscount) && parsedDiscount >= 1 && parsedDiscount <= 99
-                      ? Math.round(parsedDiscount)
-                      : 30,
-                });
-                setIsModalOpen(true);
-              }}
-            />
-          </div>
-        )}
-
-        {/* STORE PROFILE & LOCATION MAP PINNER SECTION */}
-        {(activeSection === "store" || isProfileModalOpen) && (
-          <div className="dashboard-section-store">
-            <div className="w-full max-w-4xl mx-auto rounded-3xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-              <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-                <div className="flex items-center gap-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                    <Store size={18} />
-                  </span>
-                  <div>
-                    <h3 className="text-lg font-black text-gray-900">
-                      Edit Store Profile & Map Pin
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Update your merchant storefront details and pin your exact location on the buyer discovery map
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => { setIsProfileModalOpen(false); setActiveSection("home"); }}
-                  className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <form onSubmit={handleUpdateProfile} className="mt-5 space-y-4">
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-gray-700">Store / Business Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={profileForm.name}
-                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 px-3.5 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-gray-700">Category</label>
-                    <select
-                      value={profileForm.category}
-                      onChange={(e) => setProfileForm({ ...profileForm, category: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 px-3 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                    >
-                      <option value="Restaurant">Restaurant</option>
-                      <option value="Cafe">Cafe</option>
-                      <option value="Retail">Retail</option>
-                      <option value="Fashion">Fashion</option>
-                      <option value="Electronics">Electronics</option>
-                      <option value="Health & Beauty">Health & Beauty</option>
-                      <option value="Salon">Salon</option>
-                      <option value="Fitness">Fitness</option>
-                      <option value="Groceries">Groceries</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-gray-700">City / District</label>
-                    <input
-                      type="text"
-                      required
-                      value={profileForm.city}
-                      onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 px-3 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-gray-700">Contact Phone</label>
-                    <input
-                      type="text"
-                      required
-                      value={profileForm.phone}
-                      onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 px-3 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-gray-700">Operating Hours</label>
-                    <input
-                      type="text"
-                      value={profileForm.openingHours}
-                      onChange={(e) => setProfileForm({ ...profileForm, openingHours: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 px-3 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-gray-700">Store Address</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 124 Galle Road, Bambalapitiya"
-                    value={profileForm.address}
-                    onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 px-3.5 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-gray-700">Store Description</label>
-                  <textarea
-                    rows="2"
-                    value={profileForm.description}
-                    onChange={(e) => setProfileForm({ ...profileForm, description: e.target.value })}
-                    placeholder="Briefly describe your store and offerings..."
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2 px-3 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                  />
-                </div>
-
-                {/* ══════ INTERACTIVE STORE LOCATION MAP PINNER ══════ */}
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#E8503A]/10 text-[#E8503A]">
-                        <MapPin size={15} />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-black text-gray-900">
-                          Pin Store Location on Interactive Map
-                        </label>
-                        <p className="text-[10px] text-gray-500">
-                          Click on the map or drag the pin to set your storefront for buyers
-                        </p>
-                      </div>
-                    </div>
-                    {profileForm.latitude && profileForm.longitude && (
-                      <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
-                        <CheckCircle2 size={11} className="text-emerald-600" />
-                        Pin Placed
-                      </span>
-                    )}
-                  </div>
-
-                  <SellerLocationMapPicker
-                    latitude={profileForm.latitude}
-                    longitude={profileForm.longitude}
-                    storeName={profileForm.name || storeName || "My Store"}
-                    onChange={({ latitude, longitude }) => {
-                      setProfileForm((prev) => ({
-                        ...prev,
-                        latitude,
-                        longitude
-                      }));
-                    }}
-                    onAddressDetected={({ street, city }) => {
-                      setProfileForm((prev) => ({
-                        ...prev,
-                        address: prev.address ? prev.address : street,
-                        city: prev.city ? prev.city : city
-                      }));
-                    }}
-                  />
-                </div>
-
-                <div className="pt-3 flex items-center justify-end gap-2 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => { setIsProfileModalOpen(false); setActiveSection("home"); }}
-                    className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded-xl bg-[#E8503A] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#D43A26] transition-all cursor-pointer flex items-center gap-1.5"
-                  >
-                    <MapPin size={13} />
-                    <span>Save Profile & Location</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* CREATE / EDIT FLASH DEAL MODAL OVERLAY */}
+      {/* Create / Edit Deal Modal */}
       {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 overflow-y-auto"
-          onClick={() => setIsModalOpen(false)}
-        >
-          <div
-            className="w-full max-w-2xl my-8 rounded-3xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8503A]/10 text-[#E8503A]">
-                  <Tag size={18} />
-                </span>
-                <h3 className="text-lg font-black text-gray-900">
-                  {editingDeal ? "Edit Flash Deal" : "Create Flash Promotion"}
-                </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="my-8 w-full max-w-xl overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#E4E4E7] px-6 py-4">
+              <div>
+                <h2 className="text-[16px] font-semibold text-[#171717]">
+                  {editingDeal ? "Edit store deal" : "Create flash deal"}
+                </h2>
+                <p className="text-[12px] text-[#737373]">
+                  Set the regular price, discount rate, and voucher cap.
+                </p>
               </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E4E4E7] text-[#525252] hover:bg-[#F4F4F5] hover:text-[#171717]"
               >
-                <X size={18} />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Error banner in modal */}
-            {formError && (
-              <div className="mt-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-                <AlertCircle size={16} className="shrink-0 text-red-600" />
-                <span>{formError}</span>
-              </div>
-            )}
-
-            {/* Deal Form */}
-            <form onSubmit={handleSubmitDeal} className="mt-5 space-y-4">
-              {/* AI Copilot Accordion */}
-              {!editingDeal && (
-                <div className="rounded-2xl border border-orange-200/90 bg-gradient-to-br from-orange-50/70 via-amber-50/40 to-white p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Sparkles size={16} className="text-[#E8503A]" />
-                      <h4 className="text-xs font-black uppercase tracking-wider text-gray-900">
-                        NVIDIA AI Deal Assistant
-                      </h4>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowAiHelper(!showAiHelper)}
-                      className="text-[11px] font-bold text-[#E8503A] hover:underline cursor-pointer"
-                    >
-                      {showAiHelper ? "Hide Assistant" : "Open Assistant"}
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    Enter your item name and original price below, and NVIDIA AI will craft the optimal headline and discount.
-                  </p>
-
-                  {(showAiHelper || !formData.title) && (
-                    <div className="space-y-2.5 pt-1">
-                      <div>
-                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                          Product or Special Offer Name
-                        </label>
-                        <input
-                          type="text"
-                          value={aiProduct}
-                          onChange={(e) => setAiProduct(e.target.value)}
-                          placeholder="e.g. Crispy Fried Chicken Burger Combo"
-                          className="w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden focus:border-[#E8503A]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                          Target Shoppers (Optional)
-                        </label>
-                        <input
-                          type="text"
-                          value={aiTargetCustomer}
-                          onChange={(e) => setAiTargetCustomer(e.target.value)}
-                          placeholder="e.g. University Students, Office Lunch Crowd"
-                          className="w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden focus:border-[#E8503A]"
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleGenerateAIDeal}
-                        disabled={aiLoading || !aiProduct.trim() || !formData.originalPrice}
-                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF4A2F] to-[#E8503A] py-2.5 text-xs font-bold text-white shadow-xs hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
-                      >
-                        {aiLoading ? (
-                          <>
-                            <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                            <span>Crafting with AI...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles size={14} />
-                            <span>Auto-Generate Deal with NVIDIA AI</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
+            <form onSubmit={handleSubmitDeal} className="max-h-[82vh] overflow-y-auto p-6 space-y-4">
+              {formError && (
+                <div className="flex items-start gap-2 rounded-lg border border-[#FECACA] bg-[#FEF2F2] p-3 text-[13px] text-[#DC2626]">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{formError}</span>
                 </div>
               )}
 
-              {/* Title */}
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-700">Deal Title</label>
-                <input
-                  type="text"
-                  name="title"
-                  required
-                  placeholder="e.g. 50% OFF Afternoon Special Roast Combo"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 px-3.5 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                />
-              </div>
-
-              {/* Category & Quantity */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-gray-700">Category</label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 px-3 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                  >
-                    <option value="Restaurant">Restaurant</option>
-                    <option value="Cafe">Cafe</option>
-                    <option value="Retail">Retail</option>
-                    <option value="Fashion">Fashion</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Health & Beauty">Health & Beauty</option>
-                    <option value="Salon">Salon</option>
-                    <option value="Fitness">Fitness</option>
-                    <option value="Groceries">Groceries</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-gray-700">Available Quantity</label>
-                  <input
-                    type="number"
-                    name="availableQuantity"
-                    min="1"
-                    required
-                    value={formData.availableQuantity}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 px-3 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                  />
-                </div>
-              </div>
-
-              {/* Pricing Section with Dynamic Calculator */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-gray-700">Original Price (Rs.)</label>
+              {/* Pricing Row */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                    Regular price (Rs.) *
+                  </label>
                   <input
                     type="number"
                     name="originalPrice"
                     min="1"
                     required
-                    placeholder="1500"
                     value={formData.originalPrice}
                     onChange={handleInputChange}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 px-3 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
+                    placeholder="2500"
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 font-mono text-[14px] text-[#171717] focus:border-[#171717] focus:outline-none"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-gray-700">Discount (%)</label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="number"
-                      name="discountPercentage"
-                      min="1"
-                      max="99"
-                      required
-                      placeholder="30"
-                      value={formData.discountPercentage}
-                      onChange={handleInputChange}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-3 pr-8 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                    />
-                    <Percent size={14} className="absolute right-3 text-gray-400 pointer-events-none" />
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                    Discount ({formData.discountPercentage}%) *
+                  </label>
+                  <input
+                    type="range"
+                    name="discountPercentage"
+                    min="5"
+                    max="90"
+                    step="5"
+                    value={formData.discountPercentage}
+                    onChange={handleInputChange}
+                    className="mt-2.5 w-full accent-[#D94832]"
+                  />
+                  <div className="mt-1 flex justify-between font-mono text-[11px] text-[#737373]">
+                    <span>5%</span>
+                    <span className="font-semibold text-[#D94832]">{formData.discountPercentage}% off</span>
+                    <span>90%</span>
                   </div>
                 </div>
               </div>
 
-              {/* Live Calculator Visual Feedback */}
+              {/* Live Price Preview */}
               {originalPriceNum > 0 && (
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/60 flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3">
                   <div>
-                    <span className="text-gray-500 text-[11px] block">Customer Pays</span>
-                    <span className="text-base font-black text-[#E8503A]">
-                      Rs. {calculatedDiscountedPrice.toLocaleString()}
-                    </span>
+                    <span className="text-[12px] text-[#525252]">Customer pays at counter</span>
+                    <div className="flex items-baseline gap-2 font-mono tabular-nums">
+                      <span className="text-[18px] font-semibold text-[#171717]">
+                        Rs. {calculatedDiscountedPrice.toLocaleString()}
+                      </span>
+                      <span className="text-[12px] text-[#737373] line-through">
+                        Rs. {originalPriceNum.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-emerald-700 font-bold block text-[11px]">
-                      Customer Saves: Rs. {savingsAmount.toLocaleString()}
-                    </span>
-                    <span className="text-[10px] text-gray-500">
-                      {discountPctNum}% instant markdown
-                    </span>
-                  </div>
+                  <span className="rounded border border-[#BBF7D0] bg-[#F0FDF4] px-2.5 py-1 font-mono text-[12px] font-medium text-[#16A34A]">
+                    Saves Rs. {savingsAmount.toLocaleString()}
+                  </span>
                 </div>
               )}
 
-              {/* Flash Duration Presets */}
-              {!editingDeal && (
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-gray-700">Deal Duration</label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { label: "2 Hours", val: 2 },
-                      { label: "6 Hours", val: 6 },
-                      { label: "24 Hours", val: 24 },
-                      { label: "3 Days", val: 72 }
-                    ].map((dur) => (
-                      <button
-                        key={dur.val}
-                        type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, durationHours: dur.val }))}
-                        className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                          formData.durationHours === dur.val
-                            ? "bg-[#E8503A] text-white border-[#E8503A]"
-                            : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        {dur.label}
-                      </button>
-                    ))}
+              {/* Optional Copy Assistant Toggle */}
+              <div className="rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Wand2 className="h-4 w-4 text-[#525252]" strokeWidth={1.5} />
+                    <span className="text-[12px] font-medium text-[#171717]">
+                      Auto-draft title & description from item name
+                    </span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAiHelper(!showAiHelper)}
+                    className="text-[12px] font-medium text-[#D94832] hover:underline"
+                  >
+                    {showAiHelper ? "Hide" : "Use assistant"}
+                  </button>
                 </div>
-              )}
 
-              {/* Description */}
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-700">Deal Details & Inclusions</label>
-                <textarea
-                  name="description"
-                  required
-                  rows="2"
-                  placeholder="Describe what is included in this limited-time flash promotion..."
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2 px-3 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
-                />
+                {showAiHelper && (
+                  <div className="mt-3 space-y-2.5 border-t border-[#E4E4E7] pt-3">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <input
+                        type="text"
+                        value={aiProduct}
+                        onChange={(e) => setAiProduct(e.target.value)}
+                        placeholder="Item (e.g., Crab Kottu Platter)"
+                        className="h-9 rounded-md border border-[#D4D4D8] bg-white px-3 text-[12px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                      />
+                      <input
+                        type="text"
+                        value={aiTargetCustomer}
+                        onChange={(e) => setAiTargetCustomer(e.target.value)}
+                        placeholder="Audience (e.g., Dinner crowd)"
+                        className="h-9 rounded-md border border-[#D4D4D8] bg-white px-3 text-[12px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleGenerateAIDeal}
+                      disabled={aiLoading}
+                      className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[#171717] px-3 text-[12px] font-medium text-white hover:bg-[#262626] disabled:opacity-50"
+                    >
+                      {aiLoading ? "Drafting copy..." : "Draft deal copy"}
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Terms */}
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-700">Terms & Conditions</label>
+              {/* Deal Title */}
+              <div>
+                <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                  Deal headline *
+                </label>
                 <input
                   type="text"
-                  name="terms"
-                  placeholder="e.g. Valid dine-in only. One voucher per customer."
-                  value={formData.terms}
+                  name="title"
+                  required
+                  value={formData.title}
                   onChange={handleInputChange}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2 px-3 text-xs text-gray-900 focus:border-[#E8503A] focus:bg-white focus:outline-hidden"
+                  placeholder="35% off Sourdough & Espresso Combo"
+                  className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 text-[14px] text-[#171717] focus:border-[#171717] focus:outline-none"
                 />
               </div>
 
-              {/* Initial Status */}
-              <div className="flex items-center gap-4 pt-1">
-                <span className="text-xs font-bold text-gray-700">Mode:</span>
-                <label className="inline-flex items-center gap-1.5 text-xs text-gray-700 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="active"
-                    checked={formData.status === "active"}
-                    onChange={handleInputChange}
-                    className="text-[#E8503A] focus:ring-[#E8503A]"
-                  />
-                  <span>Live Immediately</span>
+              {/* Description */}
+              <div>
+                <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                  Offer details *
                 </label>
-                <label className="inline-flex items-center gap-1.5 text-xs text-gray-700 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="draft"
-                    checked={formData.status === "draft"}
-                    onChange={handleInputChange}
-                    className="text-[#E8503A] focus:ring-[#E8503A]"
-                  />
-                  <span>Save as Draft</span>
-                </label>
+                <textarea
+                  name="description"
+                  rows={2}
+                  required
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="What is included and when shoppers can redeem it in store."
+                  className="w-full rounded-lg border border-[#D4D4D8] bg-white p-3 text-[13px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                />
               </div>
 
-              {/* Submit CTA */}
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-gray-100">
+              {/* Category, Quantity, Duration */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                    Category
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 text-[13px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                  >
+                    <option value="Restaurant">Restaurant</option>
+                    <option value="Cafes & Bakery">Cafes & Bakery</option>
+                    <option value="Fashion">Fashion</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Fitness">Fitness</option>
+                    <option value="Beauty & Spa">Beauty & Spa</option>
+                    <option value="Grocery">Grocery</option>
+                    <option value="Entertainment">Entertainment</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                    Voucher cap
+                  </label>
+                  <input
+                    type="number"
+                    name="availableQuantity"
+                    min="1"
+                    max="1000"
+                    value={formData.availableQuantity}
+                    onChange={handleInputChange}
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 font-mono text-[13px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                    Duration (hours)
+                  </label>
+                  <input
+                    type="number"
+                    name="durationHours"
+                    min="1"
+                    max="720"
+                    value={formData.durationHours}
+                    onChange={handleInputChange}
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 font-mono text-[13px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 border-t border-[#E4E4E7] pt-4">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                  className="h-9 rounded-lg border border-[#D4D4D8] bg-white px-4 text-[13px] font-medium text-[#525252] hover:bg-[#F4F4F5]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formLoading}
-                  className="rounded-xl bg-[#E8503A] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#D43A26] transition-all disabled:opacity-70 cursor-pointer flex items-center gap-1.5"
+                  className="h-9 rounded-lg bg-[#D94832] px-5 text-[13px] font-medium text-white hover:bg-[#C23B26] disabled:opacity-60"
                 >
-                  {formLoading && (
-                    <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  )}
-                  <span>{editingDeal ? "Update Deal" : "Launch Deal"}</span>
+                  {formLoading
+                    ? "Saving..."
+                    : editingDeal
+                    ? "Save changes"
+                    : "Publish deal"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Storefront & Map Pin Modal */}
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="my-8 w-full max-w-2xl overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#E4E4E7] px-6 py-4">
+              <div>
+                <h2 className="text-[16px] font-semibold text-[#171717]">
+                  Storefront & map pin
+                </h2>
+                <p className="text-[12px] text-[#737373]">
+                  Pin your exact shop coordinates so nearby buyers can find your deals on the street map.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsProfileModalOpen(false);
+                  if (activeSection === "store") setActiveSection("home");
+                }}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E4E4E7] text-[#525252] hover:bg-[#F4F4F5] hover:text-[#171717]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateProfile} className="max-h-[82vh] overflow-y-auto p-6 space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                    Store name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                    placeholder="Galle Road Bakehouse"
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 text-[13px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                    Primary category
+                  </label>
+                  <select
+                    value={profileForm.category}
+                    onChange={(e) => setProfileForm({ ...profileForm, category: e.target.value })}
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 text-[13px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                  >
+                    <option value="Restaurant">Restaurant</option>
+                    <option value="Cafes & Bakery">Cafes & Bakery</option>
+                    <option value="Fashion">Fashion</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Fitness">Fitness</option>
+                    <option value="Beauty & Spa">Beauty & Spa</option>
+                    <option value="Grocery">Grocery</option>
+                    <option value="Entertainment">Entertainment</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.city}
+                    onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
+                    placeholder="Colombo"
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 text-[13px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                    Phone
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.phone}
+                    onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                    placeholder="+94 77 123 4567"
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 font-mono text-[13px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                    Opening hours
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.openingHours}
+                    onChange={(e) => setProfileForm({ ...profileForm, openingHours: e.target.value })}
+                    placeholder="09:00 AM - 09:00 PM"
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 text-[13px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                  Street address
+                </label>
+                <input
+                  type="text"
+                  value={profileForm.address}
+                  onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
+                  placeholder="No. 42 Galle Road, Colombo 03"
+                  className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-white px-3 text-[13px] text-[#171717] focus:border-[#171717] focus:outline-none"
+                />
+              </div>
+
+              {/* Interactive Map Pin Picker */}
+              <div>
+                <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
+                  Store map coordinates
+                </label>
+                <SellerLocationMapPicker
+                  latitude={profileForm.latitude}
+                  longitude={profileForm.longitude}
+                  storeName={profileForm.name || storeDisplayName}
+                  onChange={({ latitude, longitude }) =>
+                    setProfileForm((prev) => ({
+                      ...prev,
+                      latitude,
+                      longitude,
+                    }))
+                  }
+                  onAddressDetected={(detected) => {
+                    if (detected?.street && !profileForm.address) {
+                      setProfileForm((prev) => ({
+                        ...prev,
+                        address: detected.street,
+                        city: detected.city || prev.city,
+                      }));
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 border-t border-[#E4E4E7] pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileModalOpen(false);
+                    if (activeSection === "store") setActiveSection("home");
+                  }}
+                  className="h-9 rounded-lg border border-[#D4D4D8] bg-white px-4 text-[13px] font-medium text-[#525252] hover:bg-[#F4F4F5]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="h-9 rounded-lg bg-[#D94832] px-5 text-[13px] font-medium text-white hover:bg-[#C23B26]"
+                >
+                  Save storefront & pin
                 </button>
               </div>
             </form>

@@ -4,13 +4,12 @@ import { discoveryApi } from "../services/api";
 import { useAuth } from "../context/useAuth";
 
 function DealReviewsSection({ businessId, dealId }) {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [avgRating, setAvgRating] = useState(5.0);
   const [totalReviews, setTotalReviews] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Form State
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -41,11 +40,11 @@ function DealReviewsSection({ businessId, dealId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
-      setError("Please log in to submit a review.");
+      setError("Please log in to leave a review");
       return;
     }
     if (!comment.trim()) {
-      setError("Please write a brief comment.");
+      setError("Please write a short note about your visit");
       return;
     }
 
@@ -57,49 +56,48 @@ function DealReviewsSection({ businessId, dealId }) {
         businessId,
         dealId,
         rating,
-        comment: comment.trim()
+        comment: comment.trim(),
       });
       setSubmitted(true);
       setComment("");
       loadReviews();
     } catch (err) {
-      setError(err.message || "Failed to post review.");
+      setError(err.message || "Could not post review");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="border-t border-gray-100 pt-6 mt-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="mt-6 border-t border-[#E6E0D6] pt-6">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MessageSquare size={18} className="text-[#E8503A]" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900">
-            Customer Reviews & Ratings
+          <MessageSquare size={16} strokeWidth={1.5} className="text-[#5E554A]" />
+          <h3 className="text-[14px] font-medium text-[#1F1B16]">
+            Shopper reviews
           </h3>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200/80 rounded-xl px-2.5 py-1 text-xs font-black text-amber-900">
-          <Star size={13} className="fill-amber-400 text-amber-400" />
-          <span>{avgRating.toFixed(1)}</span>
-          <span className="text-gray-400 font-medium">({totalReviews})</span>
+        <div className="flex items-center gap-1.5 rounded-md border border-[#E6E0D6] bg-[#F7F4EE] px-2.5 py-1 font-mono text-[12px] text-[#1F1B16] tabular-nums">
+          <Star size={12} strokeWidth={1.5} className="fill-[#B45309] text-[#B45309]" />
+          <span className="font-medium">{avgRating.toFixed(1)}</span>
+          <span className="text-[#7B7266]">({totalReviews})</span>
         </div>
       </div>
 
       {/* Write Review Form */}
-      <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-200/80 mb-5">
-        <h4 className="text-xs font-bold text-gray-700 mb-2">
-          Share your experience with this merchant
+      <div className="mb-5 rounded-xl border border-[#E6E0D6] bg-[#F7F4EE] p-4">
+        <h4 className="mb-2 text-[12px] font-medium text-[#5E554A]">
+          Leave a note on this merchant
         </h4>
 
         {submitted ? (
-          <div className="flex items-center gap-2 text-emerald-600 text-xs font-bold py-2">
-            <CheckCircle2 size={16} />
-            <span>Thank you! Your verified review has been posted.</span>
+          <div className="flex items-center gap-2 py-2 text-[13px] font-medium text-[#166534]">
+            <CheckCircle2 size={15} strokeWidth={1.5} />
+            <span>Your review has been posted</span>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
-            {/* Star Rating Select */}
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -108,20 +106,21 @@ function DealReviewsSection({ businessId, dealId }) {
                   onClick={() => setRating(star)}
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(0)}
-                  className="p-1 hover:scale-110 transition-transform cursor-pointer"
+                  className="p-1 cursor-pointer"
                 >
                   <Star
-                    size={18}
-                    className={`${
+                    size={16}
+                    strokeWidth={1.5}
+                    className={
                       (hoverRating || rating) >= star
-                        ? "fill-amber-400 text-amber-400"
-                        : "text-gray-300"
-                    }`}
+                        ? "fill-[#B45309] text-[#B45309]"
+                        : "text-[#D1C9BC]"
+                    }
                   />
                 </button>
               ))}
-              <span className="text-xs font-bold text-gray-500 ml-2">
-                {rating} / 5 Stars
+              <span className="ml-2 font-mono text-[12px] text-[#7B7266] tabular-nums">
+                {rating} / 5
               </span>
             </div>
 
@@ -129,45 +128,45 @@ function DealReviewsSection({ businessId, dealId }) {
               rows={2}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="How was the quality, service, and redemption process?..."
-              className="w-full rounded-xl bg-white p-3 text-xs text-gray-900 border border-gray-200 placeholder:text-gray-400 focus:outline-none focus:border-[#E8503A]"
+              placeholder="How was the item quality and counter redemption?"
+              className="w-full rounded-lg border border-[#E6E0D6] bg-[#FDFBF7] p-3 text-[13px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
             />
 
-            {error && <p className="text-[11px] font-bold text-red-500">{error}</p>}
+            {error && <p className="text-[12px] text-[#B91C1C]">{error}</p>}
 
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#172026] px-4 py-2 text-xs font-bold text-white hover:bg-[#E8503A] transition disabled:opacity-50 cursor-pointer"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1F1B16] px-3.5 text-[12px] font-medium text-[#FDFBF7] transition-colors hover:bg-[#D94832] disabled:opacity-50 cursor-pointer"
             >
-              <Send size={12} />
-              <span>{submitting ? "Posting..." : "Post Review"}</span>
+              <Send size={12} strokeWidth={1.5} />
+              <span>{submitting ? "Posting..." : "Post review"}</span>
             </button>
           </form>
         )}
       </div>
 
       {/* Recent Reviews List */}
-      <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
+      <div className="max-h-48 space-y-2.5 overflow-y-auto pr-1">
         {loading ? (
-          <p className="text-xs text-gray-400 italic">Loading reviews...</p>
+          <p className="text-[12px] text-[#7B7266]">Loading reviews...</p>
         ) : reviews.length === 0 ? (
-          <p className="text-xs text-gray-500">
-            No reviews yet. Be the first to leave a review!
+          <p className="text-[12px] text-[#7B7266]">
+            No reviews recorded for this merchant yet
           </p>
         ) : (
           reviews.map((rev) => (
             <div
               key={rev._id}
-              className="rounded-xl border border-gray-100 bg-white p-3 shadow-xs"
+              className="rounded-lg border border-[#E6E0D6] bg-white p-3"
             >
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="mb-1.5 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-500">
-                    <User size={12} />
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#F7F4EE] text-[#5E554A]">
+                    <User size={12} strokeWidth={1.5} />
                   </div>
-                  <span className="text-xs font-bold text-gray-800">
-                    {rev.userId?.name || "Verified Customer"}
+                  <span className="text-[12px] font-medium text-[#1F1B16]">
+                    {rev.userId?.name || "Shopper"}
                   </span>
                 </div>
                 <div className="flex items-center gap-0.5">
@@ -175,16 +174,19 @@ function DealReviewsSection({ businessId, dealId }) {
                     <Star
                       key={i}
                       size={11}
+                      strokeWidth={1.5}
                       className={
                         i < rev.rating
-                          ? "fill-amber-400 text-amber-400"
-                          : "text-gray-200"
+                          ? "fill-[#B45309] text-[#B45309]"
+                          : "text-[#E6E0D6]"
                       }
                     />
                   ))}
                 </div>
               </div>
-              <p className="text-xs text-gray-600 leading-relaxed">{rev.comment}</p>
+              <p className="text-[12px] leading-relaxed text-[#5E554A]">
+                {rev.comment}
+              </p>
             </div>
           ))
         )}

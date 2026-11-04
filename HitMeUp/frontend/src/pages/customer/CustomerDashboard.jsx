@@ -477,13 +477,12 @@ const CustomerDashboard = () => {
         <div>
           {/* Brand header */}
           <div className="mb-6 flex items-center justify-between px-2 pt-1">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#171717] font-mono text-[13px] font-medium text-white">
-                H
-              </span>
-              <span className="text-[16px] font-semibold tracking-[-0.03em] text-[#171717]">
-                HitMeUp
-              </span>
+            <Link to="/" className="inline-flex items-center" aria-label="HitMeUp Home">
+              <img
+                src="/logo.png"
+                alt="HitMeUp"
+                className="h-8 w-auto object-contain"
+              />
             </Link>
             <span className="rounded-[5px] border border-[#E4E4E7] bg-white px-1.5 py-0.5 text-[11px] text-[#525252]">
               Shopper

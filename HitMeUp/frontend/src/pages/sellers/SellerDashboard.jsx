@@ -603,13 +603,12 @@ const SellerDashboard = () => {
         <div>
           {/* Brand Header */}
           <div className="flex h-[60px] items-center justify-between border-b border-[#E4E4E7] px-4">
-            <Link to="/" className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#171717] font-mono text-[11px] font-medium text-white">
-                HMU
-              </span>
-              <span className="text-[14px] font-semibold tracking-tight text-[#171717]">
-                HitMeUp
-              </span>
+            <Link to="/" className="flex items-center" aria-label="HitMeUp Home">
+              <img
+                src="/logo.png"
+                alt="HitMeUp"
+                className="h-7 w-auto object-contain"
+              />
             </Link>
             <span className="rounded border border-[#D4D4D8] bg-white px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#525252]">
               Seller

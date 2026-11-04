@@ -26,3 +26,4 @@ router.get("/transactions/:id", protect, getTransactionById);
 router.post("/transactions/:id/resolve", protect, resolveTransaction);
 
 module.exports = router;
+

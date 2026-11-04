@@ -205,10 +205,11 @@ export const gatewayApi = {
     return apiRequest(`/gateway/transactions${query ? `?${query}` : ""}`);
   },
 
-  getTransactionById: (id) => apiRequest(`/gateway/transactions/${id}`),
+  getTransactionById: (id) =>
+    apiRequest(`/gateway/transactions/${encodeURIComponent(String(id || "").trim())}`),
 
   resolveTransaction: (id) =>
-    apiRequest(`/gateway/transactions/${id}/resolve`, {
+    apiRequest(`/gateway/transactions/${encodeURIComponent(String(id || "").trim())}/resolve`, {
       method: "POST",
     }),
 };

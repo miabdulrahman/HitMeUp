@@ -410,6 +410,20 @@ async function resolvePendingPayment({ paymentId, user }) {
     payment.paidAt = new Date();
     await payment.save();
 
+    // Synchronize GatewayTransaction record to SUCCESS as well
+    if (payment.gatewayTransactionId) {
+      await GatewayTransaction.updateOne(
+        { transactionId: payment.gatewayTransactionId },
+        {
+          $set: {
+            transactionStatus: "SUCCESS",
+            responseCode: "00",
+            responseMessage: "Approved (Pending settled successfully)"
+          }
+        }
+      );
+    }
+
     order.status = "PAID";
     order.orderStatus = "PAID";
     order.paymentStatus = "SUCCESS";
@@ -569,3 +583,4 @@ module.exports = {
   resolvePendingPayment,
   refundPayment
 };
+

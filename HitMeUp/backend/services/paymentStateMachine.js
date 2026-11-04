@@ -60,3 +60,4 @@ module.exports = {
   canTransition,
   validateTransition
 };
+

@@ -115,3 +115,4 @@ export default function WalletPaymentForm({ onSubmit, disabled }) {
     </form>
   );
 }
+

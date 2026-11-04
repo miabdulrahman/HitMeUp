@@ -69,3 +69,4 @@ module.exports = {
   generateQrData,
   createVoucherForOrder
 };
+

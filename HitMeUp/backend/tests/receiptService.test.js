@@ -24,3 +24,4 @@ describe("Receipt Service Tests", () => {
     assert.notStrictEqual(ref1, ref2);
   });
 });
+

@@ -91,3 +91,4 @@ const receiptSchema = new mongoose.Schema(
 receiptSchema.index({ customerId: 1, createdAt: -1 });
 
 module.exports = mongoose.models.Receipt || mongoose.model("Receipt", receiptSchema);
+

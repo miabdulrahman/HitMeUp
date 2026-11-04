@@ -1,6 +1,9 @@
+const mongoose = require("mongoose");
 const paymentService = require("../services/paymentService");
 const transactionService = require("../services/transactionService");
 const GatewayTransaction = require("../models/GatewayTransaction");
+const Voucher = require("../models/Voucher");
+require("../models/user");
 
 // POST /api/gateway/checkout - Initialize or retrieve active payment session
 const checkoutSession = async (req, res) => {
@@ -133,11 +136,41 @@ const getTransactions = async (req, res) => {
 // GET /api/gateway/transactions/:id - Get transaction details
 const getTransactionById = async (req, res) => {
   try {
-    const transaction = await GatewayTransaction.findOne({
-      transactionId: req.params.id
-    })
-      .populate("customerId", "name email phone")
-      .populate("orderId");
+    const rawId = decodeURIComponent(req.params.id || "").trim();
+    if (!rawId) {
+      return res.status(400).json({
+        success: false,
+        message: "Transaction identifier is required"
+      });
+    }
+
+    const normalizedHyphenId = rawId.replace(/\s+/g, "-");
+    const queries = [
+      { transactionId: rawId },
+      { transactionId: normalizedHyphenId },
+      { paymentReference: rawId },
+      { paymentReference: normalizedHyphenId }
+    ];
+
+    if (mongoose.Types.ObjectId.isValid(rawId)) {
+      queries.push({ _id: rawId });
+    }
+
+    const transaction = await GatewayTransaction.findOne({ $or: queries })
+      .populate("customerId", "name email phone role")
+      .populate({
+        path: "orderId",
+        populate: [
+          {
+            path: "dealId",
+            select: "title description price originalPrice images category"
+          },
+          {
+            path: "businessId",
+            select: "businessName name email phone address"
+          }
+        ]
+      });
 
     if (!transaction) {
       return res.status(404).json({
@@ -146,30 +179,67 @@ const getTransactionById = async (req, res) => {
       });
     }
 
-    // Role check: customer must own it, unless seller/admin
-    if (
-      req.user.role !== "admin" &&
-      req.user.role !== "business" &&
-      req.user.role !== "seller" &&
-      String(transaction.customerId?._id || transaction.customerId) !==
-        String(req.user._id)
-    ) {
+    // Role check:
+    // 1. Admin can view all transactions
+    // 2. Customer owner can view their own transaction
+    // 3. Merchant / Seller who owns the deal / business can view
+    const requesterId = String(req.user._id || req.user.id || "");
+    const customerOwnerId = String(
+      transaction.customerId?._id || transaction.customerId || ""
+    );
+    const isAdmin = req.user.role === "admin";
+    const isCustomerOwner = requesterId === customerOwnerId;
+
+    let isMerchantOwner = false;
+    if (req.user.role === "business" || req.user.role === "seller") {
+      const orderBusinessId = String(
+        transaction.orderId?.businessId?._id ||
+          transaction.orderId?.businessId ||
+          ""
+      );
+      const userBusinessId = String(
+        req.user.businessId?._id ||
+          req.user.businessId ||
+          req.user._id ||
+          ""
+      );
+      if (
+        orderBusinessId &&
+        userBusinessId &&
+        orderBusinessId === userBusinessId
+      ) {
+        isMerchantOwner = true;
+      }
+    }
+
+    if (!isAdmin && !isCustomerOwner && !isMerchantOwner) {
       return res.status(403).json({
         success: false,
         message: "Unauthorized to view this transaction"
       });
     }
 
+    // Fetch linked voucher if one exists for this order
+    let voucher = null;
+    try {
+      voucher = await Voucher.findOne({
+        orderId: transaction.orderId?._id || transaction.orderId
+      }).lean();
+    } catch (e) {
+      // non-fatal
+    }
+
     return res.status(200).json({
       success: true,
+      transaction,
       data: transaction,
-      transaction
+      voucher: voucher || null
     });
   } catch (error) {
     console.error("Get Transaction By ID Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to retrieve transaction"
+      message: error.message || "Failed to retrieve transaction"
     });
   }
 };
@@ -177,9 +247,17 @@ const getTransactionById = async (req, res) => {
 // POST /api/gateway/transactions/:id/resolve - Resolve pending transaction in simulation
 const resolveTransaction = async (req, res) => {
   try {
-    const transaction = await GatewayTransaction.findOne({
-      transactionId: req.params.id
-    });
+    const rawId = decodeURIComponent(req.params.id || "").trim();
+    const normalizedHyphenId = rawId.replace(/\s+/g, "-");
+    const queries = [
+      { transactionId: rawId },
+      { transactionId: normalizedHyphenId }
+    ];
+    if (mongoose.Types.ObjectId.isValid(rawId)) {
+      queries.push({ _id: rawId });
+    }
+
+    const transaction = await GatewayTransaction.findOne({ $or: queries });
 
     if (!transaction) {
       return res.status(404).json({
@@ -190,7 +268,10 @@ const resolveTransaction = async (req, res) => {
 
     const Payment = require("../models/Payment");
     const payment = await Payment.findOne({
-      gatewayTransactionId: transaction.transactionId
+      $or: [
+        { gatewayTransactionId: transaction.transactionId },
+        { orderId: transaction.orderId }
+      ]
     });
 
     if (!payment) {
@@ -225,3 +306,4 @@ module.exports = {
   getTransactionById,
   resolveTransaction
 };
+

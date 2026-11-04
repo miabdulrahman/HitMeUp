@@ -67,3 +67,4 @@ export default function PaymentMethodSelector({ selectedMethod, onSelectMethod }
     </div>
   );
 }
+

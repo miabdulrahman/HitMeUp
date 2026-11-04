@@ -23,3 +23,4 @@ describe("Voucher Integration Service Tests", () => {
     assert.ok(qrData.startsWith("data:image/png;base64,"));
   });
 });
+

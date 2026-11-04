@@ -85,13 +85,17 @@ export default function CheckoutPage() {
         idempotencyKey,
       });
 
-      const transactionId =
+      const rawTxnId =
         res.transaction?.transactionId ||
+        res.transactionId ||
         res.payment?.gatewayTransactionId ||
+        res.data?.transactionId ||
+        res.data?.transaction?.transactionId ||
         orderId;
+      const transactionId = String(rawTxnId).trim();
 
       // Navigate to comprehensive result page
-      navigate(`/pay/result/${transactionId}`, {
+      navigate(`/pay/result/${encodeURIComponent(transactionId)}`, {
         state: {
           resultData: res,
           order,
@@ -100,9 +104,14 @@ export default function CheckoutPage() {
     } catch (err) {
       console.error("Payment execution error:", err);
       // If error payload has transaction ID, navigate to failure result
-      const txnId = err.data?.transaction?.transactionId;
-      if (txnId) {
-        navigate(`/pay/result/${txnId}`, {
+      const rawTxnId =
+        err.data?.transaction?.transactionId ||
+        err.data?.transactionId ||
+        err.data?.data?.transactionId ||
+        err.data?.payment?.gatewayTransactionId;
+      if (rawTxnId) {
+        const txnId = String(rawTxnId).trim();
+        navigate(`/pay/result/${encodeURIComponent(txnId)}`, {
           state: {
             resultData: err.data,
             order,
@@ -266,3 +275,4 @@ export default function CheckoutPage() {
     </div>
   );
 }
+

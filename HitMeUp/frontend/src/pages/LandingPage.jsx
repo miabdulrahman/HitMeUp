@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import CategorySection from "../components/CategorySection";
@@ -10,13 +11,23 @@ import CTA from "../components/CTA";
 import Footer from "../components/Footer";
 
 function LandingPage() {
+  const [heroSearchQuery, setHeroSearchQuery] = useState("");
+
+  const handleHeroSearch = (query) => {
+    setHeroSearchQuery(query);
+    const dealsSection = document.getElementById("deals");
+    if (dealsSection) {
+      dealsSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <>
       <Navbar />
       <main>
-        <Hero />
+        <Hero onSearch={handleHeroSearch} />
         <CategorySection />
-        <FeaturedDeals />
+        <FeaturedDeals initialSearch={heroSearchQuery} />
         <WhyHitMeUp />
         <ForBusiness />
         <HowItWorks />

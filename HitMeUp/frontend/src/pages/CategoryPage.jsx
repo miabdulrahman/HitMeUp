@@ -14,6 +14,7 @@ import DealDetailModal from "../components/DealDetailModal";
 import MapDiscoveryView from "../components/MapDiscoveryView";
 import { categories, normalizeCategory, getCategorySlug } from "../data/categories";
 import { discoveryApi } from "../services/api";
+import { useLocationContext } from "../context/LocationContext";
 import { isDealExpired } from "../utils/dealTimer";
 
 function CategoryPage({ defaultView }) {
@@ -33,7 +34,9 @@ function CategoryPage({ defaultView }) {
   }, [slug]);
 
   const [activeSlug, setActiveSlug] = useState(slug || "all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const initialSearch = searchParams.get("q") || searchParams.get("search") || "";
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [sortBy, setSortBy] = useState("recommended");
   const [dealsList, setDealsList] = useState([]);
   const [selectedDeal, setSelectedDeal] = useState(null);
@@ -41,7 +44,6 @@ function CategoryPage({ defaultView }) {
   const [loading, setLoading] = useState(true);
 
   // Parse viewMode from URL query (?view=map) or /map route or defaultView prop
-  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const initialView =
     searchParams.get("view") === "map" ||
     location.pathname === "/map" ||
@@ -50,21 +52,24 @@ function CategoryPage({ defaultView }) {
       : "grid";
   const [viewMode, setViewMode] = useState(initialView);
 
-  const [nearbyMode, setNearbyMode] = useState(false);
-  const [nearbyRadius, setNearbyRadius] = useState(15);
-  const [userLocation, setUserLocation] = useState(null);
+  const { userLocation: contextLocation, hasRealLocation, requestLocation: requestContextLocation } = useLocationContext();
+  const [nearbyMode, setNearbyMode] = useState(hasRealLocation);
+  const [nearbyRadius, setNearbyRadius] = useState(25);
+  const userLocation = contextLocation;
   const [locating, setLocating] = useState(false);
   const [nearbyFallback, setNearbyFallback] = useState(null);
 
-  // Sync viewMode if URL changes
+  // Sync viewMode and search query if URL changes
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("view") === "map" || location.pathname === "/map" || defaultView === "map") {
+    const q = searchParams.get("q") || searchParams.get("search") || "";
+    setSearchQuery(q);
+
+    if (searchParams.get("view") === "map" || location.pathname === "/map" || defaultView === "map") {
       setViewMode("map");
-    } else if (params.get("view") === "grid") {
+    } else if (searchParams.get("view") === "grid") {
       setViewMode("grid");
     }
-  }, [location.search, location.pathname, defaultView]);
+  }, [searchParams, location.pathname, defaultView]);
 
   useEffect(() => {
     setActiveSlug(slug || "all");
@@ -185,33 +190,18 @@ function CategoryPage({ defaultView }) {
   }, [currentCategory, nearbyMode, userLocation, nearbyRadius, sortBy]);
 
   const handleToggleNearby = () => {
-    if (nearbyMode) {
+    if (nearbyMode && hasRealLocation) {
       setNearbyMode(false);
       return;
     }
 
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
+    if (hasRealLocation) {
+      setNearbyMode(true);
       return;
     }
 
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLocation({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        });
-        setNearbyMode(true);
-        setLocating(false);
-      },
-      (err) => {
-        console.warn("Location permission denied or unavailable:", err.message);
-        setUserLocation({ latitude: 6.9271, longitude: 79.8612 });
-        setNearbyMode(true);
-        setLocating(false);
-      }
-    );
+    requestContextLocation();
+    setNearbyMode(true);
   };
 
   const handleSwitchView = (mode) => {

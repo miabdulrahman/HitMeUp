@@ -6,9 +6,13 @@ import {
   Store,
   QrCode,
   Tag,
+  X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { dealApi } from "../services/api";
+import { isDealExpired } from "../utils/dealTimer";
+import DealDetailModal from "./DealDetailModal";
 
 const HERO_SCENES = [
   {
@@ -38,11 +42,15 @@ const NEIGHBORHOODS = [
   "Mount Lavinia",
 ];
 
-function Hero() {
+function Hero({ onSearch }) {
   const revealRefs = useRef([]);
+  const formRef = useRef(null);
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [activeScene, setActiveScene] = useState(0);
+  const [allDeals, setAllDeals] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedDeal, setSelectedDeal] = useState(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -72,16 +80,93 @@ function Hero() {
     return () => clearInterval(timer);
   }, []);
 
+  // Preload deals for instant search suggestions
+  useEffect(() => {
+    let isMounted = true;
+    dealApi
+      .getDeals()
+      .then((res) => {
+        const list = res.deals || res.data || [];
+        if (isMounted && Array.isArray(list)) {
+          const active = list
+            .filter((d) => !isDealExpired(d))
+            .map((d) => ({
+              id: d._id || d.id,
+              _id: d._id,
+              title: d.title,
+              business: d.businessId?.name || d.businessName || "Local store",
+              businessId: d.businessId,
+              category: d.category || "General",
+              price: `Rs. ${Number(d.discountedPrice || d.price || 0).toLocaleString()}`,
+              rawPrice: Number(d.discountedPrice || d.price || 0),
+              oldPrice: `Rs. ${Number(d.originalPrice || d.oldPrice || 0).toLocaleString()}`,
+              rawOldPrice: Number(d.originalPrice || d.oldPrice || 0),
+              discount: `${d.discountPercentage || 0}% off`,
+              discountPercentage: Number(d.discountPercentage || 0),
+              image: d.imageUrl || d.image || "/hero-cover.jpg",
+              location: d.businessId?.address?.city || "Colombo",
+              distance: d.businessId?.address?.city || "Colombo",
+              endDate: d.endDate,
+              vouchersLeft: d.availableQuantity ?? 10,
+              description: d.description || "",
+              terms: d.terms || "Present pass at counter",
+            }));
+          setAllDeals(active);
+        }
+      })
+      .catch((err) => {
+        console.info("Deals preload for hero search suggestions:", err?.message);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (formRef.current && !formRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const addRef = (el) => {
     if (el && !revealRefs.current.includes(el)) {
       revealRefs.current.push(el);
     }
   };
 
+  const suggestions = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+    if (q.length < 2 || allDeals.length === 0) return [];
+    return allDeals
+      .filter((d) => {
+        const title = (d.title || "").toLowerCase();
+        const biz = (d.business || "").toLowerCase();
+        const cat = (d.category || "").toLowerCase();
+        const city = (d.location || "").toLowerCase();
+        return (
+          title.includes(q) ||
+          biz.includes(q) ||
+          cat.includes(q) ||
+          city.includes(q)
+        );
+      })
+      .slice(0, 4);
+  }, [searchText, allDeals]);
+
   const handleHeroSearch = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const trimmed = searchText.trim();
-    if (trimmed) {
+    setShowDropdown(false);
+
+    if (onSearch) {
+      onSearch(trimmed);
+    } else if (trimmed) {
       navigate(`/deals?q=${encodeURIComponent(trimmed)}`);
     } else {
       const dealsSection = document.getElementById("deals");
@@ -94,7 +179,13 @@ function Hero() {
   };
 
   const handleSelectNeighborhood = (area) => {
-    navigate(`/deals?q=${encodeURIComponent(area)}`);
+    setSearchText(area);
+    setShowDropdown(false);
+    if (onSearch) {
+      onSearch(area);
+    } else {
+      navigate(`/deals?q=${encodeURIComponent(area)}`);
+    }
   };
 
   return (
@@ -156,35 +247,121 @@ function Hero() {
             online and scan your QR code at the shop counter.
           </p>
 
-          {/* Interactive Search Bar */}
-          <form
-            onSubmit={handleHeroSearch}
-            className="mx-auto mt-8 flex max-w-[600px] flex-col gap-2 rounded-2xl border border-white/20 bg-[#FDFBF7] p-2 shadow-[0_12px_40px_rgba(0,0,0,0.35)] sm:flex-row sm:items-center"
-          >
-            <label className="relative flex flex-1 items-center">
-              <span className="sr-only">Search deals</span>
-              <Search
-                size={18}
-                strokeWidth={1.5}
-                className="pointer-events-none ml-3.5 text-[#7B7266]"
-              />
-              <input
-                type="text"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                placeholder="Search coffee, bakery, salon, or street..."
-                className="h-12 w-full bg-transparent px-3 text-[15px] text-[#1F1B16] placeholder-[#7B7266] focus:outline-none"
-              />
-            </label>
-
-            <button
-              type="submit"
-              className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#D94832] px-6 text-[14px] font-medium text-white transition-colors duration-150 hover:bg-[#C23B26] active:scale-[0.98] cursor-pointer"
+          {/* Interactive Search Bar with Live Suggestions */}
+          <div ref={formRef} className="relative mx-auto mt-8 max-w-[600px]">
+            <form
+              onSubmit={handleHeroSearch}
+              className="flex flex-col gap-2 rounded-2xl border border-white/20 bg-[#FDFBF7] p-2 shadow-[0_12px_40px_rgba(0,0,0,0.35)] sm:flex-row sm:items-center"
             >
-              <span>Find passes</span>
-              <ArrowRight size={16} strokeWidth={1.5} />
-            </button>
-          </form>
+              <label className="relative flex flex-1 items-center">
+                <span className="sr-only">Search deals</span>
+                <Search
+                  size={18}
+                  strokeWidth={1.5}
+                  className="pointer-events-none ml-3.5 text-[#7B7266]"
+                />
+                <input
+                  type="text"
+                  value={searchText}
+                  onFocus={() => {
+                    if (searchText.trim().length >= 2) setShowDropdown(true);
+                  }}
+                  onChange={(e) => {
+                    setSearchText(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  placeholder="Search coffee, bakery, salon, or street..."
+                  className="h-12 w-full bg-transparent px-3 text-[15px] text-[#1F1B16] placeholder-[#7B7266] focus:outline-none"
+                />
+                {searchText && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchText("");
+                      setShowDropdown(false);
+                      if (onSearch) onSearch("");
+                    }}
+                    className="mr-2 text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
+                  >
+                    <X size={15} />
+                  </button>
+                )}
+              </label>
+
+              <button
+                type="submit"
+                className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#D94832] px-6 text-[14px] font-medium text-white transition-colors duration-150 hover:bg-[#C23B26] active:scale-[0.98] cursor-pointer"
+              >
+                <span>Find passes</span>
+                <ArrowRight size={16} strokeWidth={1.5} />
+              </button>
+            </form>
+
+            {/* Live Instant Suggestions Dropdown */}
+            {showDropdown && suggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-white/20 bg-[#1F1B16]/95 p-2 text-left shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="flex items-center justify-between border-b border-white/10 px-3 py-1.5 text-[11px] font-mono text-[#CFC6B8]">
+                  <span>Matching live passes ({suggestions.length})</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowDropdown(false)}
+                    className="text-[#CFC6B8] hover:text-white"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+
+                <div className="divide-y divide-white/5 py-1">
+                  {suggestions.map((deal) => (
+                    <button
+                      key={deal.id || deal._id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedDeal(deal);
+                        setShowDropdown(false);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-colors duration-150 hover:bg-white/10 cursor-pointer"
+                    >
+                      <img
+                        src={deal.image || "/hero-cover.jpg"}
+                        alt=""
+                        className="h-11 w-11 shrink-0 rounded-lg border border-white/15 object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded bg-[#D94832] px-1.5 py-0.5 font-mono text-[10px] font-medium text-white">
+                            {deal.discount}
+                          </span>
+                          <span className="truncate text-[11px] text-[#CFC6B8]">
+                            {deal.business} · {deal.location}
+                          </span>
+                        </div>
+                        <p className="truncate text-[13px] font-medium text-[#FDFBF7]">
+                          {deal.title}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <span className="font-mono text-[13px] font-medium text-[#FF8A6B]">
+                          {deal.price}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="border-t border-white/10 p-1.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={(e) => handleHeroSearch(e)}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-white/10 py-2 text-[12px] font-medium text-[#FDFBF7] transition-colors hover:bg-[#D94832] hover:text-white cursor-pointer"
+                  >
+                    <span>View all matching passes in feed</span>
+                    <ArrowRight size={13} strokeWidth={1.5} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Quick Neighborhood Filter Chips */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
@@ -294,6 +471,15 @@ function Hero() {
           </div>
         </div>
       </div>
+
+      {/* Detail Modal for Clicked Search Suggestions */}
+      {selectedDeal && (
+        <DealDetailModal
+          deal={selectedDeal}
+          isOpen={!!selectedDeal}
+          onClose={() => setSelectedDeal(null)}
+        />
+      )}
     </section>
   );
 }

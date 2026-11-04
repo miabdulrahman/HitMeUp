@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { LocationProvider } from "./context/LocationContext.jsx";
+import LocationPromptBanner from "./components/LocationPromptBanner.jsx";
 import { useAuth } from "./context/useAuth";
 import LandingPage from "./pages/LandingPage";
 import CategoryPage from "./pages/CategoryPage";
@@ -21,22 +23,25 @@ const DashboardRedirect = () => {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/category/:slug" element={<CategoryPage />} />
-          <Route path="/categories" element={<CategoryPage />} />
-          <Route path="/deals" element={<CategoryPage />} />
-          <Route path="/map" element={<CategoryPage defaultView="map" />} />
-          <Route path="/search" element={<CategoryPage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/customer/dashboard" element={<CustomerDashBoard />} />
-          <Route path="/seller/dashboard" element={<SellerDashboard />} />
-          <Route path="/dashboard" element={<DashboardRedirect />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <LocationProvider>
+        <BrowserRouter>
+          <LocationPromptBanner />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/category/:slug" element={<CategoryPage />} />
+            <Route path="/categories" element={<CategoryPage />} />
+            <Route path="/deals" element={<CategoryPage />} />
+            <Route path="/map" element={<CategoryPage defaultView="map" />} />
+            <Route path="/search" element={<CategoryPage />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/customer/dashboard" element={<CustomerDashBoard />} />
+            <Route path="/seller/dashboard" element={<SellerDashboard />} />
+            <Route path="/dashboard" element={<DashboardRedirect />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </LocationProvider>
     </AuthProvider>
   );
 }

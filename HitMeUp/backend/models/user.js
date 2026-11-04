@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: ""
     },
+    coverImage: {
+      type: String,
+      default: ""
+    },
     avatar: {
       type: String,
       default: ""

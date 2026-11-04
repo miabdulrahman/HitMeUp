@@ -142,7 +142,15 @@ function Navbar() {
                   to={dashboardPath}
                   className="flex h-9 items-center gap-2 rounded-lg border border-[#E6E0D6] bg-[#FDFBF7] px-3 text-[13px] font-medium text-[#1F1B16] transition-colors duration-150 hover:bg-[#EFE9DF]"
                 >
-                  <LayoutDashboard size={15} strokeWidth={1.5} className="text-[#5E554A]" />
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name || "User"}
+                      className="h-5 w-5 rounded-full object-cover border border-[#E6E0D6]"
+                    />
+                  ) : (
+                    <LayoutDashboard size={15} strokeWidth={1.5} className="text-[#5E554A]" />
+                  )}
                   <span>{user.name?.split(" ")[0] || "Account"}</span>
                   <span className="rounded-[5px] bg-[#EFE9DF] px-1.5 py-0.5 text-[11px] font-normal text-[#5E554A] capitalize">
                     {user.role}
@@ -253,7 +261,15 @@ function Navbar() {
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center justify-center gap-2 rounded-lg bg-[#EFE9DF] px-4 py-2.5 text-[14px] font-medium text-[#1F1B16]"
                     >
-                      <User size={16} strokeWidth={1.5} />
+                      {user.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user.name || "User"}
+                          className="h-6 w-6 rounded-full object-cover border border-[#E6E0D6]"
+                        />
+                      ) : (
+                        <User size={16} strokeWidth={1.5} />
+                      )}
                       <span>{user.name} ({user.role})</span>
                     </Link>
                     <button

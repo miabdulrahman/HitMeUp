@@ -258,6 +258,45 @@ export const discoveryApi = {
   },
 };
 
+// ----------------------------------------------------------------------
+// Image Upload to Cloudinary (WebP Enforced)
+// ----------------------------------------------------------------------
+export const uploadApi = {
+  uploadImage: async (fileOrDataUrl, folder = "general") => {
+    if (typeof fileOrDataUrl === "string") {
+      return apiRequest("/upload", {
+        method: "POST",
+        body: { image: fileOrDataUrl, folder },
+      });
+    }
+
+    const formData = new FormData();
+    formData.append("image", fileOrDataUrl);
+    formData.append("folder", folder);
+
+    const token = localStorage.getItem("token");
+    const headers = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const cleanEndpoint = "/upload";
+    const url = `${API_BASE_URL}${cleanEndpoint}`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.message || `Upload failed with status ${response.status}`);
+    }
+    return data;
+  },
+};
+
 export default {
   apiRequest,
   auth: authApi,
@@ -268,4 +307,5 @@ export default {
   vouchers: voucherApi,
   ai: aiApi,
   discovery: discoveryApi,
+  upload: uploadApi,
 };

@@ -230,13 +230,14 @@ const getMe = async (req, res) => {
  */
 const updateProfile = async (req, res) => {
   try {
-    const { name, phone, avatar } = req.body;
+    const { name, phone, avatar, coverImage } = req.body;
 
     const user = await User.findById(req.user._id);
 
     if (name) user.name = name;
     if (phone !== undefined) user.phone = phone;
     if (avatar !== undefined) user.avatar = avatar;
+    if (coverImage !== undefined) user.coverImage = coverImage;
 
     await user.save();
 

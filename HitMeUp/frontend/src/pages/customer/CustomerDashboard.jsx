@@ -21,6 +21,9 @@ import {
   Edit3,
   Search,
   Compass,
+  Camera,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
 import {
@@ -29,7 +32,9 @@ import {
   discoveryApi,
   authApi,
   dealApi,
+  uploadApi,
 } from "../../services/api";
+import { convertToWebP } from "../../utils/imageOptimizer";
 import AICommandCenter from "../../components/AICommandCenter";
 
 const CustomerDashboard = () => {
@@ -70,6 +75,9 @@ const CustomerDashboard = () => {
     phone: "",
   });
   const [profileUpdating, setProfileUpdating] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -198,6 +206,55 @@ const CustomerDashboard = () => {
       showToast(err.message || "Could not submit review");
     } finally {
       setReviewSubmitting(false);
+    }
+  };
+
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setAvatarUploading(true);
+      setUploadStatus("Converting avatar to WebP...");
+      const webpFile = await convertToWebP(file, { maxWidth: 512, maxHeight: 512, quality: 0.9 });
+      setUploadStatus("Uploading to cloud...");
+      const res = await uploadApi.uploadImage(webpFile, "customers/avatars");
+      if (res?.url) {
+        await updateAuthProfile({ avatar: res.url });
+        showToast("Profile avatar converted to WebP and updated.");
+      }
+    } catch (err) {
+      console.error("Avatar upload failed:", err);
+      showToast(err.message || "Failed to upload avatar");
+    } finally {
+      setAvatarUploading(false);
+      setUploadStatus("");
+      e.target.value = "";
+    }
+  };
+
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setCoverUploading(true);
+      setUploadStatus("Converting cover to WebP...");
+      const webpFile = await convertToWebP(file, { maxWidth: 1920, maxHeight: 1080, quality: 0.85 });
+      setUploadStatus("Uploading to cloud...");
+      const res = await uploadApi.uploadImage(webpFile, "customers/covers");
+      if (res?.url) {
+        await updateAuthProfile({ coverImage: res.url });
+        showToast("Profile cover converted to WebP and updated.");
+      }
+    } catch (err) {
+      console.error("Cover upload failed:", err);
+      showToast(err.message || "Failed to upload cover banner");
+    } finally {
+      setCoverUploading(false);
+      setUploadStatus("");
+      e.target.value = "";
     }
   };
 
@@ -503,9 +560,17 @@ const CustomerDashboard = () => {
         {/* Account footer */}
         <div className="border-t border-[#E4E4E7] pt-3">
           <div className="mb-2 flex items-center gap-2.5 px-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#E4E4E7] bg-white font-mono text-[12px] font-medium text-[#171717]">
-              {user?.name?.[0]?.toUpperCase() || "U"}
-            </div>
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user?.name || "User"}
+                className="h-8 w-8 shrink-0 rounded-lg object-cover border border-[#E4E4E7]"
+              />
+            ) : (
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#E4E4E7] bg-white font-mono text-[12px] font-medium text-[#171717]">
+                {user?.name?.[0]?.toUpperCase() || "U"}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-medium text-[#171717]">
                 {user?.name}
@@ -1065,6 +1130,88 @@ const CustomerDashboard = () => {
           {/* TAB 5: PROFILE & SETTINGS */}
           {activeTab === "profile" && (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+              {/* Profile Cover & Avatar Header */}
+              <div className="overflow-hidden rounded-xl border border-[#E4E4E7] bg-white lg:col-span-12">
+                {/* Cover Banner */}
+                <div className="relative h-44 w-full sm:h-52 bg-gradient-to-r from-[#2A2521] via-[#1E1B18] to-[#141210]">
+                  {user?.coverImage ? (
+                    <img
+                      src={user.coverImage}
+                      alt="Profile cover banner"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center opacity-25">
+                      <ImageIcon className="h-12 w-12 text-white" strokeWidth={1} />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                  {/* Change Cover Button */}
+                  <label className="absolute top-4 right-4 flex items-center gap-1.5 rounded-lg bg-black/60 px-3 py-1.5 text-[12px] font-medium text-white backdrop-blur transition-colors hover:bg-black/80 cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverUpload}
+                      disabled={coverUploading}
+                      className="hidden"
+                    />
+                    <Camera size={13} strokeWidth={1.5} />
+                    <span>{coverUploading ? uploadStatus || "Converting to WebP..." : "Change cover"}</span>
+                  </label>
+                </div>
+
+                {/* Profile Identity Bar */}
+                <div className="flex flex-col justify-between gap-4 p-6 sm:flex-row sm:items-end">
+                  <div className="flex items-end gap-4">
+                    {/* Floating Avatar with Camera Badge */}
+                    <div className="relative -mt-14 h-20 w-20 shrink-0 rounded-2xl border-4 border-white bg-white shadow-md">
+                      {user?.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user?.name || "User"}
+                          className="h-full w-full rounded-xl object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center rounded-xl bg-[#171717] font-mono text-[22px] font-semibold text-white">
+                          {user?.name?.[0]?.toUpperCase() || "U"}
+                        </div>
+                      )}
+                      <label className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#D94832] text-white shadow-sm hover:bg-[#C23B26] cursor-pointer" title="Update profile photo">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                          disabled={avatarUploading}
+                          className="hidden"
+                        />
+                        <Camera size={13} strokeWidth={2} />
+                      </label>
+                    </div>
+
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h1 className="text-[20px] font-semibold tracking-tight text-[#171717]">
+                          {user?.name || "Shopper"}
+                        </h1>
+                        <span className="rounded border border-[#E4E4E7] bg-[#F4F4F5] px-2 py-0.5 text-[11px] font-medium capitalize text-[#525252]">
+                          {user?.role || "Customer"}
+                        </span>
+                        <span className="rounded border border-[#BBF7D0] bg-[#F0FDF4] px-2 py-0.5 font-mono text-[11px] text-[#16A34A]">
+                          WebP optimized
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-[13px] text-[#737373]">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-[12px] text-[#737373]">
+                    <span>Images auto-converted to WebP before upload</span>
+                  </div>
+                </div>
+              </div>
               <div className="space-y-5 rounded-xl border border-[#E4E4E7] bg-white p-6 lg:col-span-7">
                 <div className="flex items-center justify-between border-b border-[#E4E4E7] pb-4">
                   <div>

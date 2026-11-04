@@ -81,8 +81,17 @@ exports.searchDeals = async (req, res) => {
     } = req.query;
 
     const searchTerm = (q || keyword || "").trim();
+    const now = new Date();
+
+    // Auto-expire deals that have passed their end date
+    await Deal.updateMany(
+      { status: "active", endDate: { $lte: now } },
+      { $set: { status: "expired" } }
+    ).exec();
+
     const query = {
-      status: "active"
+      status: "active",
+      endDate: { $gt: now }
     };
 
     // Category filter with taxonomy mapping
@@ -243,7 +252,12 @@ exports.getNearbyDeals = async (req, res) => {
 
     // Helper: fetch all available active deals as fallback when no nearby deals are found
     const fetchFallbackAvailableDeals = async () => {
-      const fallbackDealQuery = { status: "active" };
+      const now = new Date();
+      await Deal.updateMany(
+        { status: "active", endDate: { $lte: now } },
+        { $set: { status: "expired" } }
+      ).exec();
+      const fallbackDealQuery = { status: "active", endDate: { $gt: now } };
       if (category && category !== "all" && category !== "All") {
         fallbackDealQuery.category = { $regex: new RegExp(`^${category}$`, "i") };
       }
@@ -338,10 +352,16 @@ exports.getNearbyDeals = async (req, res) => {
 
     const businessIds = Object.keys(businessMap);
 
-    // Fetch active deals for these nearby businesses
+    // Fetch active deals for these nearby businesses (strictly unexpired)
+    const now = new Date();
+    await Deal.updateMany(
+      { status: "active", endDate: { $lte: now } },
+      { $set: { status: "expired" } }
+    ).exec();
     const dealQuery = {
       businessId: { $in: businessIds },
-      status: "active"
+      status: "active",
+      endDate: { $gt: now }
     };
 
     const deals = await Deal.find(dealQuery)
@@ -420,9 +440,15 @@ exports.getMapBusinesses = async (req, res) => {
     const hasCoordinates = !isNaN(userLat) && !isNaN(userLng);
     const filterRadiusKm = parseFloat(radius) || 15;
 
-    // Find all active deals first to identify merchants with live offers
+    // Find all active deals first to identify merchants with live offers (strictly unexpired)
+    const now = new Date();
+    await Deal.updateMany(
+      { status: "active", endDate: { $lte: now } },
+      { $set: { status: "expired" } }
+    ).exec();
     const dealQuery = {
-      status: "active"
+      status: "active",
+      endDate: { $gt: now }
     };
 
     if (category && category !== "all" && category !== "All") {

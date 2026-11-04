@@ -7,14 +7,10 @@ import {
   Eye,
   EyeOff,
   ArrowLeft,
-  Sparkles,
-  Zap,
-  Tag,
-  ShieldCheck,
-  CheckCircle2,
   Clock,
   MapPin,
-  AlertCircle
+  AlertCircle,
+  QrCode,
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
 
@@ -61,7 +57,6 @@ const Login = () => {
     }
   };
 
-  // Demo user helper to ease testing for users/reviewers
   const fillDemo = (role) => {
     if (role === "customer") {
       setFormData({
@@ -78,150 +73,127 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#FAF8F5] text-[#1A1A1A] flex items-center justify-center p-4 sm:p-6 lg:p-10 overflow-hidden selection:bg-[#E8503A] selection:text-white">
-      {/* Ambient background glows */}
-      <div className="pointer-events-none absolute -top-40 -right-40 h-[480px] w-[480px] rounded-full bg-gradient-to-br from-[#FF4A2F]/15 to-[#FFB703]/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -left-40 h-[460px] w-[460px] rounded-full bg-gradient-to-tr from-[#E8503A]/10 to-[#10B981]/10 blur-3xl" />
-
-      {/* Main Container Card */}
-      <div className="relative w-full max-w-[1040px] bg-white rounded-3xl sm:rounded-[32px] shadow-[0_24px_70px_rgba(40,20,10,0.08)] border border-black/[0.04] overflow-hidden grid grid-cols-1 lg:grid-cols-12">
-        {/* Left Brand Showcase Panel (Desktop) */}
-        <div className="relative lg:col-span-5 bg-gradient-to-br from-[#121824] via-[#1B2333] to-[#0F141E] p-8 sm:p-10 lg:p-12 text-white flex flex-col justify-between overflow-hidden">
-          {/* Subtle geometric background orbs */}
-          <div className="pointer-events-none absolute top-0 right-0 h-64 w-64 rounded-full bg-[#E8503A]/20 blur-2xl" />
-          <div className="pointer-events-none absolute bottom-10 left-0 h-48 w-48 rounded-full bg-[#FFD19A]/10 blur-xl" />
-
-          {/* Top Brand & Back Nav */}
-          <div className="relative z-10 flex items-center justify-between">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 group"
-              title="HitMeUp Home"
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#FF4A2F] to-[#E8503A] text-white shadow-md shadow-[#E8503A]/30 group-hover:scale-105 transition-transform duration-200">
-                <Zap size={20} className="fill-white" />
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#F7F4EE] p-4 text-[#1F1B16] sm:p-6 lg:p-10">
+      <div className="grid w-full max-w-[1000px] grid-cols-1 overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_2px_12px_rgba(31,27,22,0.05)] lg:grid-cols-12">
+        {/* Left Brand Showcase Panel */}
+        <div className="flex flex-col justify-between border-b border-[#E6E0D6] bg-[#1F1B16] p-8 text-[#FDFBF7] sm:p-10 lg:col-span-5 lg:border-b-0 lg:border-r">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="inline-flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#FDFBF7] font-mono text-[14px] font-medium text-[#1F1B16]">
+                H
               </span>
-              <span className="text-xl font-black tracking-tight text-white">
-                HitMe<span className="text-[#FF6647]">Up</span>
+              <span className="text-[18px] font-semibold tracking-[-0.03em] text-[#FDFBF7]">
+                HitMeUp
               </span>
             </Link>
 
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/10"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-[12px] font-medium text-[#EFE9DF] transition-colors hover:bg-white/10"
             >
-              <ArrowLeft size={13} />
+              <ArrowLeft size={13} strokeWidth={1.5} />
               <span>Home</span>
             </Link>
           </div>
 
-          {/* Center Showcase Narrative */}
-          <div className="relative z-10 my-8 lg:my-0 space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-[#FFD19A] border border-white/10 backdrop-blur-md">
-              <Sparkles size={12} />
-              <span>Location-Based Flash Deals</span>
-            </div>
-
-            <div className="space-y-3">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[1.15] text-white">
-                Real-time deals, <br />
-                <span className="bg-gradient-to-r from-[#FF7B60] via-[#FFA97A] to-[#FFD19A] bg-clip-text text-transparent">
-                  instant savings.
+          <div className="my-8 space-y-6 lg:my-0">
+            <div className="space-y-2.5">
+              <p className="text-[12px] font-medium text-[#A89F91]">
+                Neighborhood voucher marketplace
+              </p>
+              <h1 className="text-[26px] sm:text-[30px] font-medium leading-[1.15] tracking-[-0.025em] text-[#FDFBF7]">
+                Access your counter passes and{" "}
+                <span className="serif font-normal text-[#D94832]">
+                  storefront ledger
                 </span>
               </h1>
-              <p className="text-sm text-gray-300/90 leading-relaxed font-normal max-w-sm">
-                Unlock exclusive discounts at top nearby merchants or effortlessly manage your store promotions.
+              <p className="max-w-sm text-[14px] leading-[1.6] text-[#A89F91]">
+                Sign in to view claimed QR vouchers, check nearby markdowns, or
+                verify customer passes at your shop register.
               </p>
             </div>
 
-            {/* Interactive Flash Deal Preview Card */}
-            <div className="rounded-2xl bg-white/[0.08] backdrop-blur-xl border border-white/15 p-4 shadow-xl hover:border-white/30 transition-all duration-300">
+            {/* Tactile LKR Voucher Preview Card */}
+            <div className="rounded-xl border border-white/15 bg-white/[0.04] p-4">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-[#FF4A2F] to-[#FF8C66] flex items-center justify-center text-white shadow-inner">
-                    <Tag size={20} />
-                  </div>
-                  <div>
-                    <h2 className="text-xs font-bold text-white tracking-wide">Artisan Woodfired Pizza</h2>
-                    <p className="text-[11px] text-gray-300 flex items-center gap-1 mt-0.5">
-                      <MapPin size={11} className="text-[#FF8C66]" /> 0.3 miles away • Central Ave
-                    </p>
-                  </div>
+                <div>
+                  <span className="font-mono text-[11px] text-[#A89F91]">
+                    HMU-6412 · Food &amp; drink
+                  </span>
+                  <h2 className="mt-0.5 text-[14px] font-medium text-[#FDFBF7]">
+                    Woodfired Margherita &amp; Iced Tea
+                  </h2>
+                  <p className="mt-1 flex items-center gap-1 text-[12px] text-[#A89F91]">
+                    <MapPin size={12} strokeWidth={1.5} className="text-[#D94832]" />
+                    <span>Park Street, Colombo 02 · 0.6 km</span>
+                  </p>
                 </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 border border-emerald-500/30">
-                  <Clock size={10} /> 24m left
+                <span className="inline-flex items-center gap-1 rounded-[5px] border border-white/15 bg-white/10 px-2 py-0.5 font-mono text-[11px] text-[#FDFBF7] tabular-nums">
+                  <Clock size={11} strokeWidth={1.5} className="text-[#D94832]" />
+                  45m left
                 </span>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+              <div className="mt-4 flex items-center justify-between border-t border-dashed border-white/15 pt-3 font-mono tabular-nums">
                 <div>
-                  <span className="text-gray-400 line-through text-[11px] mr-1.5">$26.00</span>
-                  <span className="text-base font-extrabold text-[#FFD19A]">$13.00</span>
-                  <span className="ml-1.5 text-[10px] font-bold text-emerald-400 uppercase tracking-wide">50% OFF</span>
+                  <span className="text-[16px] font-medium text-[#FDFBF7]">
+                    Rs. 1,400
+                  </span>
+                  <span className="ml-2 text-[12px] text-[#A89F91] line-through">
+                    Rs. 2,800
+                  </span>
+                  <span className="ml-2 rounded-[5px] bg-[#D94832] px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    50% off
+                  </span>
                 </div>
-                <div className="flex items-center gap-1 text-[11px] text-white/80 font-medium bg-white/10 px-2 py-1 rounded-lg">
-                  <ShieldCheck size={12} className="text-[#FF8C66]" />
-                  <span>Instant QR Pass</span>
+                <div className="flex items-center gap-1.5 font-sans text-[11px] text-[#EFE9DF]">
+                  <QrCode size={13} strokeWidth={1.5} />
+                  <span>QR pass</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Bottom Social Proof & Trust */}
-          <div className="relative z-10 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-gray-300">
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#FF4A2F] text-[10px] font-bold text-white ring-2 ring-[#121824]">
-                  A
-                </span>
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white ring-2 ring-[#121824]">
-                  M
-                </span>
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white ring-2 ring-[#121824]">
-                  K
-                </span>
-              </div>
-              <span className="text-[11px] text-white/80 font-medium">15,000+ local deal hunters</span>
-            </div>
-            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-semibold">
-              <CheckCircle2 size={12} /> Verified deals
+          <div className="flex items-center justify-between border-t border-white/10 pt-5 text-[12px] text-[#A89F91]">
+            <span>Colombo &amp; islandwide stores</span>
+            <span className="font-mono text-[11px] text-[#EFE9DF]">
+              LKR counter redemption
             </span>
           </div>
         </div>
 
         {/* Right Form Panel */}
-        <div className="lg:col-span-7 p-8 sm:p-12 lg:p-14 flex flex-col justify-center">
-          <div className="max-w-md mx-auto w-full">
-            {/* Header */}
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E8503A] uppercase tracking-wider">
-                <span>Welcome Back</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1A1A1A] tracking-tight">
-                Sign in to your account
+        <div className="flex flex-col justify-center p-8 sm:p-12 lg:col-span-7">
+          <div className="mx-auto w-full max-w-md">
+            <div className="space-y-1.5">
+              <p className="text-[12px] font-medium text-[#7B7266]">
+                Account access
+              </p>
+              <h2 className="text-[24px] sm:text-[28px] font-medium tracking-[-0.025em] text-[#1F1B16]">
+                Sign in to HitMeUp
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                Enter your credentials to access your vouchers, orders, and dashboard.
+              <p className="text-[14px] text-[#5E554A]">
+                Enter your email and password to open your dashboard.
               </p>
             </div>
 
-            {/* Quick Demo Pre-fill helper for frictionless testing */}
-            <div className="mt-5 p-3 rounded-2xl bg-[#FAF8F5] border border-gray-100 flex items-center justify-between gap-2">
-              <span className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
-                <Zap size={13} className="text-[#E8503A]" /> Quick Demo:
+            {/* Quick Demo Pre-fill helper */}
+            <div className="mt-5 flex items-center justify-between gap-2 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] p-3">
+              <span className="text-[12px] font-medium text-[#5E554A]">
+                Test account autofill
               </span>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => fillDemo("customer")}
-                  className="px-2.5 py-1 text-[11px] font-semibold text-[#1A1A1A] bg-white rounded-lg border border-gray-200 hover:border-[#E8503A] hover:text-[#E8503A] transition-colors shadow-2xs cursor-pointer"
+                  className="rounded-md border border-[#E6E0D6] bg-[#FDFBF7] px-2.5 py-1 text-[12px] font-medium text-[#1F1B16] transition-colors hover:border-[#1F1B16]/40 cursor-pointer"
                 >
                   Shopper
                 </button>
                 <button
                   type="button"
                   onClick={() => fillDemo("business")}
-                  className="px-2.5 py-1 text-[11px] font-semibold text-[#1A1A1A] bg-white rounded-lg border border-gray-200 hover:border-[#E8503A] hover:text-[#E8503A] transition-colors shadow-2xs cursor-pointer"
+                  className="rounded-md border border-[#E6E0D6] bg-[#FDFBF7] px-2.5 py-1 text-[12px] font-medium text-[#1F1B16] transition-colors hover:border-[#1F1B16]/40 cursor-pointer"
                 >
                   Merchant
                 </button>
@@ -231,27 +203,26 @@ const Login = () => {
             {/* Error Alert Banner */}
             {error && (
               <div
-                className="mt-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5 animate-fadeIn"
+                className="mt-5 flex items-start gap-2.5 rounded-lg border border-[#B91C1C]/25 bg-[#B91C1C]/5 p-3.5 text-[13px] text-[#B91C1C]"
                 role="alert"
               >
-                <AlertCircle size={16} className="text-red-600 mt-0.5 shrink-0" />
-                <div className="leading-relaxed font-medium">{error}</div>
+                <AlertCircle size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" />
+                <div>{error}</div>
               </div>
             )}
 
             {/* Login Form */}
             <form onSubmit={handleLogin} className="mt-6 space-y-4">
-              {/* Email Address */}
               <div className="space-y-1.5">
                 <label
                   htmlFor="email"
-                  className="block text-xs font-bold text-gray-700 tracking-wide"
+                  className="block text-[13px] font-medium text-[#1F1B16]"
                 >
                   Email address
                 </label>
                 <div className="relative flex items-center">
-                  <div className="pointer-events-none absolute left-3.5 text-gray-400">
-                    <Mail size={17} />
+                  <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
+                    <Mail size={16} strokeWidth={1.5} />
                   </div>
                   <input
                     id="email"
@@ -262,17 +233,16 @@ const Login = () => {
                     placeholder="name@example.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                    className="h-11 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-4 text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
                   />
                 </div>
               </div>
 
-              {/* Password */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="password"
-                    className="block text-xs font-bold text-gray-700 tracking-wide"
+                    className="block text-[13px] font-medium text-[#1F1B16]"
                   >
                     Password
                   </label>
@@ -280,16 +250,18 @@ const Login = () => {
                     to="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      alert("Please contact support at support@hitmeup.com to reset your credentials.");
+                      alert(
+                        "Contact support@hitmeup.com to reset your account credentials."
+                      );
                     }}
-                    className="text-xs font-semibold text-[#E8503A] hover:text-[#D43A26] transition-colors"
+                    className="text-[12px] font-medium text-[#5E554A] hover:text-[#1F1B16]"
                   >
                     Forgot password?
                   </Link>
                 </div>
                 <div className="relative flex items-center">
-                  <div className="pointer-events-none absolute left-3.5 text-gray-400">
-                    <Lock size={17} />
+                  <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
+                    <Lock size={16} strokeWidth={1.5} />
                   </div>
                   <input
                     id="password"
@@ -297,64 +269,67 @@ const Login = () => {
                     name="password"
                     autoComplete="current-password"
                     required
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E8503A] focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-[#E8503A]/10 transition-all"
+                    className="h-11 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-10 text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 p-1 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                    className="absolute right-3 p-1 text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                    {showPassword ? (
+                      <EyeOff size={16} strokeWidth={1.5} />
+                    ) : (
+                      <Eye size={16} strokeWidth={1.5} />
+                    )}
                   </button>
                 </div>
               </div>
 
-              {/* Remember Me Checkbox */}
               <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+                <label className="flex items-center gap-2 select-none cursor-pointer">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-[#E8503A] focus:ring-[#E8503A] cursor-pointer"
+                    className="h-4 w-4 rounded border-[#E6E0D6] accent-[#D94832] cursor-pointer"
                   />
-                  <span className="text-xs text-gray-600 font-medium">Keep me signed in</span>
+                  <span className="text-[13px] text-[#5E554A]">
+                    Keep me signed in
+                  </span>
                 </label>
               </div>
 
-              {/* Submit CTA Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 h-12 rounded-xl bg-gradient-to-r from-[#FF4A2F] via-[#E8503A] to-[#DC3822] text-white font-bold text-sm tracking-wide shadow-[0_10px_25px_rgba(232,80,58,0.28)] hover:shadow-[0_14px_30px_rgba(232,80,58,0.38)] hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+                className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#D94832] text-[14px] font-medium text-white transition-colors duration-150 hover:bg-[#C23B26] disabled:opacity-60 cursor-pointer"
               >
                 {loading ? (
                   <>
-                    <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                     <span>Signing in...</span>
                   </>
                 ) : (
                   <>
-                    <LogIn size={17} />
-                    <span>Sign In to HitMeUp</span>
+                    <LogIn size={16} strokeWidth={1.5} />
+                    <span>Sign in</span>
                   </>
                 )}
               </button>
             </form>
 
-            {/* Switch to Register link */}
-            <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-              <p className="text-xs text-gray-600 font-normal">
-                Don't have an account yet?{" "}
+            <div className="mt-8 border-t border-[#E6E0D6] pt-6 text-center">
+              <p className="text-[13px] text-[#5E554A]">
+                Don&apos;t have an account yet?{" "}
                 <Link
                   to="/register"
-                  className="font-bold text-[#E8503A] hover:text-[#C53522] hover:underline transition-colors"
+                  className="font-medium text-[#D94832] hover:underline"
                 >
-                  Create an account for free &rarr;
+                  Create an account &rarr;
                 </Link>
               </p>
             </div>

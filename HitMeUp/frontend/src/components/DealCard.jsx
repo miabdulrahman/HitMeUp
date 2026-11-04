@@ -1,13 +1,25 @@
 import { useState, useEffect } from "react";
-import { Heart, MapPin, Clock3, ArrowRight, Sparkles } from "lucide-react";
+import { Heart, MapPin, Clock3, ArrowUpRight, AlertCircle } from "lucide-react";
 import { discoveryApi } from "../services/api";
+import { calculateDealTimer } from "../utils/dealTimer";
 
 function DealCard({ deal, onOpen }) {
   const [isFavorite, setIsFavorite] = useState(deal.isFavorited || false);
+  const [timer, setTimer] = useState(() => calculateDealTimer(deal));
 
   useEffect(() => {
     setIsFavorite(deal.isFavorited || false);
   }, [deal.isFavorited]);
+
+  useEffect(() => {
+    setTimer(calculateDealTimer(deal));
+
+    const interval = setInterval(() => {
+      setTimer(calculateDealTimer(deal));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [deal]);
 
   const handleClick = () => {
     if (onOpen) onOpen(deal);
@@ -21,109 +33,152 @@ function DealCard({ deal, onOpen }) {
     if (dealId) {
       try {
         await discoveryApi.toggleFavorite(dealId);
-      } catch (err) {
-        // If not logged in, maintain local state
+      } catch {
+        // Maintain local state when signed out
       }
     }
   };
 
+  const serialSuffix = String(deal.id || deal._id || "1042")
+    .slice(-4)
+    .toUpperCase();
+
+  const isSoldOut =
+    deal.availableQuantity === 0 || deal.vouchersLeft === 0;
+
   return (
     <article
       onClick={handleClick}
-      className="group relative flex flex-col h-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_16px_36px_rgba(0,0,0,0.09)] cursor-pointer"
+      className={`group relative flex h-full flex-col overflow-hidden rounded-xl border transition-all duration-150 cursor-pointer ${
+        timer.isExpired
+          ? "border-[#E6E0D6] bg-[#F7F4EE]/70 opacity-80 hover:border-[#7B7266]"
+          : "border-[#E6E0D6] bg-[#FDFBF7] hover:border-[#1F1B16]/35 shadow-[0_1px_3px_rgba(31,27,22,0.03)] hover:shadow-[0_4px_16px_rgba(31,27,22,0.06)]"
+      }`}
     >
-      {/* Image & Floating Overlays */}
-      <div className="relative h-48 w-full overflow-hidden bg-gray-100">
+      {/* Image & Clean Overlays */}
+      <div className="relative h-44 w-full overflow-hidden border-b border-[#E6E0D6] bg-[#EFE9DF]">
         <img
           src={deal.image}
           alt={deal.title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-108"
+          className={`h-full w-full object-cover transition-transform duration-300 ${
+            timer.isExpired ? "grayscale-50 contrast-90" : "group-hover:scale-102"
+          }`}
           loading="lazy"
         />
 
-        {/* Gradient dark scrim for bottom badges */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
-
-        {/* Discount Badge */}
-        <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#E8503A] px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-white shadow-md">
-          <Sparkles size={11} />
+        {/* Discount Tag */}
+        <div className="absolute left-3 top-3 inline-flex items-center rounded-md bg-[#D94832] px-2 py-0.5 font-mono text-[11px] font-medium text-white tabular-nums shadow-xs">
           {deal.discount}
         </div>
 
-        {/* Favorite Heart Button (Member 3) */}
+        {/* Expired / Sold Out Overlay Tag */}
+        {timer.isExpired ? (
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-md bg-[#1F1B16]/90 px-3 py-1 font-mono text-[12px] font-medium text-white backdrop-blur-xs shadow-md">
+            OFFER EXPIRED
+          </div>
+        ) : isSoldOut ? (
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-md bg-[#1F1B16]/90 px-3 py-1 font-mono text-[12px] font-medium text-white backdrop-blur-xs shadow-md">
+            BATCH SOLD OUT
+          </div>
+        ) : null}
+
+        {/* Save Button */}
         <button
           onClick={handleFavoriteToggle}
-          className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md shadow-sm transition-all duration-200 active:scale-90 ${
+          className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border transition-colors duration-150 cursor-pointer ${
             isFavorite
-              ? "bg-[#E8503A] text-white"
-              : "bg-white/90 text-gray-600 hover:bg-white hover:text-[#E8503A]"
+              ? "border-[#D94832] bg-[#D94832] text-white"
+              : "border-[#E6E0D6] bg-[#FDFBF7]/95 text-[#5E554A] hover:text-[#1F1B16]"
           }`}
-          aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"}
+          aria-label={isFavorite ? "Remove from saved deals" : "Save deal"}
         >
-          <Heart size={15} className={isFavorite ? "fill-white" : ""} />
+          <Heart size={15} strokeWidth={1.5} className={isFavorite ? "fill-white" : ""} />
         </button>
 
-        {/* Category Pill Over Image */}
-        <div className="absolute bottom-3 left-3 rounded-lg bg-black/60 px-2.5 py-0.5 text-[11px] font-semibold text-white/95 backdrop-blur-md">
-          {deal.category}
-        </div>
+        {/* Category Tag */}
+        {deal.category && (
+          <div className="absolute bottom-2.5 left-3 rounded-md bg-[#1F1B16]/85 px-2 py-0.5 text-[11px] font-normal text-[#FDFBF7]">
+            {deal.category}
+          </div>
+        )}
       </div>
 
       {/* Card Body */}
       <div className="flex flex-1 flex-col justify-between p-5">
         <div>
-          {/* Business / Merchant */}
-          <p className="text-[12px] font-bold uppercase tracking-wider text-[#E8503A]">
-            {deal.business}
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="truncate text-[12px] font-medium text-[#7B7266]">
+              {deal.business}
+            </p>
+            <span className="font-mono text-[11px] text-[#7B7266] tabular-nums">
+              HMU-{serialSuffix}
+            </span>
+          </div>
 
-          {/* Deal Title */}
-          <h3 className="mt-1 text-[16px] font-bold leading-snug text-gray-900 group-hover:text-[#E8503A] transition-colors line-clamp-1">
+          <h3 className="mt-1 text-[16px] font-medium leading-snug text-[#1F1B16] group-hover:text-[#D94832] transition-colors duration-150 line-clamp-1">
             {deal.title}
           </h3>
 
-          {/* Distance & Real-Time Countdown Indicators */}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-md bg-gray-100/80 px-2 py-0.5 text-[11px] font-semibold text-gray-700">
-              <MapPin size={12} className="text-[#E8503A]" />
-              {deal.distanceText || deal.distance || "Nearby"}
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-[#5E554A]">
+            <span className="inline-flex items-center gap-1 rounded-md border border-[#E6E0D6] bg-[#F7F4EE] px-2 py-0.5">
+              <MapPin size={12} strokeWidth={1.5} className="text-[#7B7266]" />
+              <span>{deal.distanceText || deal.distance || "Nearby"}</span>
             </span>
 
-            <span className="inline-flex items-center gap-1 rounded-md bg-[#FFF0ED] px-2 py-0.5 text-[11px] font-bold text-[#E8503A]">
-              <Clock3 size={12} />
-              {deal.time || "Limited time"}
+            {/* Live Ticking Countdown */}
+            <span
+              className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-[11px] tabular-nums ${
+                timer.isExpired
+                  ? "border-[#B91C1C]/25 bg-[#B91C1C]/10 text-[#B91C1C]"
+                  : timer.isUrgent
+                  ? "border-[#D94832]/30 bg-[#D94832]/10 text-[#D94832] font-semibold"
+                  : "border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A]"
+              }`}
+            >
+              {timer.isExpired ? (
+                <AlertCircle size={12} strokeWidth={1.5} className="text-[#B91C1C]" />
+              ) : (
+                <Clock3
+                  size={12}
+                  strokeWidth={1.5}
+                  className={timer.isUrgent ? "text-[#D94832] animate-pulse" : "text-[#D94832]"}
+                />
+              )}
+              <span>{timer.text}</span>
             </span>
           </div>
         </div>
 
-        {/* Price & Action Row (Always pinned to bottom) */}
-        <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
-          <div className="flex flex-col">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-[19px] font-black text-gray-900">
+        {/* Signature Perforated Divider & Price Stub */}
+        <div className="mt-4">
+          <div className="ticket-divider mb-3.5" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-baseline gap-1.5 font-mono tabular-nums">
+              <span className="text-[17px] font-medium text-[#1F1B16]">
                 {deal.price}
               </span>
               {deal.oldPrice && (
-                <span className="text-[12px] font-semibold text-gray-400 line-through">
+                <span className="text-[12px] text-[#7B7266] line-through">
                   {deal.oldPrice}
                 </span>
               )}
             </div>
-            <span className="text-[10px] font-medium text-emerald-600">
-              Limited vouchers left
-            </span>
-          </div>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClick();
-            }}
-            className="inline-flex items-center gap-1 rounded-xl bg-[#172026] px-3.5 py-2 text-[12px] font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#E8503A] hover:shadow-md active:scale-95"
-          >
-            <span>View Deal</span>
-            <ArrowRight size={13} />
-          </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClick();
+              }}
+              className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 cursor-pointer ${
+                timer.isExpired
+                  ? "border-[#E6E0D6] bg-[#EFE9DF] text-[#7B7266]"
+                  : "border-[#E6E0D6] bg-[#F7F4EE] text-[#1F1B16] group-hover:border-[#1F1B16] group-hover:bg-[#1F1B16] group-hover:text-[#FDFBF7]"
+              }`}
+            >
+              <span>{timer.isExpired ? "Ended" : "View pass"}</span>
+              <ArrowUpRight size={13} strokeWidth={1.5} />
+            </button>
+          </div>
         </div>
       </div>
     </article>

@@ -155,7 +155,7 @@ const createUserPinIcon = () => {
   });
 };
 
-function MapDiscoveryView({ onSelectDeal }) {
+function MapDiscoveryView({ onSelectDeal, fullView = false }) {
   const mapContainerRef = useRef(null);
   const leafletMapRef = useRef(null);
   const markersGroupRef = useRef(null);
@@ -544,7 +544,13 @@ function MapDiscoveryView({ onSelectDeal }) {
         {/* Real Interactive Map Canvas */}
         <div
           className={`relative w-full rounded-2xl bg-gray-100 border-2 border-gray-200/90 overflow-hidden shadow-inner transition-all duration-300 ${
-            isExpanded ? "h-[560px]" : "h-[440px]"
+            fullView
+              ? isExpanded
+                ? "h-[85vh] min-h-[680px]"
+                : "h-[calc(100vh-280px)] min-h-[540px]"
+              : isExpanded
+              ? "h-[600px]"
+              : "h-[450px]"
           }`}
         >
           {loading && markers.length === 0 ? (

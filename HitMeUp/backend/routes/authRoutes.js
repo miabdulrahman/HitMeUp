@@ -11,14 +11,14 @@ const {
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
+const {googleLogin} = require("../controllers/googleAuthController")
+
 const router = express.Router();
 
 // Public Authentication & OTP Endpoints
 router.post("/register", register);
 router.post("/login", login);
-router.post("/send-otp", sendOtp);
-router.post("/verify-otp", verifyOtp);
-router.post("/reset-password", resetPassword);
+router.post("/google", googleLogin);
 
 // Protected routes (any authenticated user: customer, business, admin)
 router.get("/me", protect, getMe);

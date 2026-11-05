@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Mail,
@@ -14,11 +14,12 @@ import {
   QrCode,
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
+import GoogleSignInButton from "../../components/GoogleSignInButton";
 import ForgotPasswordModal from "../../components/auth/ForgotPasswordModal";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -30,6 +31,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   const handleChange = (e) => {
@@ -64,6 +66,34 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  const handleGoogleSuccess = useCallback(async (credential) => {
+    setError("");
+    setGoogleLoading(true);
+
+    try {
+      const user = await loginWithGoogle(credential);
+      navigate(
+        user?.role === "business" || user?.role === "seller"
+          ? "/seller/dashboard"
+          : "/customer/dashboard"
+      );
+    } catch (err) {
+      console.error("Google login error:", err);
+      setError(err.message || "Google sign-in failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  }, [loginWithGoogle, navigate]);
+
+  const handleGoogleError = useCallback((err) => {
+    setError(err.message || "Google sign-in failed. Please try again.");
+  }, []);
+
+  const handlePasswordResetSuccess = useCallback(({ email, message }) => {
+    setFormData((previous) => ({ ...previous, email }));
+    setSuccessMessage(message);
+  }, []);
 
   const fillDemo = (role) => {
     if (role === "admin") {
@@ -350,6 +380,18 @@ const Login = () => {
               </button>
             </form>
 
+            <div className="my-5 flex items-center gap-3 text-[11px] text-[#7B7266]">
+              <span className="h-px flex-1 bg-[#E6E0D6]" />
+              <span>OR</span>
+              <span className="h-px flex-1 bg-[#E6E0D6]" />
+            </div>
+
+            <GoogleSignInButton
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              disabled={loading || googleLoading}
+            />
+
             <div className="mt-8 border-t border-[#E6E0D6] pt-6 text-center">
               <p className="text-[13px] text-[#5E554A]">
                 Don&apos;t have an account yet?{" "}
@@ -370,10 +412,7 @@ const Login = () => {
         isOpen={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
         initialEmail={formData.email}
-        onSuccess={({ email, message }) => {
-          setSuccessMessage(message);
-          setFormData((prev) => ({ ...prev, email }));
-        }}
+        onSuccess={handlePasswordResetSuccess}
       />
     </div>
   );

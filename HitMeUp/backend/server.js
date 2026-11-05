@@ -29,6 +29,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const voucherRoutes = require("./routes/voucherRoutes");
 const discoveryRoutes = require("./routes/discoveryRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
@@ -104,6 +105,9 @@ app.use("/api/vouchers", voucherRoutes);
 
 // Member 3: Deal Discovery, Location, Favorites & Reviews
 app.use("/api/discovery", discoveryRoutes);
+
+// Platform Administration Console (Admin RBAC enforced)
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 

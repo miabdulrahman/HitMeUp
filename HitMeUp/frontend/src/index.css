@@ -247,3 +247,10 @@ body:has(.dashboard-page) {
     animation: none;
   }
 }
+
+/* HitMeUp Platform Admin Canvas */
+body:has(.admin-shell) {
+  background-color: #F8F9FB;
+  color: #111827;
+}
+

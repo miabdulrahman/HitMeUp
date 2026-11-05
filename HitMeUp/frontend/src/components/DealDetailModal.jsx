@@ -10,14 +10,14 @@ import {
   Ticket,
   ArrowRight,
   Star,
-  Info,
   Copy,
   AlertCircle,
   QrCode,
+  CreditCard,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import { voucherApi } from "../services/api";
+import { voucherApi, orderApi } from "../services/api";
 import DealReviewsSection from "./DealReviewsSection";
 import { calculateDealTimer } from "../utils/dealTimer";
 
@@ -73,6 +73,40 @@ function DealDetailModal({ deal, isOpen, onClose }) {
     navigator.clipboard?.writeText(code);
     setVoucherCopied(true);
     setTimeout(() => setVoucherCopied(false), 2500);
+  };
+
+  const handleBuyWithPay = async () => {
+    if (timer.isExpired) {
+      setClaimError("This flash deal has expired.");
+      return;
+    }
+
+    if (!isAuthenticated) {
+      navigate("/login", {
+        state: { notice: "Sign in to buy this voucher with HitMeUp Pay" },
+      });
+      return;
+    }
+
+    const dealId = deal._id || deal.id;
+    if (!dealId) {
+      setClaimError("Deal reference not available");
+      return;
+    }
+
+    setClaiming(true);
+    setClaimError("");
+
+    try {
+      const orderRes = await orderApi.createOrder({ dealId, quantity: 1 });
+      const order = orderRes.order || orderRes.data;
+      navigate(`/pay/checkout/${order._id}`);
+    } catch (err) {
+      console.error("Create order error:", err);
+      setClaimError(err.message || "Failed to start checkout. Deal may be sold out.");
+    } finally {
+      setClaiming(false);
+    }
   };
 
   const handleClaim = async () => {
@@ -419,24 +453,27 @@ function DealDetailModal({ deal, isOpen, onClose }) {
                     <span>Batch sold out</span>
                   </div>
                 ) : (
-                  <button
-                    onClick={handleClaim}
-                    disabled={claiming}
-                    className="flex h-11 w-full flex-1 items-center justify-center gap-2 rounded-lg bg-[#D94832] px-6 text-[14px] font-medium text-white transition-colors duration-150 hover:bg-[#C23B26] disabled:opacity-60 cursor-pointer"
-                  >
-                    {claiming ? (
-                      <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        <span>Issuing voucher pass...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Ticket size={16} strokeWidth={1.5} />
-                        <span>Claim voucher pass</span>
-                        <ArrowRight size={15} strokeWidth={1.5} />
-                      </>
-                    )}
-                  </button>
+                  <div className="flex flex-1 flex-col sm:flex-row gap-2 w-full">
+                    <button
+                      onClick={handleBuyWithPay}
+                      disabled={claiming}
+                      className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#E8503A] px-4 text-[13px] font-semibold text-white transition-all hover:bg-[#d4432f] active:scale-[0.99] disabled:opacity-60 cursor-pointer shadow-xs"
+                    >
+                      <CreditCard size={15} />
+                      <span>Buy with HitMeUp Pay</span>
+                      <ArrowRight size={14} />
+                    </button>
+
+                    <button
+                      onClick={handleClaim}
+                      disabled={claiming}
+                      className="flex h-11 items-center justify-center gap-1.5 rounded-lg border border-[#E6E0D6] bg-white px-3 text-[12px] font-medium text-[#5E554A] transition-colors hover:bg-[#F7F4EE] disabled:opacity-60 cursor-pointer"
+                      title="Direct free voucher pass"
+                    >
+                      <Ticket size={14} />
+                      <span className="hidden sm:inline">Free Claim</span>
+                    </button>
+                  </div>
                 )}
               </div>
             )}

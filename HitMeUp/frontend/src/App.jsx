@@ -10,6 +10,12 @@ import SellerDashboard from "./pages/sellers/SellerDashboard";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 
+// HitMeUp Pay Pages
+import CheckoutPage from "./pages/pay/CheckoutPage";
+import ResultPage from "./pages/pay/ResultPage";
+import ReceiptPage from "./pages/pay/ReceiptPage";
+import PaymentDashboard from "./pages/dashboard/PaymentDashboard";
+
 // Administrative Portal Components
 import AdminRoute from "./components/admin/AdminRoute";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -57,6 +63,12 @@ function App() {
             <Route path="/customer/dashboard" element={<CustomerDashBoard />} />
             <Route path="/seller/dashboard" element={<SellerDashboard />} />
             <Route path="/dashboard" element={<DashboardRedirect />} />
+
+            {/* HitMeUp Pay Routes */}
+            <Route path="/pay/checkout/:orderId" element={<CheckoutPage />} />
+            <Route path="/pay/result/:transactionId" element={<ResultPage />} />
+            <Route path="/pay/receipt/:paymentId" element={<ReceiptPage />} />
+            <Route path="/dashboard/payments" element={<PaymentDashboard />} />
 
             {/* HitMeUp Platform Administration Portal */}
             <Route

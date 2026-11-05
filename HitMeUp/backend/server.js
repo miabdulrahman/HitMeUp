@@ -26,6 +26,7 @@ const authRoutes = require("./routes/authRoutes");
 const businessRoutes = require("./routes/businessRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const gatewayRoutes = require("./routes/gatewayRoutes");
 const voucherRoutes = require("./routes/voucherRoutes");
 const discoveryRoutes = require("./routes/discoveryRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
@@ -101,6 +102,7 @@ app.use("/api/deals", dealRoutes);
 // Member 4: Orders, Payments & Vouchers
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/gateway", gatewayRoutes);
 app.use("/api/vouchers", voucherRoutes);
 
 // Member 3: Deal Discovery, Location, Favorites & Reviews

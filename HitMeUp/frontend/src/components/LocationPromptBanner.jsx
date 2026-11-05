@@ -1,7 +1,9 @@
 import { Navigation, MapPin, X } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { useLocationContext } from "../context/LocationContext";
 
 function LocationPromptBanner() {
+  const location = useLocation();
   const {
     showPrompt,
     hasRealLocation,
@@ -10,7 +12,8 @@ function LocationPromptBanner() {
     dismissPrompt,
   } = useLocationContext();
 
-  // If already granted, or dismissed, do not render banner
+  // Suppress banner on administrative portal, or if already granted / dismissed
+  if (location.pathname.startsWith("/admin")) return null;
   if (!showPrompt || hasRealLocation) return null;
 
   return (

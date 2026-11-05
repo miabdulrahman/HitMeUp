@@ -67,7 +67,12 @@ function Navbar() {
   ];
 
   const isSeller = user?.role === "seller" || user?.role === "business";
-  const dashboardPath = isSeller ? "/seller/dashboard" : "/customer/dashboard";
+  const dashboardPath =
+    user?.role === "admin"
+      ? "/admin"
+      : isSeller
+      ? "/seller/dashboard"
+      : "/customer/dashboard";
 
   return (
     <>

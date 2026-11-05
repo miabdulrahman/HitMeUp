@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
 import GoogleSignInButton from "../../components/GoogleSignInButton";
+import ForgotPasswordModal from "../../components/auth/ForgotPasswordModal";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ const Login = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -86,6 +88,11 @@ const Login = () => {
 
   const handleGoogleError = useCallback((err) => {
     setError(err.message || "Google sign-in failed. Please try again.");
+  }, []);
+
+  const handlePasswordResetSuccess = useCallback(({ email, message }) => {
+    setFormData((previous) => ({ ...previous, email }));
+    setSuccessMessage(message);
   }, []);
 
   const fillDemo = (role) => {
@@ -405,10 +412,7 @@ const Login = () => {
         isOpen={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
         initialEmail={formData.email}
-        onSuccess={({ email, message }) => {
-          setSuccessMessage(message);
-          setFormData((prev) => ({ ...prev, email }));
-        }}
+        onSuccess={handlePasswordResetSuccess}
       />
     </div>
   );

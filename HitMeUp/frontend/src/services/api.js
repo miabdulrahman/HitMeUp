@@ -62,6 +62,12 @@ export const authApi = {
       body: userData,
     }),
 
+  googleLogin: (credential) =>
+    apiRequest("/auth/google", {
+      method: "POST",
+      body: { credential },
+    }),
+
   getMe: () => apiRequest("/auth/me"),
 
   updateProfile: (profileData) =>

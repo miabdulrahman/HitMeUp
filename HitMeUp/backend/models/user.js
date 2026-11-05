@@ -20,9 +20,23 @@ const userSchema = new mongoose.Schema(
         "Please provide a valid email address"
       ]
     },
+
+    googleId:{
+      type:String,
+      unique:true,
+      sparse:true
+    },
+
+    authProvider:{
+      type:String,
+      enum:["local", "google"],
+      default:"local"
+    },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function(){
+        return this.authProvider === "local";
+      },
       minlength: [6, "Password must be at least 6 characters"],
       select: false // Exclude password from query results by default
     },
@@ -77,6 +91,9 @@ userSchema.pre("save", async function () {
 
 // Compare candidate password with hashed password
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if(!this.password){
+    return false;
+  }
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

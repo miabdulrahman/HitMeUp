@@ -1,37 +1,39 @@
 const nodemailer = require("nodemailer");
 
 /**
- * Creates and returns a configured Nodemailer transporter if environment variables exist.
- * Supports standard SMTP (host/port/user/pass) or direct service (e.g. Gmail).
+ * Creates and returns a Nodemailer transporter configured strictly for Google (Gmail).
+ * Requires EMAIL_USER (Gmail address) and EMAIL_PASS (16-character Google App Password).
  */
-const getTransporter = () => {
-  const user = process.env.SMTP_USER || process.env.EMAIL_USER;
-  const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
-  const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT) || 587;
+const getGoogleTransporter = () => {
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASS;
 
-  if (host && user && pass) {
-    return nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: { user, pass }
-    });
+  if (!user || !pass) {
+    return null;
   }
 
-  if (user && pass) {
-    return nodemailer.createTransport({
-      service: "gmail",
-      auth: { user, pass }
-    });
-  }
-
-  return null;
+  return nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user,
+      pass
+    },
+    tls: {
+      rejectUnauthorized: false
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000
+  });
 };
 
 /**
- * Sends a 6-digit OTP verification email for account registration or password reset.
- * Falls back to console delivery in development environments when SMTP credentials are not configured.
+ * Sends a 6-digit OTP verification email strictly using Google (Gmail).
+ * If EMAIL_USER or EMAIL_PASS are not configured or connection times out,
+ * safely falls back to console logging so development/tests are never blocked.
  *
  * @param {Object} options
  * @param {string} options.to - Recipient email address
@@ -89,28 +91,30 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
     </html>
   `;
 
-  const transporter = getTransporter();
+  const textContent = `${purposeHeading}\n\n${purposeText}\n\nYour 6-digit code: ${otp}\n(Expires in 15 minutes)\n\nIf you did not request this, please ignore.`;
+
+  const transporter = getGoogleTransporter();
 
   if (transporter) {
     try {
-      const from =
-        process.env.EMAIL_FROM ||
-        `"HitMeUp Security" <${process.env.SMTP_USER || process.env.EMAIL_USER || "c192fb001@smtp-brevo.com"}>`;
+      const from = process.env.EMAIL_FROM || `"HitMeUp Security" <${process.env.EMAIL_USER}>`;
       const info = await transporter.sendMail({
         from,
         to,
         subject,
-        text: `${purposeHeading}\n\n${purposeText}\n\nYour 6-digit code: ${otp}\n(Expires in 15 minutes)\n\nIf you did not request this, please ignore.`,
+        text: textContent,
         html: htmlContent
       });
-      console.log(`[HitMeUp Email Service] ✓ Sent OTP email to ${to} (MessageID: ${info.messageId})`);
-      return { delivered: true, provider: "smtp" };
+      console.log(`[HitMeUp Email Service] ✓ Sent Google OTP email to ${to} (MessageID: ${info.messageId})`);
+      return { delivered: true, provider: "google" };
     } catch (err) {
-      console.warn(`[HitMeUp Email Service] SMTP send failed (${err.message}). Falling back to console logging.`);
+      console.warn(`[HitMeUp Email Service] Google SMTP send failed (${err.message}). Falling back to console logging.`);
     }
+  } else {
+    console.warn("[HitMeUp Email Service] EMAIL_USER or EMAIL_PASS not configured. Falling back to console logging.");
   }
 
-  // Development Fallback Console Log
+  // Fallback Console Log (for local testing or when email providers are not reachable)
   console.log("\n========================================================================");
   console.log(`[HitMeUp Email Service] ✉️  SIMULATED EMAIL DISPATCH`);
   console.log(`Recipient : ${to}`);
@@ -126,4 +130,3 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
 module.exports = {
   sendOtpEmail
 };
-

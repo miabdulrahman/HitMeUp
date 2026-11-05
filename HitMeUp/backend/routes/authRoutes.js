@@ -4,7 +4,10 @@ const {
   login,
   getMe,
   updateProfile,
-  changePassword
+  changePassword,
+  sendOtp,
+  verifyOtp,
+  resetPassword
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -12,7 +15,7 @@ const {googleLogin} = require("../controllers/googleAuthController")
 
 const router = express.Router();
 
-// Public routes
+// Public Authentication & OTP Endpoints
 router.post("/register", register);
 router.post("/login", login);
 router.post("/google", googleLogin);

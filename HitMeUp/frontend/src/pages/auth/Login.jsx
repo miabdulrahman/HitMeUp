@@ -10,6 +10,7 @@ import {
   Clock,
   MapPin,
   AlertCircle,
+  CheckCircle2,
   QrCode,
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
@@ -27,6 +28,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -36,17 +38,21 @@ const Login = () => {
       [e.target.name]: e.target.value,
     }));
     if (error) setError("");
+    if (successMessage) setSuccessMessage("");
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     try {
       const user = await login(formData.email.trim(), formData.password);
 
-      if (user?.role === "business" || user?.role === "seller") {
+      if (user?.role === "admin") {
+        navigate("/admin");
+      } else if (user?.role === "business" || user?.role === "seller") {
         navigate("/seller/dashboard");
       } else {
         navigate("/customer/dashboard");
@@ -83,7 +89,12 @@ const Login = () => {
   }, []);
 
   const fillDemo = (role) => {
-    if (role === "customer") {
+    if (role === "admin") {
+      setFormData({
+        email: "admin@hitmeup.com",
+        password: "Password123!",
+      });
+    } else if (role === "customer") {
       setFormData({
         email: "customer@hitmeup.com",
         password: "Password123!",
@@ -95,6 +106,7 @@ const Login = () => {
       });
     }
     setError("");
+    setSuccessMessage("");
   };
 
   return (
@@ -221,8 +233,26 @@ const Login = () => {
                 >
                   Merchant
                 </button>
+                <button
+                  type="button"
+                  onClick={() => fillDemo("admin")}
+                  className="rounded-md border border-[#BFDBFE] bg-[#EFF6FF] px-2.5 py-1 text-[12px] font-medium text-[#1D4ED8] transition-colors hover:border-[#1D4ED8] cursor-pointer"
+                >
+                  Admin
+                </button>
               </div>
             </div>
+
+            {/* Success Alert Banner */}
+            {successMessage && (
+              <div
+                className="mt-5 flex items-start gap-2.5 rounded-lg border border-[#166534]/25 bg-[#166534]/5 p-3.5 text-[13px] text-[#166534]"
+                role="status"
+              >
+                <CheckCircle2 size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" />
+                <div>{successMessage}</div>
+              </div>
+            )}
 
             {/* Error Alert Banner */}
             {error && (
@@ -270,18 +300,17 @@ const Login = () => {
                   >
                     Password
                   </label>
-                  <Link
-                    to="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert(
-                        "Contact support@hitmeup.com to reset your account credentials."
-                      );
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError("");
+                      setSuccessMessage("");
+                      setForgotPasswordOpen(true);
                     }}
-                    className="text-[12px] font-medium text-[#5E554A] hover:text-[#1F1B16]"
+                    className="text-[12px] font-medium text-[#5E554A] hover:text-[#D94832] transition-colors cursor-pointer"
                   >
                     Forgot password?
-                  </Link>
+                  </button>
                 </div>
                 <div className="relative flex items-center">
                   <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
@@ -293,7 +322,7 @@ const Login = () => {
                     name="password"
                     autoComplete="current-password"
                     required
-                    placeholder="Enter your password"
+                    placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
                     className="h-11 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-10 text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
@@ -301,7 +330,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 p-1 text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
+                    className="absolute right-3 text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
@@ -314,16 +343,14 @@ const Login = () => {
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2 select-none cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded border-[#E6E0D6] accent-[#D94832] cursor-pointer"
+                    className="h-4 w-4 rounded border-[#E6E0D6] text-[#D94832] focus:ring-[#D94832]"
                   />
-                  <span className="text-[13px] text-[#5E554A]">
-                    Keep me signed in
-                  </span>
+                  <span className="text-[13px] text-[#5E554A]">Remember this browser</span>
                 </label>
               </div>
 
@@ -372,6 +399,17 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={forgotPasswordOpen}
+        onClose={() => setForgotPasswordOpen(false)}
+        initialEmail={formData.email}
+        onSuccess={({ email, message }) => {
+          setSuccessMessage(message);
+          setFormData((prev) => ({ ...prev, email }));
+        }}
+      />
     </div>
   );
 };

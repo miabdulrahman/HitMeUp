@@ -89,6 +89,31 @@ const businessSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "inactive", "pending"],
       default: "active"
+    },
+    // Platform Administration onboarding & moderation metadata (optional, backward-compatible)
+    applicationStatus: {
+      type: String,
+      enum: ["pending", "under_review", "approved", "rejected"],
+      default: "pending"
+    },
+    rejectionReason: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    suspensionReason: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null
+    },
+    reviewedAt: {
+      type: Date,
+      default: null
     }
   },
   {

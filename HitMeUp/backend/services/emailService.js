@@ -5,60 +5,68 @@ const nodemailer = require("nodemailer");
  * Unlike SMTP (ports 587/465), HTTPS is NEVER blocked by Render Free Tier.
  */
 const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
-  // Option 1: Resend REST API (https://resend.com - Free 3,000 emails/month on Port 443)
-  if (process.env.RESEND_API_KEY) {
-    const from = process.env.RESEND_FROM || process.env.EMAIL_FROM || "HitMeUp <onboarding@resend.dev>";
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        subject,
-        html: htmlContent,
-        text: textContent
-      })
-    });
+  // Option 1: Brevo REST API v3 (Port 443 HTTPS - Can send to ANY email address without domain verification!)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.EMAIL_USER || "m.i.abdulrahmanar@gmail.com";
+      const senderName = process.env.BREVO_SENDER_NAME || "HitMeUp Security";
+      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+          accept: "application/json"
+        },
+        body: JSON.stringify({
+          sender: { name: senderName, email: senderEmail },
+          to: [{ email: to }],
+          subject,
+          htmlContent,
+          textContent
+        })
+      });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(`Resend API (${res.status}): ${data.message || JSON.stringify(data)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(`Brevo API (${res.status}): ${data.message || JSON.stringify(data)}`);
+      }
+
+      console.log(`[HitMeUp Email Service] ✓ Sent OTP via Brevo API (MessageId: ${data.messageId}) to ${to}`);
+      return { delivered: true, provider: "brevo_api", id: data.messageId };
+    } catch (brevoErr) {
+      console.warn(`[HitMeUp Email Service] Brevo API attempt failed: ${brevoErr.message}`);
     }
-
-    console.log(`[HitMeUp Email Service] ✓ Sent OTP via Resend API (ID: ${data.id}) to ${to}`);
-    return { delivered: true, provider: "resend", id: data.id };
   }
 
-  // Option 2: Brevo REST API v3 (https://brevo.com - Port 443 HTTPS)
-  if (process.env.BREVO_API_KEY) {
-    const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.EMAIL_USER || "m.i.abdulrahmanar@gmail.com";
-    const senderName = process.env.BREVO_SENDER_NAME || "HitMeUp Security";
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": process.env.BREVO_API_KEY,
-        "Content-Type": "application/json",
-        accept: "application/json"
-      },
-      body: JSON.stringify({
-        sender: { name: senderName, email: senderEmail },
-        to: [{ email: to }],
-        subject,
-        htmlContent,
-        textContent
-      })
-    });
+  // Option 2: Resend REST API (https://resend.com - Port 443 HTTPS, requires domain verification to send to non-owner emails)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const from = process.env.RESEND_FROM || process.env.EMAIL_FROM || "HitMeUp <onboarding@resend.dev>";
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from,
+          to: [to],
+          subject,
+          html: htmlContent,
+          text: textContent
+        })
+      });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(`Brevo API (${res.status}): ${data.message || JSON.stringify(data)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(`Resend API (${res.status}): ${data.message || JSON.stringify(data)}`);
+      }
+
+      console.log(`[HitMeUp Email Service] ✓ Sent OTP via Resend API (ID: ${data.id}) to ${to}`);
+      return { delivered: true, provider: "resend", id: data.id };
+    } catch (resendErr) {
+      console.warn(`[HitMeUp Email Service] Resend API attempt failed: ${resendErr.message}`);
     }
-
-    console.log(`[HitMeUp Email Service] ✓ Sent OTP via Brevo API (MessageId: ${data.messageId}) to ${to}`);
-    return { delivered: true, provider: "brevo_api", id: data.messageId };
   }
 
   return null;
@@ -88,15 +96,15 @@ const getGoogleTransporter = () => {
     tls: {
       rejectUnauthorized: false
     },
-    connectionTimeout: 8000,
-    greetingTimeout: 8000,
-    socketTimeout: 12000
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 8000
   });
 };
 
 /**
  * Sends a 6-digit OTP verification email for account registration or password reset.
- * 1. Checks for HTTP REST API (Resend / Brevo) - works on Render Free Tier (Port 443).
+ * 1. Checks for HTTP REST API (Brevo / Resend) - works on Render Free Tier (Port 443).
  * 2. Falls back to Google Gmail SMTP - works on Localhost & Paid Render.
  * 3. Falls back to console log if no provider is reachable.
  *

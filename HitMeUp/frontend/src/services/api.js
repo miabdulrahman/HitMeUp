@@ -81,6 +81,24 @@ export const authApi = {
       method: "PUT",
       body: passwords,
     }),
+
+  sendOtp: ({ email, purpose }) =>
+    apiRequest("/auth/send-otp", {
+      method: "POST",
+      body: { email, purpose },
+    }),
+
+  verifyOtp: ({ email, otp, purpose }) =>
+    apiRequest("/auth/verify-otp", {
+      method: "POST",
+      body: { email, otp, purpose },
+    }),
+
+  resetPassword: ({ email, otp, newPassword }) =>
+    apiRequest("/auth/reset-password", {
+      method: "POST",
+      body: { email, otp, newPassword },
+    }),
 };
 
 // ----------------------------------------------------------------------
@@ -149,24 +167,100 @@ export const dealApi = {
 };
 
 // ----------------------------------------------------------------------
-// Orders Endpoints (Member 4)
+// Orders Endpoints (Member 4 - HitMeUp Pay)
 // ----------------------------------------------------------------------
 export const orderApi = {
-  createOrder: ({ dealId }) =>
+  createOrder: ({ dealId, quantity = 1 }) =>
     apiRequest("/orders", {
       method: "POST",
-      body: { dealId },
+      body: { dealId, quantity },
     }),
 
   getMyOrders: () => apiRequest("/orders"),
 
   getOrderById: (id) => apiRequest(`/orders/${id}`),
+
+  cancelOrder: (id) =>
+    apiRequest(`/orders/${id}/cancel`, {
+      method: "POST",
+    }),
+
+  getBusinessOrders: () => apiRequest("/orders/business"),
 };
 
 // ----------------------------------------------------------------------
-// Payments Endpoints (Member 4)
+// HitMeUp Pay: Simulated Gateway Endpoints
+// ----------------------------------------------------------------------
+export const gatewayApi = {
+  getCheckoutSession: (orderId) =>
+    apiRequest("/gateway/checkout", {
+      method: "POST",
+      body: { orderId },
+    }),
+
+  processPayment: ({
+    orderId,
+    paymentMethod = "CARD",
+    requestedScenario = "SUCCESS",
+    brand = null,
+    last4 = null,
+    idempotencyKey = null,
+  }) => {
+    const headers = {};
+    if (idempotencyKey) {
+      headers["Idempotency-Key"] = idempotencyKey;
+    }
+    return apiRequest("/gateway/process", {
+      method: "POST",
+      headers,
+      body: {
+        orderId,
+        paymentMethod,
+        requestedScenario,
+        brand,
+        last4,
+        idempotencyKey,
+      },
+    });
+  },
+
+  getTransactions: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/gateway/transactions${query ? `?${query}` : ""}`);
+  },
+
+  getTransactionById: (id) =>
+    apiRequest(`/gateway/transactions/${encodeURIComponent(String(id || "").trim())}`),
+
+  resolveTransaction: (id) =>
+    apiRequest(`/gateway/transactions/${encodeURIComponent(String(id || "").trim())}/resolve`, {
+      method: "POST",
+    }),
+};
+
+// ----------------------------------------------------------------------
+// Payments & Analytics Endpoints (Member 4 - HitMeUp Pay)
 // ----------------------------------------------------------------------
 export const paymentApi = {
+  getMyPayments: () => apiRequest("/payments/my-payments"),
+
+  getAllPayments: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/payments${query ? `?${query}` : ""}`);
+  },
+
+  getPaymentById: (id) => apiRequest(`/payments/${id}`),
+
+  getDashboardSummary: () => apiRequest("/payments/dashboard/summary"),
+
+  refundPayment: (paymentId, reason = "") =>
+    apiRequest(`/payments/${paymentId}/refund`, {
+      method: "POST",
+      body: { reason },
+    }),
+
+  getReceipt: (paymentId) => apiRequest(`/payments/${paymentId}/receipt`),
+
   createPayment: ({ orderId }) =>
     apiRequest("/payments/create", {
       method: "POST",
@@ -178,8 +272,6 @@ export const paymentApi = {
       method: "POST",
       body: payload,
     }),
-
-  getPaymentById: (id) => apiRequest(`/payments/${id}`),
 };
 
 // ----------------------------------------------------------------------
@@ -195,6 +287,8 @@ export const voucherApi = {
   getMyVouchers: () => apiRequest("/vouchers"),
 
   getVoucherById: (id) => apiRequest(`/vouchers/${id}`),
+
+  previewVoucherByCode: (code) => apiRequest(`/vouchers/preview/${code}`),
 
   redeemVoucher: ({ voucherCode, code, businessId }) =>
     apiRequest("/vouchers/redeem", {
@@ -309,6 +403,7 @@ export default {
   business: businessApi,
   deals: dealApi,
   orders: orderApi,
+  gateway: gatewayApi,
   payments: paymentApi,
   vouchers: voucherApi,
   ai: aiApi,

@@ -69,6 +69,10 @@ const userSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: true
     }
   },
   {
@@ -100,4 +104,26 @@ userSchema.methods.toSafeObject = function () {
   return obj;
 };
 
-module.exports = mongoose.models.User || mongoose.model("User", userSchema);
+// Register both "user" and "User" so populate("ref: 'User'") and populate("ref: 'user'") both work seamlessly
+const UserModel =
+  mongoose.models.user ||
+  mongoose.models.User ||
+  mongoose.model("user", userSchema);
+
+if (!mongoose.models.User) {
+  try {
+    mongoose.model("User", userSchema);
+  } catch (e) {
+    // Already defined
+  }
+}
+
+if (!mongoose.models.user) {
+  try {
+    mongoose.model("user", userSchema);
+  } catch (e) {
+    // Already defined
+  }
+}
+
+module.exports = UserModel;

@@ -73,9 +73,13 @@ export default function ForgotPasswordModal({
         purpose: "forgot_password"
       });
 
+      const baseMsg = res.message || `Verification code sent to ${trimmedEmail}`;
       setInfoMessage(
-        res.message || `Verification code sent to ${trimmedEmail}`
+        res.debugOtp ? `${baseMsg} (Test Code: ${res.debugOtp})` : baseMsg
       );
+      if (res.debugOtp) {
+        setOtp(res.debugOtp);
+      }
       setStep(2);
       setCountdown(60);
     } catch (err) {

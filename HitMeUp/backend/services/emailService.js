@@ -5,8 +5,8 @@ const nodemailer = require("nodemailer");
  * Supports standard SMTP (host/port/user/pass) or direct service (e.g. Gmail).
  */
 const getTransporter = () => {
-  const user = process.env.EMAIL_USER || process.env.SMTP_USER;
-  const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
+  const user = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT) || 587;
 
@@ -93,7 +93,9 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
 
   if (transporter) {
     try {
-      const from = process.env.EMAIL_FROM || `"HitMeUp Security" <${process.env.EMAIL_USER || "no-reply@hitmeup.lk"}>`;
+      const from =
+        process.env.EMAIL_FROM ||
+        `"HitMeUp Security" <${process.env.SMTP_USER || process.env.EMAIL_USER || "c192fb001@smtp-brevo.com"}>`;
       const info = await transporter.sendMail({
         from,
         to,

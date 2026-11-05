@@ -61,6 +61,7 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [devOtp, setDevOtp] = useState("");
 
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [isCityOpen, setIsCityOpen] = useState(false);
@@ -208,10 +209,13 @@ const Register = () => {
 
     try {
       // Step 1: Send 6-digit email OTP verification code
-      await authApi.sendOtp({
+      const otpRes = await authApi.sendOtp({
         email: formData.email.trim().toLowerCase(),
         purpose: "register",
       });
+      if (otpRes?.debugOtp) {
+        setDevOtp(otpRes.debugOtp);
+      }
       // Step 2: Open verification dialog
       setIsVerifyModalOpen(true);
     } catch (err) {
@@ -797,6 +801,7 @@ const Register = () => {
         isOpen={isVerifyModalOpen}
         onClose={() => setIsVerifyModalOpen(false)}
         email={formData.email}
+        initialOtp={devOtp}
         onVerified={handleCompleteRegistrationWithOtp}
         onResend={() =>
           authApi.sendOtp({

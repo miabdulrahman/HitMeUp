@@ -14,9 +14,10 @@ export default function EmailVerificationModal({
   onClose,
   email,
   onVerified,
-  onResend
+  onResend,
+  initialOtp = ""
 }) {
-  const [otp, setOtp] = useState("");
+  const [otp, setOtp] = useState(initialOtp);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [resending, setResending] = useState(false);
@@ -24,11 +25,11 @@ export default function EmailVerificationModal({
 
   useEffect(() => {
     if (isOpen) {
-      setOtp("");
+      setOtp(initialOtp || "");
       setError("");
       setCountdown(60);
     }
-  }, [isOpen]);
+  }, [isOpen, initialOtp]);
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -124,6 +125,12 @@ export default function EmailVerificationModal({
           <div className="mt-4 flex items-start gap-2 rounded-lg border border-[#B91C1C]/25 bg-[#B91C1C]/5 p-3 text-[12px] text-[#B91C1C]">
             <AlertCircle size={15} className="mt-0.5 shrink-0" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {initialOtp && (
+          <div className="mt-4 rounded-lg bg-[#FAF7F2] p-2.5 text-center text-xs text-[#5E554A] border border-[#E6E0D6]">
+            Verification code: <strong className="font-mono text-[#D94832] tracking-wider">{initialOtp}</strong>
           </div>
         )}
 

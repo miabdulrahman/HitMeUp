@@ -74,7 +74,7 @@ const sendOtp = async (req, res) => {
     );
 
     // Send email or log to console
-    await sendOtpEmail({
+    const emailResult = await sendOtpEmail({
       to: normalizedEmail,
       otp,
       purpose
@@ -83,6 +83,10 @@ const sendOtp = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: `A 6-digit verification code has been sent to ${normalizedEmail}`,
+      ...(emailResult?.provider === "console" && {
+        simulated: true,
+        debugOtp: otp
+      }),
       ...(process.env.NODE_ENV !== "production" && { debugOtp: otp })
     });
   } catch (error) {

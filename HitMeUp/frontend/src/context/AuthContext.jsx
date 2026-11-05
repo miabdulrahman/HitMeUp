@@ -72,6 +72,25 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async (credential) => {
+    setError(null);
+    try {
+      const response = await authApi.googleLogin(credential);
+      const { token: receivedToken, user: receivedUser } = response;
+
+      localStorage.setItem("token", receivedToken);
+      localStorage.setItem("user", JSON.stringify(receivedUser));
+
+      setToken(receivedToken);
+      setUser(receivedUser);
+
+      return receivedUser;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
   const register = useCallback(async (userData) => {
     setError(null);
     try {
@@ -119,6 +138,7 @@ export const AuthProvider = ({ children }) => {
     isCustomer: user?.role === "customer" || user?.role === "buyer",
     isAdmin: user?.role === "admin",
     login,
+    loginWithGoogle,
     register,
     logout,
     updateProfile,

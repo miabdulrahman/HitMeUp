@@ -11,7 +11,7 @@ const {
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
-const {googleLogin} = require("../controllers/googleAuthController")
+const { googleLogin } = require("../controllers/googleAuthController");
 
 const router = express.Router();
 
@@ -19,6 +19,9 @@ const router = express.Router();
 router.post("/register", register);
 router.post("/login", login);
 router.post("/google", googleLogin);
+router.post("/send-otp", sendOtp);
+router.post("/verify-otp", verifyOtp);
+router.post("/reset-password", resetPassword);
 
 // Protected routes (any authenticated user: customer, business, admin)
 router.get("/me", protect, getMe);

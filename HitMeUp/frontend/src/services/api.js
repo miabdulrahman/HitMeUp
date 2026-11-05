@@ -75,6 +75,24 @@ export const authApi = {
       method: "PUT",
       body: passwords,
     }),
+
+  sendOtp: ({ email, purpose }) =>
+    apiRequest("/auth/send-otp", {
+      method: "POST",
+      body: { email, purpose },
+    }),
+
+  verifyOtp: ({ email, otp, purpose }) =>
+    apiRequest("/auth/verify-otp", {
+      method: "POST",
+      body: { email, otp, purpose },
+    }),
+
+  resetPassword: ({ email, otp, newPassword }) =>
+    apiRequest("/auth/reset-password", {
+      method: "POST",
+      body: { email, otp, newPassword },
+    }),
 };
 
 // ----------------------------------------------------------------------

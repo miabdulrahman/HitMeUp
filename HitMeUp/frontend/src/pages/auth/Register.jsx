@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { searchLocations } from "../../data/sriLankaLocations";
 import { useAuth } from "../../context/useAuth";
+import { authApi } from "../../services/api";
+import EmailVerificationModal from "../../components/auth/EmailVerificationModal";
 
 const BUSINESS_CATEGORIES = [
   "Restaurant",
@@ -58,6 +60,7 @@ const Register = () => {
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
 
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [isCityOpen, setIsCityOpen] = useState(false);
@@ -204,34 +207,46 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const isBusiness = formData.role === "business";
-      const payload = {
-        name: formData.name.trim(),
+      // Step 1: Send 6-digit email OTP verification code
+      await authApi.sendOtp({
         email: formData.email.trim().toLowerCase(),
-        password: formData.password,
-        phone: formData.phone.trim(),
-        role: formData.role,
-        ...(isBusiness && {
-          businessName: (formData.businessName || formData.name).trim(),
-          businessCategory: formData.businessCategory || "Restaurant",
-          city: (formData.city || "Colombo").trim(),
-        }),
-      };
-
-      const user = await register(payload);
-
-      if (user?.role === "business" || user?.role === "seller") {
-        navigate("/seller/dashboard");
-      } else {
-        navigate("/customer/dashboard");
-      }
+        purpose: "register",
+      });
+      // Step 2: Open verification dialog
+      setIsVerifyModalOpen(true);
     } catch (err) {
       console.error("Registration error:", err);
       setError(
-        err.message || "Could not create account. Please check your details."
+        err.message || "Could not send verification code. Please check your email."
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCompleteRegistrationWithOtp = async (otp) => {
+    const isBusiness = formData.role === "business";
+    const payload = {
+      name: formData.name.trim(),
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password,
+      phone: formData.phone.trim(),
+      role: formData.role,
+      otp,
+      ...(isBusiness && {
+        businessName: (formData.businessName || formData.name).trim(),
+        businessCategory: formData.businessCategory || "Restaurant",
+        city: (formData.city || "Colombo").trim(),
+      }),
+    };
+
+    const user = await register(payload);
+    setIsVerifyModalOpen(false);
+
+    if (user?.role === "business" || user?.role === "seller") {
+      navigate("/seller/dashboard");
+    } else {
+      navigate("/customer/dashboard");
     }
   };
 
@@ -749,13 +764,13 @@ const Register = () => {
                 {loading ? (
                   <>
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    <span>Creating account...</span>
+                    <span>Sending verification code...</span>
                   </>
                 ) : (
                   <>
-                    <UserPlus size={16} strokeWidth={1.5} />
+                    <ShieldCheck size={16} strokeWidth={1.5} />
                     <span>
-                      {isBusiness ? "Register store" : "Create shopper account"}
+                      {isBusiness ? "Verify email & register store" : "Verify email & create account"}
                     </span>
                   </>
                 )}
@@ -776,6 +791,20 @@ const Register = () => {
           </div>
         </div>
       </div>
+
+      {/* Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={isVerifyModalOpen}
+        onClose={() => setIsVerifyModalOpen(false)}
+        email={formData.email}
+        onVerified={handleCompleteRegistrationWithOtp}
+        onResend={() =>
+          authApi.sendOtp({
+            email: formData.email.trim().toLowerCase(),
+            purpose: "register",
+          })
+        }
+      />
     </div>
   );
 };

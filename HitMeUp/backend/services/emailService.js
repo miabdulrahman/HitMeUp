@@ -5,6 +5,27 @@ const nodemailer = require("nodemailer");
  * Immune to cloud host firewall restrictions on SMTP ports (25, 465, 587).
  */
 const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
+  // Option 0: Google Apps Script Webhook (Port 443 HTTPS - Sends directly via Gmail to ANY recipient!)
+  if (process.env.GOOGLE_WEBHOOK_URL) {
+    try {
+      await fetch(process.env.GOOGLE_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to,
+          subject,
+          html: htmlContent,
+          text: textContent
+        })
+      });
+
+      console.log(`[HitMeUp Email Service] ✓ Sent OTP email to ${to} via Google Apps Script Webhook`);
+      return { delivered: true, provider: "google_webhook" };
+    } catch (gErr) {
+      console.warn(`[HitMeUp Email Service] Google Webhook attempt notice: ${gErr.message}`);
+    }
+  }
+
   // Option 1: Brevo REST API v3 (Port 443 HTTPS)
   const brevoKey =
     process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.startsWith("xkeysib-")

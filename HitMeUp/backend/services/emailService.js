@@ -5,12 +5,11 @@ const nodemailer = require("nodemailer");
  * Immune to cloud host firewall restrictions on SMTP ports (25, 465, 587).
  */
 const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
-  // Option 1: Brevo REST API v3 (Port 443 HTTPS - Can send to ANY email address without domain verification!)
+  // Option 1: Brevo REST API v3 (Port 443 HTTPS)
   const brevoKey =
-    process.env.BREVO_API_KEY ||
-    (process.env.SMTP_PASS && process.env.SMTP_PASS.startsWith("xkeysib-")
-      ? process.env.SMTP_PASS
-      : null);
+    process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.startsWith("xkeysib-")
+      ? process.env.BREVO_API_KEY
+      : null;
 
   if (brevoKey) {
     try {
@@ -87,7 +86,7 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
  * Sends a 6-digit OTP verification email for account registration or password reset.
  * Multi-layer fallback strategy:
  * 1. Checks HTTP REST APIs (Brevo / Resend) over Port 443 HTTPS (never blocked on Render)
- * 2. Attempts Brevo / Custom SMTP
+ * 2. Attempts Brevo SMTP (trying Port 2525, 587, and 465 to bypass cloud firewall blocks)
  * 3. Attempts Google Gmail SMTP (Port 465 SSL)
  * 4. Falls back to simulated server log dispatch + dev code return (prevents hanging/blocking)
  *
@@ -157,37 +156,44 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
     console.warn(`[HitMeUp Email Service] HTTP API attempt failed (${httpErr.message}). Trying SMTP fallback...`);
   }
 
-  // 2. Try Brevo / Custom SMTP (if configured)
+  // 2. Try Brevo / Custom SMTP (testing ports: configured port, 2525, 587, 465)
   const host = process.env.SMTP_HOST;
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
 
   if (host && smtpUser && smtpPass) {
-    try {
-      const port = Number(process.env.SMTP_PORT) || 587;
-      const transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: { user: smtpUser, pass: smtpPass },
-        tls: { rejectUnauthorized: false },
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 8000
-      });
+    const defaultPort = Number(process.env.SMTP_PORT) || 587;
+    // Port 2525 is the alternate cloud SMTP port supported by Brevo to bypass firewall blocks
+    const portsToTry = [defaultPort, 2525, 465, 587];
+    const uniquePorts = [...new Set(portsToTry)];
 
-      const from = process.env.EMAIL_FROM || `"HitMeUp Security" <${smtpUser}>`;
-      const info = await transporter.sendMail({
-        from,
-        to,
-        subject,
-        text: textContent,
-        html: htmlContent
-      });
-      console.log(`[HitMeUp Email Service] ✓ Sent OTP email to ${to} via Brevo SMTP (MessageID: ${info.messageId})`);
-      return { delivered: true, provider: "smtp" };
-    } catch (smtpErr) {
-      console.warn(`[HitMeUp Email Service] Brevo SMTP failed (${smtpErr.message}). Trying Google SMTP fallback...`);
+    for (const port of uniquePorts) {
+      try {
+        const isSecure = port === 465;
+        const transporter = nodemailer.createTransport({
+          host,
+          port,
+          secure: isSecure,
+          auth: { user: smtpUser, pass: smtpPass },
+          tls: { rejectUnauthorized: false },
+          connectionTimeout: 4000,
+          greetingTimeout: 4000,
+          socketTimeout: 6000
+        });
+
+        const from = process.env.EMAIL_FROM || `"HitMeUp Security" <${smtpUser}>`;
+        const info = await transporter.sendMail({
+          from,
+          to,
+          subject,
+          text: textContent,
+          html: htmlContent
+        });
+        console.log(`[HitMeUp Email Service] ✓ Sent OTP email to ${to} via Brevo SMTP on Port ${port} (MessageID: ${info.messageId})`);
+        return { delivered: true, provider: "smtp" };
+      } catch (smtpErr) {
+        console.warn(`[HitMeUp Email Service] Brevo SMTP on port ${port} notice: ${smtpErr.message}`);
+      }
     }
   }
 
@@ -204,9 +210,9 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
         secure: true,
         auth: { user: googleUser, pass: googlePass },
         tls: { rejectUnauthorized: false },
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 8000
+        connectionTimeout: 4000,
+        greetingTimeout: 4000,
+        socketTimeout: 6000
       });
 
       const from = process.env.EMAIL_FROM || `"HitMeUp Security" <${googleUser}>`;
@@ -220,7 +226,7 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
       console.log(`[HitMeUp Email Service] ✓ Sent OTP email to ${to} via Google Gmail (MessageID: ${info.messageId})`);
       return { delivered: true, provider: "google" };
     } catch (googleErr) {
-      console.warn(`[HitMeUp Email Service] Google SMTP failed (${googleErr.message}). Falling back to simulated log.`);
+      console.warn(`[HitMeUp Email Service] Google SMTP notice: ${googleErr.message}. Falling back to simulated log.`);
     }
   }
 

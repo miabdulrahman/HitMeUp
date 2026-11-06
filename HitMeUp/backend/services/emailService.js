@@ -5,10 +5,37 @@ const nodemailer = require("nodemailer");
  * Immune to cloud host firewall restrictions on SMTP ports (25, 465, 587).
  */
 const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
-  // Option 1: Brevo REST API v3 (Port 443 HTTPS)
+  // Option 0: Google Apps Script Webhook (Port 443 HTTPS - Sends directly via Gmail to ANY recipient!)
+  if (process.env.GOOGLE_WEBHOOK_URL) {
+    try {
+      const gRes = await fetch(process.env.GOOGLE_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to,
+          subject,
+          html: htmlContent,
+          text: textContent
+        }),
+        redirect: "follow"
+      });
+
+      const gData = await gRes.json().catch(() => ({}));
+      if (!gRes.ok || gData.success === false) {
+        throw new Error(gData.error || `Google Webhook responded with status ${gRes.status}`);
+      }
+
+      console.log(`[HitMeUp Email Service] ✓ Sent OTP email to ${to} via Google Apps Script Webhook`);
+      return { delivered: true, provider: "google_webhook" };
+    } catch (gErr) {
+      console.warn(`[HitMeUp Email Service] Google Webhook attempt notice: ${gErr.message}`);
+    }
+  }
+
+  // Option 1: Brevo REST API v3 (Port 443 HTTPS - Sends to ANY recipient without domain verification!)
   const brevoKey =
-    process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.startsWith("xkeysib-")
-      ? process.env.BREVO_API_KEY
+    process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.trim()
+      ? process.env.BREVO_API_KEY.trim()
       : null;
 
   if (brevoKey) {
@@ -17,7 +44,7 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
         process.env.BREVO_SENDER_EMAIL ||
         process.env.SMTP_USER ||
         process.env.EMAIL_USER ||
-        "c192fb001@smtp-brevo.com";
+        "m.i.abdulrahmanar@gmail.com";
       const senderName = process.env.BREVO_SENDER_NAME || "HitMeUp Security";
 
       const res = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -48,7 +75,15 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
     }
   }
 
-  // Option 2: Resend REST API (https://resend.com - Port 443 HTTPS)
+  return null;
+};
+
+/**
+ * Resend REST API (Port 443 HTTPS).
+ * NOTE: With the sandbox sender "onboarding@resend.dev" Resend only delivers to the
+ * account owner's address, so it is tried LAST as a fallback.
+ */
+const sendViaResend = async ({ to, subject, htmlContent, textContent }) => {
   if (process.env.RESEND_API_KEY) {
     try {
       const from = process.env.RESEND_FROM || process.env.EMAIL_FROM || "HitMeUp <onboarding@resend.dev>";
@@ -69,7 +104,11 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(`Resend API (${res.status}): ${data.message || JSON.stringify(data)}`);
+        const errorMsg = data.message || JSON.stringify(data);
+        if (res.status === 403 && errorMsg.includes("own email address")) {
+          console.warn(`[HitMeUp Email Service] ⚠️ Resend Sandbox Limitation: 'onboarding@resend.dev' can only deliver to the account owner (m.i.abdulrahmanar@gmail.com). To deliver to external recipients (${to}), verify your custom domain in Resend or configure Brevo API / Google Apps Script Webhook.`);
+        }
+        throw new Error(`Resend API (${res.status}): ${errorMsg}`);
       }
 
       console.log(`[HitMeUp Email Service] ✓ Sent OTP via Resend API (ID: ${data.id}) to ${to}`);
@@ -85,10 +124,11 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
 /**
  * Sends a 6-digit OTP verification email for account registration or password reset.
  * Multi-layer fallback strategy:
- * 1. Checks HTTP REST APIs (Brevo / Resend) over Port 443 HTTPS (never blocked on Render)
- * 2. Attempts Brevo SMTP (trying Port 2525, 587, and 465 to bypass cloud firewall blocks)
- * 3. Attempts Google Gmail SMTP (Port 465 SSL)
- * 4. Falls back to simulated server log dispatch + dev code return (prevents hanging/blocking)
+ * 1. HTTP APIs over Port 443 (Google Apps Script webhook / Brevo REST API) if configured
+ * 2. Google Gmail SMTP (real Gmail sender -> best inbox delivery)
+ * 3. Brevo SMTP (Port 2525/587/465)
+ * 4. Resend (sandbox sender only reaches the account owner)
+ * 5. Falls back to simulated server log dispatch + dev code return (prevents hanging/blocking)
  *
  * @param {Object} options
  * @param {string} options.to - Recipient email address
@@ -156,15 +196,47 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
     console.warn(`[HitMeUp Email Service] HTTP API attempt failed (${httpErr.message}). Trying SMTP fallback...`);
   }
 
-  // 2. Try Brevo / Custom SMTP (testing ports: configured port, 2525, 587, 465)
+  // 2. Google Gmail SMTP (sends from the real Gmail account -> passes SPF/DKIM/DMARC, lands in inbox)
+  const googleUser = process.env.EMAIL_USER;
+  const googlePass = process.env.EMAIL_PASS;
+
+  if (googleUser && googlePass) {
+    for (const port of [465, 587]) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: "smtp.gmail.com",
+          port,
+          secure: port === 465,
+          auth: { user: googleUser, pass: googlePass },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 20000
+        });
+
+        const info = await transporter.sendMail({
+          from: `"HitMeUp Security" <${googleUser}>`,
+          to,
+          subject,
+          text: textContent,
+          html: htmlContent
+        });
+        console.log(`[HitMeUp Email Service] ✓ Sent OTP email to ${to} via Gmail SMTP on Port ${port} (MessageID: ${info.messageId})`);
+        return { delivered: true, provider: "google" };
+      } catch (googleErr) {
+        console.warn(`[HitMeUp Email Service] Gmail SMTP on port ${port} notice: ${googleErr.message}`);
+      }
+    }
+  }
+
+  // 3. Try Brevo / Custom SMTP (testing ports: configured port, 2525, 587, 465)
   const host = process.env.SMTP_HOST;
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
 
   if (host && smtpUser && smtpPass) {
-    const defaultPort = Number(process.env.SMTP_PORT) || 587;
-    // Port 2525 is the alternate cloud SMTP port supported by Brevo to bypass firewall blocks
-    const portsToTry = [defaultPort, 2525, 465, 587];
+    const defaultPort = Number(process.env.SMTP_PORT) || 2525;
+    // Prioritize Port 2525 first (Brevo's unblocked cloud port), then configured port, 587, and 465
+    const portsToTry = [2525, defaultPort, 587, 465];
     const uniquePorts = [...new Set(portsToTry)];
 
     for (const port of uniquePorts) {
@@ -176,9 +248,9 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
           secure: isSecure,
           auth: { user: smtpUser, pass: smtpPass },
           tls: { rejectUnauthorized: false },
-          connectionTimeout: 4000,
-          greetingTimeout: 4000,
-          socketTimeout: 6000
+          connectionTimeout: 3000,
+          greetingTimeout: 3000,
+          socketTimeout: 5000
         });
 
         const from = process.env.EMAIL_FROM || `"HitMeUp Security" <${smtpUser}>`;
@@ -197,40 +269,15 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
     }
   }
 
-  // 3. Try Google Gmail SMTP (if configured)
-  const googleUser = process.env.EMAIL_USER;
-  const googlePass = process.env.EMAIL_PASS;
-
-  if (googleUser && googlePass) {
-    try {
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: { user: googleUser, pass: googlePass },
-        tls: { rejectUnauthorized: false },
-        connectionTimeout: 4000,
-        greetingTimeout: 4000,
-        socketTimeout: 6000
-      });
-
-      const from = process.env.EMAIL_FROM || `"HitMeUp Security" <${googleUser}>`;
-      const info = await transporter.sendMail({
-        from,
-        to,
-        subject,
-        text: textContent,
-        html: htmlContent
-      });
-      console.log(`[HitMeUp Email Service] ✓ Sent OTP email to ${to} via Google Gmail (MessageID: ${info.messageId})`);
-      return { delivered: true, provider: "google" };
-    } catch (googleErr) {
-      console.warn(`[HitMeUp Email Service] Google SMTP notice: ${googleErr.message}. Falling back to simulated log.`);
-    }
+  // 4. Resend (sandbox sender only reaches the account owner)
+  try {
+    const resendResult = await sendViaResend({ to, subject, htmlContent, textContent });
+    if (resendResult) return resendResult;
+  } catch (resendErr) {
+    console.warn(`[HitMeUp Email Service] Resend attempt failed (${resendErr.message}).`);
   }
 
-  // 4. Safe Simulated Log Fallback (Ensures user flow is NEVER blocked)
+  // 5. Safe Simulated Log Fallback (Ensures user flow is NEVER blocked)
   console.log("\n========================================================================");
   console.log(`[HitMeUp Email Service] ✉️  SIMULATED EMAIL DISPATCH (Network Block Fallback)`);
   console.log(`Recipient : ${to}`);

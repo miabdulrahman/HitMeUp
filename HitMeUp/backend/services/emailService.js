@@ -8,7 +8,7 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
   // Option 0: Google Apps Script Webhook (Port 443 HTTPS - Sends directly via Gmail to ANY recipient!)
   if (process.env.GOOGLE_WEBHOOK_URL) {
     try {
-      await fetch(process.env.GOOGLE_WEBHOOK_URL, {
+      const gRes = await fetch(process.env.GOOGLE_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -16,8 +16,14 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
           subject,
           html: htmlContent,
           text: textContent
-        })
+        }),
+        redirect: "follow"
       });
+
+      const gData = await gRes.json().catch(() => ({}));
+      if (!gRes.ok || gData.success === false) {
+        throw new Error(gData.error || `Google Webhook responded with status ${gRes.status}`);
+      }
 
       console.log(`[HitMeUp Email Service] ✓ Sent OTP email to ${to} via Google Apps Script Webhook`);
       return { delivered: true, provider: "google_webhook" };
@@ -26,10 +32,10 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
     }
   }
 
-  // Option 1: Brevo REST API v3 (Port 443 HTTPS)
+  // Option 1: Brevo REST API v3 (Port 443 HTTPS - Sends to ANY recipient without domain verification!)
   const brevoKey =
-    process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.startsWith("xkeysib-")
-      ? process.env.BREVO_API_KEY
+    process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.trim()
+      ? process.env.BREVO_API_KEY.trim()
       : null;
 
   if (brevoKey) {
@@ -38,7 +44,7 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
         process.env.BREVO_SENDER_EMAIL ||
         process.env.SMTP_USER ||
         process.env.EMAIL_USER ||
-        "c192fb001@smtp-brevo.com";
+        "m.i.abdulrahmanar@gmail.com";
       const senderName = process.env.BREVO_SENDER_NAME || "HitMeUp Security";
 
       const res = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -90,7 +96,11 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(`Resend API (${res.status}): ${data.message || JSON.stringify(data)}`);
+        const errorMsg = data.message || JSON.stringify(data);
+        if (res.status === 403 && errorMsg.includes("own email address")) {
+          console.warn(`[HitMeUp Email Service] ⚠️ Resend Sandbox Limitation: 'onboarding@resend.dev' can only deliver to the account owner (m.i.abdulrahmanar@gmail.com). To deliver to external recipients (${to}), verify your custom domain in Resend or configure Brevo API / Google Apps Script Webhook.`);
+        }
+        throw new Error(`Resend API (${res.status}): ${errorMsg}`);
       }
 
       console.log(`[HitMeUp Email Service] ✓ Sent OTP via Resend API (ID: ${data.id}) to ${to}`);
@@ -183,9 +193,9 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
   const smtpPass = process.env.SMTP_PASS;
 
   if (host && smtpUser && smtpPass) {
-    const defaultPort = Number(process.env.SMTP_PORT) || 587;
-    // Port 2525 is the alternate cloud SMTP port supported by Brevo to bypass firewall blocks
-    const portsToTry = [defaultPort, 2525, 465, 587];
+    const defaultPort = Number(process.env.SMTP_PORT) || 2525;
+    // Prioritize Port 2525 first (Brevo's unblocked cloud port), then configured port, 587, and 465
+    const portsToTry = [2525, defaultPort, 587, 465];
     const uniquePorts = [...new Set(portsToTry)];
 
     for (const port of uniquePorts) {
@@ -197,9 +207,9 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
           secure: isSecure,
           auth: { user: smtpUser, pass: smtpPass },
           tls: { rejectUnauthorized: false },
-          connectionTimeout: 4000,
-          greetingTimeout: 4000,
-          socketTimeout: 6000
+          connectionTimeout: 3000,
+          greetingTimeout: 3000,
+          socketTimeout: 5000
         });
 
         const from = process.env.EMAIL_FROM || `"HitMeUp Security" <${smtpUser}>`;

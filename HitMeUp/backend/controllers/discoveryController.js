@@ -825,3 +825,36 @@ exports.getBusinessReviews = async (req, res) => {
     });
   }
 };
+
+// ----------------------------------------------------------------------
+// 9. Reviews: Get Recent Public Platform Reviews (For Landing Page)
+// ----------------------------------------------------------------------
+exports.getRecentPlatformReviews = async (req, res) => {
+  try {
+    const { limit = 6 } = req.query;
+    const limitNum = Math.min(20, Math.max(1, parseInt(limit, 10)));
+
+    const reviews = await Review.find({
+      comment: { $exists: true, $ne: "" }
+    })
+      .populate("userId", "name avatar")
+      .populate("businessId", "name city address category")
+      .populate("dealId", "title originalPrice discountedPrice")
+      .sort({ createdAt: -1 })
+      .limit(limitNum)
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      count: reviews.length,
+      reviews
+    });
+  } catch (error) {
+    console.error("Discovery getRecentPlatformReviews error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve recent platform reviews",
+      error: error.message
+    });
+  }
+};

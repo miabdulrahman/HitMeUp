@@ -8,7 +8,8 @@ const {
   toggleFavorite,
   getMyFavorites,
   addReview,
-  getBusinessReviews
+  getBusinessReviews,
+  getRecentPlatformReviews
 } = require("../controllers/discoveryController");
 const { protect, optionalAuth } = require("../middleware/authMiddleware");
 
@@ -23,6 +24,7 @@ router.get("/map", getMapBusinesses);
 router.get("/deal/:id", optionalAuth, getDealDiscoveryDetails);
 
 // Reviews (Public Reading)
+router.get("/reviews/recent", getRecentPlatformReviews);
 router.get("/reviews/business/:businessId", getBusinessReviews);
 
 // Protected Customer Features (Requires Login)

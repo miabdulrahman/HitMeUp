@@ -5,6 +5,17 @@ const API_BASE_URL = (!trimmedBase.startsWith("/") && !trimmedBase.endsWith("/ap
   : trimmedBase;
 
 /**
+ * Clean query string helper: strips undefined, null, empty strings, and literals
+ */
+export const toQueryString = (params = {}) => {
+  const clean = Object.entries(params).filter(
+    ([_, v]) => v !== undefined && v !== null && v !== "" && v !== "undefined" && v !== "null"
+  );
+  const q = new URLSearchParams(clean).toString();
+  return q ? `?${q}` : "";
+};
+
+/**
  * Universal API Client with automatic JSON parsing and JWT token injection
  */
 export async function apiRequest(endpoint, { method = "GET", body = null, headers = {} } = {}) {
@@ -105,10 +116,7 @@ export const authApi = {
 // Business Endpoints (Member 1)
 // ----------------------------------------------------------------------
 export const businessApi = {
-  getAll: (params = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return apiRequest(`/businesses${query ? `?${query}` : ""}`);
-  },
+  getAll: (params = {}) => apiRequest(`/businesses${toQueryString(params)}`),
 
   getById: (id) => apiRequest(`/businesses/${id}`),
 
@@ -131,10 +139,7 @@ export const businessApi = {
 // Deals Endpoints (Member 2)
 // ----------------------------------------------------------------------
 export const dealApi = {
-  getDeals: (params = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return apiRequest(`/deals${query ? `?${query}` : ""}`);
-  },
+  getDeals: (params = {}) => apiRequest(`/deals${toQueryString(params)}`),
 
   getDealById: (id) => apiRequest(`/deals/${id}`),
 
@@ -312,25 +317,19 @@ export const aiApi = {
 // Discovery, Maps, Favorites & Reviews Endpoints (Member 3)
 // ----------------------------------------------------------------------
 export const discoveryApi = {
-  searchDeals: (params = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return apiRequest(`/discovery/deals${query ? `?${query}` : ""}`);
-  },
+  searchDeals: (params = {}) => apiRequest(`/discovery/deals${toQueryString(params)}`),
 
   getNearbyDeals: ({ lat, lng, radius = 15, category, limit } = {}) => {
     const params = new URLSearchParams();
     if (lat !== undefined) params.append("lat", lat);
     if (lng !== undefined) params.append("lng", lng);
     if (radius !== undefined) params.append("radius", radius);
-    if (category && category !== "all") params.append("category", category);
+    if (category && category !== "all" && category !== "undefined" && category !== "null") params.append("category", category);
     if (limit) params.append("limit", limit);
     return apiRequest(`/discovery/nearby?${params.toString()}`);
   },
 
-  getMapBusinesses: (params = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return apiRequest(`/discovery/map${query ? `?${query}` : ""}`);
-  },
+  getMapBusinesses: (params = {}) => apiRequest(`/discovery/map${toQueryString(params)}`),
 
   getDealDetails: (id) => apiRequest(`/discovery/deal/${id}`),
 
@@ -352,15 +351,11 @@ export const discoveryApi = {
       body: { businessId, dealId, rating, comment },
     }),
 
-  getBusinessReviews: (businessId, params = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return apiRequest(`/discovery/reviews/business/${businessId}${query ? `?${query}` : ""}`);
-  },
+  getBusinessReviews: (businessId, params = {}) =>
+    apiRequest(`/discovery/reviews/business/${businessId}${toQueryString(params)}`),
 
-  getRecentPlatformReviews: (params = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return apiRequest(`/discovery/reviews/recent${query ? `?${query}` : ""}`);
-  },
+  getRecentPlatformReviews: (params = {}) =>
+    apiRequest(`/discovery/reviews/recent${toQueryString(params)}`),
 };
 
 // ----------------------------------------------------------------------

@@ -21,7 +21,14 @@ const CATEGORY_MAP = {
 };
 
 const buildCategoryRegex = (catInput) => {
-  if (!catInput || catInput.toLowerCase() === "all") return null;
+  if (
+    !catInput ||
+    catInput.toLowerCase() === "all" ||
+    catInput.toLowerCase() === "undefined" ||
+    catInput.toLowerCase() === "null"
+  ) {
+    return null;
+  }
   const lower = catInput.trim().toLowerCase();
   const matchedTerms = new Set([lower]);
   if (CATEGORY_MAP[lower]) {

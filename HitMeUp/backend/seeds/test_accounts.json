@@ -1,0 +1,4002 @@
+[
+  {
+    "Type": "Vendor",
+    "Name": "Ahamed Bandara",
+    "Email": "vendor.royalbiryanihou1@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Royal Biryani House",
+    "Category": "Restaurant",
+    "City": "Colombo 01 (Fort)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Pravin Wickramasinghe",
+    "Email": "vendor.thecoffeevault2@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Coffee Vault",
+    "Category": "Cafe",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Kasun Fernando",
+    "Email": "vendor.ceylonbatikstud3@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Ceylon Batik Studio",
+    "Category": "Fashion",
+    "City": "Colombo 03 (Kollupitiya)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Kushan Wickramasinghe",
+    "Email": "vendor.matrixmobilecen4@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Matrix Mobile Central",
+    "Category": "Electronics",
+    "City": "Colombo 04 (Bambalapitiya)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Imran Dissanayake",
+    "Email": "vendor.colomboesthetic5@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Colombo Esthetics Studio",
+    "Category": "Health & Beauty",
+    "City": "Colombo 05 (Havelock Town)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Dharshana Azeez",
+    "Email": "vendor.urbanfadeparlor6@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Urban Fade Parlor",
+    "Category": "Salon",
+    "City": "Colombo 06 (Wellawatte)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Buddhika Mendis",
+    "Email": "vendor.theworkoutloft7@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Workout Loft",
+    "Category": "Fitness",
+    "City": "Colombo 07 (Cinnamon Gardens)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Dharshana Perera",
+    "Email": "vendor.artisanwoodwork8@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Artisan Woodworks Lanka",
+    "Category": "Retail",
+    "City": "Colombo 08 (Borella)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Charith Perera",
+    "Email": "vendor.kandyanhearth9@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Kandyan Hearth",
+    "Category": "Restaurant",
+    "City": "Colombo 09 (Dematagoda)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Naveen Hettiarachchi",
+    "Email": "vendor.thedailygrindga10@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Daily Grind Galle",
+    "Category": "Cafe",
+    "City": "Colombo 10 (Maradana)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Danushka Rathnayake",
+    "Email": "vendor.kandyregalattir11@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Kandy Regal Attire",
+    "Category": "Fashion",
+    "City": "Colombo 11 (Pettah)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Dilshan Mendis",
+    "Email": "vendor.bytewirestore12@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Byte & Wire Store",
+    "Category": "Electronics",
+    "City": "Colombo 12 (Hultsdorf)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Lahiru Azeez",
+    "Email": "vendor.ayurbotanicawel13@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Ayur Botanica Wellness Colombo 13 (Kotahena)",
+    "Category": "Health & Beauty",
+    "City": "Colombo 13 (Kotahena)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Nuwan Senanayake",
+    "Email": "vendor.gentlemansbarbe14@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Gentleman's Barber Co. Colombo 14 (Grandpass)",
+    "Category": "Salon",
+    "City": "Colombo 14 (Grandpass)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Dilshan Kulatunga",
+    "Email": "vendor.crossfithorizon15@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "CrossFit Horizon Colombo 15 (Mattakkuliya)",
+    "Category": "Fitness",
+    "City": "Colombo 15 (Mattakkuliya)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Dhammika Fernando",
+    "Email": "vendor.gallegemsilverc16@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Galle Gem & Silver Co. Dehiwala",
+    "Category": "Retail",
+    "City": "Dehiwala"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Chamari Silva",
+    "Email": "vendor.duplicationdine17@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Duplication Diner Mount Lavinia",
+    "Category": "Restaurant",
+    "City": "Mount Lavinia"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Imran Ranasinghe",
+    "Email": "vendor.cinnamongrovees18@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Cinnamon Grove Espresso Moratuwa",
+    "Category": "Cafe",
+    "City": "Moratuwa"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sanduni Fernando",
+    "Email": "vendor.colombodenimcol19@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Colombo Denim Collective Panadura",
+    "Category": "Fashion",
+    "City": "Panadura"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Suraj Dissanayake",
+    "Email": "vendor.pulsegaminglabn20@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Pulse Gaming Lab Nugegoda",
+    "Category": "Electronics",
+    "City": "Nugegoda"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Pradeep Rathnayake",
+    "Email": "vendor.edenbodytherapy21@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Eden Body Therapy Kotte",
+    "Category": "Health & Beauty",
+    "City": "Kotte"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sanjaya Mohamed",
+    "Email": "vendor.thegroomingloun22@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Grooming Lounge Maharagama",
+    "Category": "Salon",
+    "City": "Maharagama"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ahamed Azeez",
+    "Email": "vendor.dynamicconditio23@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Dynamic Conditioning Battaramulla",
+    "Category": "Fitness",
+    "City": "Battaramulla"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ashen Perera",
+    "Email": "vendor.thevintagebooks24@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Vintage Bookshop Malabe",
+    "Category": "Retail",
+    "City": "Malabe"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Mohamed Nanayakkara",
+    "Email": "vendor.royalbiryanihou25@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Royal Biryani House Kaduwela",
+    "Category": "Restaurant",
+    "City": "Kaduwela"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ruwan Jayasinghe",
+    "Email": "vendor.thecoffeevaultw26@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Coffee Vault Wattala",
+    "Category": "Cafe",
+    "City": "Wattala"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Dinuka Alwis",
+    "Email": "vendor.ceylonbatikstud27@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Ceylon Batik Studio Ja-Ela",
+    "Category": "Fashion",
+    "City": "Ja-Ela"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sachini Rathnayake",
+    "Email": "vendor.matrixmobilecen28@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Matrix Mobile Central Kandana",
+    "Category": "Electronics",
+    "City": "Kandana"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ashan Fernando",
+    "Email": "vendor.colomboesthetic29@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Colombo Esthetics Studio Negombo",
+    "Category": "Health & Beauty",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Isuru Hettiarachchi",
+    "Email": "vendor.urbanfadeparlor30@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Urban Fade Parlor Katunayake",
+    "Category": "Salon",
+    "City": "Katunayake"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Manuja Silva",
+    "Email": "vendor.theworkoutloftg31@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Workout Loft Gampaha",
+    "Category": "Fitness",
+    "City": "Gampaha"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Hashan Subramaniam",
+    "Email": "vendor.artisanwoodwork32@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Artisan Woodworks Lanka Kelaniya",
+    "Category": "Retail",
+    "City": "Kelaniya"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Buddhika Gunawardena",
+    "Email": "vendor.kandyanhearthki33@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Kandyan Hearth Kiribathgoda",
+    "Category": "Restaurant",
+    "City": "Kiribathgoda"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Rizwan Subramaniam",
+    "Email": "vendor.thedailygrindga34@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Daily Grind Galle Kalutara",
+    "Category": "Cafe",
+    "City": "Kalutara"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Zainab Karunaratne",
+    "Email": "vendor.kandyregalattir35@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Kandy Regal Attire Wadduwa",
+    "Category": "Fashion",
+    "City": "Wadduwa"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Kavindu Wijesinghe",
+    "Email": "vendor.bytewirestorebe36@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Byte & Wire Store Beruwala",
+    "Category": "Electronics",
+    "City": "Beruwala"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Chathura Bandara",
+    "Email": "vendor.ayurbotanicawel37@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Ayur Botanica Wellness Aluthgama",
+    "Category": "Health & Beauty",
+    "City": "Aluthgama"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Lahiru Liyanage",
+    "Email": "vendor.gentlemansbarbe38@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Gentleman's Barber Co. Bentota",
+    "Category": "Salon",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Buddhika Fernando",
+    "Email": "vendor.crossfithorizon39@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "CrossFit Horizon Kandy",
+    "Category": "Fitness",
+    "City": "Kandy"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sanduni Perera",
+    "Email": "vendor.gallegemsilverc40@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Galle Gem & Silver Co. Peradeniya",
+    "Category": "Retail",
+    "City": "Peradeniya"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Imran Alwis",
+    "Email": "vendor.duplicationdine41@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Duplication Diner Katugastota",
+    "Category": "Restaurant",
+    "City": "Katugastota"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Lahiru Farook",
+    "Email": "vendor.cinnamongrovees42@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Cinnamon Grove Espresso Matale",
+    "Category": "Cafe",
+    "City": "Matale"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sachini Rathnayake",
+    "Email": "vendor.colombodenimcol43@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Colombo Denim Collective Dambulla",
+    "Category": "Fashion",
+    "City": "Dambulla"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ruwan Liyanage",
+    "Email": "vendor.pulsegaminglabn44@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Pulse Gaming Lab Nuwara Eliya",
+    "Category": "Electronics",
+    "City": "Nuwara Eliya"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Mohamed Farook",
+    "Email": "vendor.edenbodytherapy45@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Eden Body Therapy Hatton",
+    "Category": "Health & Beauty",
+    "City": "Hatton"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ashan Perera",
+    "Email": "vendor.thegroomingloun46@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Grooming Lounge Gampola",
+    "Category": "Salon",
+    "City": "Gampola"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Anushka Hettiarachchi",
+    "Email": "vendor.dynamicconditio47@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Dynamic Conditioning Galle",
+    "Category": "Fitness",
+    "City": "Galle"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Shenal Subramaniam",
+    "Email": "vendor.thevintagebooks48@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Vintage Bookshop Unawatuna",
+    "Category": "Retail",
+    "City": "Unawatuna"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sachini Jayawardena",
+    "Email": "vendor.royalbiryanihou49@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Royal Biryani House Hikkaduwa",
+    "Category": "Restaurant",
+    "City": "Hikkaduwa"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ashen Farook",
+    "Email": "vendor.thecoffeevaultm50@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Coffee Vault Matara",
+    "Category": "Cafe",
+    "City": "Matara"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Chathura Farook",
+    "Email": "vendor.ceylonbatikstud51@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Ceylon Batik Studio Mirissa",
+    "Category": "Fashion",
+    "City": "Mirissa"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Tharindu Subramaniam",
+    "Email": "vendor.matrixmobilecen52@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Matrix Mobile Central Weligama",
+    "Category": "Electronics",
+    "City": "Weligama"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Dhammika Fonseka",
+    "Email": "vendor.colomboesthetic53@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Colombo Esthetics Studio Tangalle",
+    "Category": "Health & Beauty",
+    "City": "Tangalle"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Farhan Rathnayake",
+    "Email": "vendor.urbanfadeparlor54@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Urban Fade Parlor Hambantota",
+    "Category": "Salon",
+    "City": "Hambantota"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Chathura Wickramasinghe",
+    "Email": "vendor.theworkoutloftj55@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Workout Loft Jaffna",
+    "Category": "Fitness",
+    "City": "Jaffna"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Kasun Azeez",
+    "Email": "vendor.artisanwoodwork56@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Artisan Woodworks Lanka Nallur",
+    "Category": "Retail",
+    "City": "Nallur"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Pradeep Azeez",
+    "Email": "vendor.kandyanhearthpo57@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Kandyan Hearth Point Pedro",
+    "Category": "Restaurant",
+    "City": "Point Pedro"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sithara Herath",
+    "Email": "vendor.thedailygrindga58@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Daily Grind Galle Kilinochchi",
+    "Category": "Cafe",
+    "City": "Kilinochchi"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Pabodha Perera",
+    "Email": "vendor.kandyregalattir59@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Kandy Regal Attire Vavuniya",
+    "Category": "Fashion",
+    "City": "Vavuniya"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Pabodha Mohamed",
+    "Email": "vendor.bytewirestorema60@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Byte & Wire Store Mannar",
+    "Category": "Electronics",
+    "City": "Mannar"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sanduni Abeysekara",
+    "Email": "vendor.ayurbotanicawel61@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Ayur Botanica Wellness Trincomalee",
+    "Category": "Health & Beauty",
+    "City": "Trincomalee"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Anushka Karunaratne",
+    "Email": "vendor.gentlemansbarbe62@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Gentleman's Barber Co. Batticaloa",
+    "Category": "Salon",
+    "City": "Batticaloa"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Rizwan Perera",
+    "Email": "vendor.crossfithorizon63@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "CrossFit Horizon Arugam Bay",
+    "Category": "Fitness",
+    "City": "Arugam Bay"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Manuja Azeez",
+    "Email": "vendor.gallegemsilverc64@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Galle Gem & Silver Co. Kalmunai",
+    "Category": "Retail",
+    "City": "Kalmunai"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Pabodha Bandara",
+    "Email": "vendor.duplicationdine65@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Duplication Diner Pasikudah",
+    "Category": "Restaurant",
+    "City": "Pasikudah"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Maheshi Liyanage",
+    "Email": "vendor.cinnamongrovees66@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Cinnamon Grove Espresso Ampara",
+    "Category": "Cafe",
+    "City": "Ampara"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Pabodha Perera",
+    "Email": "vendor.colombodenimcol67@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Colombo Denim Collective Kurunegala",
+    "Category": "Fashion",
+    "City": "Kurunegala"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ashan Wijesinghe",
+    "Email": "vendor.pulsegaminglabc68@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Pulse Gaming Lab Chilaw",
+    "Category": "Electronics",
+    "City": "Chilaw"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Manuja Jayawardena",
+    "Email": "vendor.edenbodytherapy69@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Eden Body Therapy Puttalam",
+    "Category": "Health & Beauty",
+    "City": "Puttalam"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ashan Farook",
+    "Email": "vendor.thegroomingloun70@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Grooming Lounge Anuradhapura",
+    "Category": "Salon",
+    "City": "Anuradhapura"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Danushka Bandara",
+    "Email": "vendor.dynamicconditio71@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Dynamic Conditioning Polonnaruwa",
+    "Category": "Fitness",
+    "City": "Polonnaruwa"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Chathura Gunawardena",
+    "Email": "vendor.thevintagebooks72@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Vintage Bookshop Badulla",
+    "Category": "Retail",
+    "City": "Badulla"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Kushan Silva",
+    "Email": "vendor.royalbiryanihou73@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Royal Biryani House Bandarawela",
+    "Category": "Restaurant",
+    "City": "Bandarawela"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Dinuka Abeysekara",
+    "Email": "vendor.thecoffeevaulte74@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Coffee Vault Ella",
+    "Category": "Cafe",
+    "City": "Ella"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Isuru Dissanayake",
+    "Email": "vendor.ceylonbatikstud75@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Ceylon Batik Studio Ratnapura",
+    "Category": "Fashion",
+    "City": "Ratnapura"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sithara Jayasinghe",
+    "Email": "vendor.matrixmobilecen76@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Matrix Mobile Central Kegalle",
+    "Category": "Electronics",
+    "City": "Kegalle"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Vindya Herath",
+    "Email": "vendor.colomboesthetic77@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Colombo Esthetics Studio Colombo 01 (Fort)",
+    "Category": "Health & Beauty",
+    "City": "Colombo 01 (Fort)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sithara Bandara",
+    "Email": "vendor.urbanfadeparlor78@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Urban Fade Parlor Colombo 02 (Slave Island)",
+    "Category": "Salon",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Buddhika Jayawardena",
+    "Email": "vendor.theworkoutloftc79@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Workout Loft Colombo 03 (Kollupitiya)",
+    "Category": "Fitness",
+    "City": "Colombo 03 (Kollupitiya)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Fatima Herath",
+    "Email": "vendor.artisanwoodwork80@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Artisan Woodworks Lanka Colombo 04 (Bambalapitiya)",
+    "Category": "Retail",
+    "City": "Colombo 04 (Bambalapitiya)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ashan Wickramasinghe",
+    "Email": "vendor.kandyanhearthco81@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Kandyan Hearth Colombo 05 (Havelock Town)",
+    "Category": "Restaurant",
+    "City": "Colombo 05 (Havelock Town)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sachini Herath",
+    "Email": "vendor.thedailygrindga82@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Daily Grind Galle Colombo 06 (Wellawatte)",
+    "Category": "Cafe",
+    "City": "Colombo 06 (Wellawatte)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ravindu Jayawardena",
+    "Email": "vendor.kandyregalattir83@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Kandy Regal Attire Colombo 07 (Cinnamon Gardens)",
+    "Category": "Fashion",
+    "City": "Colombo 07 (Cinnamon Gardens)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Zainab Herath",
+    "Email": "vendor.bytewirestoreco84@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Byte & Wire Store Colombo 08 (Borella)",
+    "Category": "Electronics",
+    "City": "Colombo 08 (Borella)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Isuru Wijesinghe",
+    "Email": "vendor.ayurbotanicawel85@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Ayur Botanica Wellness Colombo 09 (Dematagoda)",
+    "Category": "Health & Beauty",
+    "City": "Colombo 09 (Dematagoda)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Pabodha Karunaratne",
+    "Email": "vendor.gentlemansbarbe86@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Gentleman's Barber Co. Colombo 10 (Maradana)",
+    "Category": "Salon",
+    "City": "Colombo 10 (Maradana)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Kushan Hettiarachchi",
+    "Email": "vendor.crossfithorizon87@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "CrossFit Horizon Colombo 11 (Pettah)",
+    "Category": "Fitness",
+    "City": "Colombo 11 (Pettah)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Niroshan Kulatunga",
+    "Email": "vendor.gallegemsilverc88@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Galle Gem & Silver Co. Colombo 12 (Hultsdorf)",
+    "Category": "Retail",
+    "City": "Colombo 12 (Hultsdorf)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Fatima Wijesinghe",
+    "Email": "vendor.duplicationdine89@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Duplication Diner Colombo 13 (Kotahena)",
+    "Category": "Restaurant",
+    "City": "Colombo 13 (Kotahena)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Hashan Alwis",
+    "Email": "vendor.cinnamongrovees90@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Cinnamon Grove Espresso Colombo 14 (Grandpass)",
+    "Category": "Cafe",
+    "City": "Colombo 14 (Grandpass)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Pradeep Rathnayake",
+    "Email": "vendor.colombodenimcol91@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Colombo Denim Collective Colombo 15 (Mattakkuliya)",
+    "Category": "Fashion",
+    "City": "Colombo 15 (Mattakkuliya)"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ravindu Fernando",
+    "Email": "vendor.pulsegaminglabd92@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Pulse Gaming Lab Dehiwala",
+    "Category": "Electronics",
+    "City": "Dehiwala"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ahamed Nanayakkara",
+    "Email": "vendor.edenbodytherapy93@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Eden Body Therapy Mount Lavinia",
+    "Category": "Health & Beauty",
+    "City": "Mount Lavinia"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Vindya Nanayakkara",
+    "Email": "vendor.thegroomingloun94@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Grooming Lounge Moratuwa",
+    "Category": "Salon",
+    "City": "Moratuwa"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Farhan Mohamed",
+    "Email": "vendor.dynamicconditio95@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Dynamic Conditioning Panadura",
+    "Category": "Fitness",
+    "City": "Panadura"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Manuja Farook",
+    "Email": "vendor.thevintagebooks96@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Vintage Bookshop Nugegoda",
+    "Category": "Retail",
+    "City": "Nugegoda"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Isuru Mohamed",
+    "Email": "vendor.royalbiryanihou97@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Royal Biryani House Kotte",
+    "Category": "Restaurant",
+    "City": "Kotte"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Vindya Farook",
+    "Email": "vendor.thecoffeevaultm98@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "The Coffee Vault Maharagama",
+    "Category": "Cafe",
+    "City": "Maharagama"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Ashen Bandara",
+    "Email": "vendor.ceylonbatikstud99@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Ceylon Batik Studio Battaramulla",
+    "Category": "Fashion",
+    "City": "Battaramulla"
+  },
+  {
+    "Type": "Vendor",
+    "Name": "Sithara Nanayakkara",
+    "Email": "vendor.matrixmobilecen100@hitmeup.seed.lk",
+    "Password": "Vendor2026!",
+    "Role": "seller",
+    "BusinessName": "Matrix Mobile Central Malabe",
+    "Category": "Electronics",
+    "City": "Malabe"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pabodha Perera",
+    "Email": "client.pabodha.perera.1@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalmunai"
+  },
+  {
+    "Type": "Client",
+    "Name": "Manuja Farook",
+    "Email": "client.manuja.farook.2@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pradeep Wijesinghe",
+    "Email": "client.pradeep.wijesinghe.3@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Gampola"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ravindu Kulatunga",
+    "Email": "client.ravindu.kulatunga.4@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ravindu Alwis",
+    "Email": "client.ravindu.alwis.5@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Peradeniya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ashan Karunaratne",
+    "Email": "client.ashan.karunaratne.6@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mannar"
+  },
+  {
+    "Type": "Client",
+    "Name": "Zainab Wickramasinghe",
+    "Email": "client.zainab.wickramasinghe.7@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalmunai"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nadeesha Azeez",
+    "Email": "client.nadeesha.azeez.8@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Beruwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kushan Subramaniam",
+    "Email": "client.kushan.subramaniam.9@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mirissa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Charith Silva",
+    "Email": "client.charith.silva.10@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mount Lavinia"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sithara Senanayake",
+    "Email": "client.sithara.senanayake.11@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Polonnaruwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Mohamed Gunawardena",
+    "Email": "client.mohamed.gunawardena.12@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Hatton"
+  },
+  {
+    "Type": "Client",
+    "Name": "Fatima Karunaratne",
+    "Email": "client.fatima.karunaratne.13@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Battaramulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Niroshan Wijesinghe",
+    "Email": "client.niroshan.wijesinghe.14@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sithara Rathnayake",
+    "Email": "client.sithara.rathnayake.15@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Katugastota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Suraj Gunawardena",
+    "Email": "client.suraj.gunawardena.16@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Client",
+    "Name": "Farhan Ranasinghe",
+    "Email": "client.farhan.ranasinghe.17@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bandarawela"
+  },
+  {
+    "Type": "Client",
+    "Name": "Isuru Wijesinghe",
+    "Email": "client.isuru.wijesinghe.18@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Weligama"
+  },
+  {
+    "Type": "Client",
+    "Name": "Farhan Fernando",
+    "Email": "client.farhan.fernando.19@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dinuka Wickramasinghe",
+    "Email": "client.dinuka.wickramasinghe.20@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kelaniya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hashan Mohamed",
+    "Email": "client.hashan.mohamed.21@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Peradeniya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Buddhika Fernando",
+    "Email": "client.buddhika.fernando.22@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Chilaw"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hashan Abeysekara",
+    "Email": "client.hashan.abeysekara.23@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Chamari Kulatunga",
+    "Email": "client.chamari.kulatunga.24@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandy"
+  },
+  {
+    "Type": "Client",
+    "Name": "Danushka Azeez",
+    "Email": "client.danushka.azeez.25@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Client",
+    "Name": "Niroshan Mohamed",
+    "Email": "client.niroshan.mohamed.26@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 07 (Cinnamon Gardens)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dulani Alwis",
+    "Email": "client.dulani.alwis.27@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 09 (Dematagoda)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pabodha Nanayakkara",
+    "Email": "client.pabodha.nanayakkara.28@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Weligama"
+  },
+  {
+    "Type": "Client",
+    "Name": "Rizwan Bandara",
+    "Email": "client.rizwan.bandara.29@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Unawatuna"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hashan Nanayakkara",
+    "Email": "client.hashan.nanayakkara.30@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Client",
+    "Name": "Rizwan Mohamed",
+    "Email": "client.rizwan.mohamed.31@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 13 (Kotahena)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Vindya Gunawardena",
+    "Email": "client.vindya.gunawardena.32@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kaduwela"
+  },
+  {
+    "Type": "Client",
+    "Name": "Anushka Alwis",
+    "Email": "client.anushka.alwis.33@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Tangalle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ahamed Herath",
+    "Email": "client.ahamed.herath.34@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Battaramulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Lahiru Rathnayake",
+    "Email": "client.lahiru.rathnayake.35@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Matara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kushan Wijesinghe",
+    "Email": "client.kushan.wijesinghe.36@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Point Pedro"
+  },
+  {
+    "Type": "Client",
+    "Name": "Vindya Wickramasinghe",
+    "Email": "client.vindya.wickramasinghe.37@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Nallur"
+  },
+  {
+    "Type": "Client",
+    "Name": "Tharindu Gunawardena",
+    "Email": "client.tharindu.gunawardena.38@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 03 (Kollupitiya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kavindu Fonseka",
+    "Email": "client.kavindu.fonseka.39@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandy"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nuwan Ranasinghe",
+    "Email": "client.nuwan.ranasinghe.40@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kiribathgoda"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nuwan Perera",
+    "Email": "client.nuwan.perera.41@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 10 (Maradana)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dharshana Abeysekara",
+    "Email": "client.dharshana.abeysekara.42@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanjaya Fernando",
+    "Email": "client.sanjaya.fernando.43@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 10 (Maradana)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Imran Fernando",
+    "Email": "client.imran.fernando.44@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Trincomalee"
+  },
+  {
+    "Type": "Client",
+    "Name": "Fatima Hettiarachchi",
+    "Email": "client.fatima.hettiarachchi.45@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Puttalam"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kasun Mendis",
+    "Email": "client.kasun.mendis.46@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ahamed Rathnayake",
+    "Email": "client.ahamed.rathnayake.47@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Dambulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanduni Azeez",
+    "Email": "client.sanduni.azeez.48@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Vavuniya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sithara Wijesinghe",
+    "Email": "client.sithara.wijesinghe.49@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kegalle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Fatima Liyanage",
+    "Email": "client.fatima.liyanage.50@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Dambulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ahamed Senanayake",
+    "Email": "client.ahamed.senanayake.51@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kotte"
+  },
+  {
+    "Type": "Client",
+    "Name": "Buddhika Subramaniam",
+    "Email": "client.buddhika.subramaniam.52@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kurunegala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Charith Subramaniam",
+    "Email": "client.charith.subramaniam.53@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ratnapura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dulani Azeez",
+    "Email": "client.dulani.azeez.54@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Jaffna"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hiruni Ranasinghe",
+    "Email": "client.hiruni.ranasinghe.55@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nuwan Jayawardena",
+    "Email": "client.nuwan.jayawardena.56@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kelaniya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Manuja Ranasinghe",
+    "Email": "client.manuja.ranasinghe.57@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 11 (Pettah)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Shenal Abeysekara",
+    "Email": "client.shenal.abeysekara.58@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 11 (Pettah)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dulani Jayasinghe",
+    "Email": "client.dulani.jayasinghe.59@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 10 (Maradana)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kasun Fonseka",
+    "Email": "client.kasun.fonseka.60@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Katunayake"
+  },
+  {
+    "Type": "Client",
+    "Name": "Charith Senanayake",
+    "Email": "client.charith.senanayake.61@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kurunegala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Niroshan Hettiarachchi",
+    "Email": "client.niroshan.hettiarachchi.62@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Panadura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Farhan Liyanage",
+    "Email": "client.farhan.liyanage.63@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Moratuwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kushan Hettiarachchi",
+    "Email": "client.kushan.hettiarachchi.64@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Galle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pradeep Nanayakkara",
+    "Email": "client.pradeep.nanayakkara.65@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 04 (Bambalapitiya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Danushka Subramaniam",
+    "Email": "client.danushka.subramaniam.66@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 04 (Bambalapitiya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Vindya Mohamed",
+    "Email": "client.vindya.mohamed.67@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hiruni Farook",
+    "Email": "client.hiruni.farook.68@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Puttalam"
+  },
+  {
+    "Type": "Client",
+    "Name": "Shenal Bandara",
+    "Email": "client.shenal.bandara.69@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandana"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pradeep Jayawardena",
+    "Email": "client.pradeep.jayawardena.70@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 06 (Wellawatte)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Gihan Jayawardena",
+    "Email": "client.gihan.jayawardena.71@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Polonnaruwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Danushka Fonseka",
+    "Email": "client.danushka.fonseka.72@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kegalle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pravin Nanayakkara",
+    "Email": "client.pravin.nanayakkara.73@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 10 (Maradana)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Naveen Dissanayake",
+    "Email": "client.naveen.dissanayake.74@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Trincomalee"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanjaya Jayawardena",
+    "Email": "client.sanjaya.jayawardena.75@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Katugastota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hashan Karunaratne",
+    "Email": "client.hashan.karunaratne.76@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ampara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Gihan Nanayakkara",
+    "Email": "client.gihan.nanayakkara.77@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kegalle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanduni Subramaniam",
+    "Email": "client.sanduni.subramaniam.78@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Tangalle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Farhan Mendis",
+    "Email": "client.farhan.mendis.79@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 15 (Mattakkuliya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Charith Wickramasinghe",
+    "Email": "client.charith.wickramasinghe.80@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Hatton"
+  },
+  {
+    "Type": "Client",
+    "Name": "Isuru Abeysekara",
+    "Email": "client.isuru.abeysekara.81@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kiribathgoda"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sachini Kulatunga",
+    "Email": "client.sachini.kulatunga.82@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Katugastota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Zainab Ranasinghe",
+    "Email": "client.zainab.ranasinghe.83@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mirissa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pradeep Alwis",
+    "Email": "client.pradeep.alwis.84@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Matale"
+  },
+  {
+    "Type": "Client",
+    "Name": "Zainab Dissanayake",
+    "Email": "client.zainab.dissanayake.85@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ratnapura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kushan Hettiarachchi",
+    "Email": "client.kushan.hettiarachchi.86@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Puttalam"
+  },
+  {
+    "Type": "Client",
+    "Name": "Charith Dissanayake",
+    "Email": "client.charith.dissanayake.87@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Panadura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dharshana Subramaniam",
+    "Email": "client.dharshana.subramaniam.88@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Dehiwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hiruni Kulatunga",
+    "Email": "client.hiruni.kulatunga.89@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Vavuniya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Gihan Mohamed",
+    "Email": "client.gihan.mohamed.90@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kotte"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ahamed Fernando",
+    "Email": "client.ahamed.fernando.91@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Pasikudah"
+  },
+  {
+    "Type": "Client",
+    "Name": "Manuja Dissanayake",
+    "Email": "client.manuja.dissanayake.92@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Unawatuna"
+  },
+  {
+    "Type": "Client",
+    "Name": "Gihan Jayawardena",
+    "Email": "client.gihan.jayawardena.93@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Gampola"
+  },
+  {
+    "Type": "Client",
+    "Name": "Naveen Karunaratne",
+    "Email": "client.naveen.karunaratne.94@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Katunayake"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanduni Mohamed",
+    "Email": "client.sanduni.mohamed.95@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Unawatuna"
+  },
+  {
+    "Type": "Client",
+    "Name": "Farhan Herath",
+    "Email": "client.farhan.herath.96@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mirissa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Farhan Wickramasinghe",
+    "Email": "client.farhan.wickramasinghe.97@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kilinochchi"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ashan Perera",
+    "Email": "client.ashan.perera.98@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Beruwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sithara Ranasinghe",
+    "Email": "client.sithara.ranasinghe.99@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Panadura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Suraj Farook",
+    "Email": "client.suraj.farook.100@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanduni Rathnayake",
+    "Email": "client.sanduni.rathnayake.101@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Hikkaduwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Buddhika Karunaratne",
+    "Email": "client.buddhika.karunaratne.102@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Katugastota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanjaya Jayawardena",
+    "Email": "client.sanjaya.jayawardena.103@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 06 (Wellawatte)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Lahiru Bandara",
+    "Email": "client.lahiru.bandara.104@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Chamari Liyanage",
+    "Email": "client.chamari.liyanage.105@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Battaramulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Danushka Jayawardena",
+    "Email": "client.danushka.jayawardena.106@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Peradeniya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Suraj Farook",
+    "Email": "client.suraj.farook.107@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hiruni Mohamed",
+    "Email": "client.hiruni.mohamed.108@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Nugegoda"
+  },
+  {
+    "Type": "Client",
+    "Name": "Vindya Kulatunga",
+    "Email": "client.vindya.kulatunga.109@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Galle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Lahiru Ranasinghe",
+    "Email": "client.lahiru.ranasinghe.110@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Puttalam"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kushan Karunaratne",
+    "Email": "client.kushan.karunaratne.111@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Nugegoda"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dilshan Perera",
+    "Email": "client.dilshan.perera.112@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Polonnaruwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Lahiru Wijesinghe",
+    "Email": "client.lahiru.wijesinghe.113@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Batticaloa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ashen Bandara",
+    "Email": "client.ashen.bandara.114@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 12 (Hultsdorf)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nuwan Herath",
+    "Email": "client.nuwan.herath.115@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Wadduwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nuwan Mendis",
+    "Email": "client.nuwan.mendis.116@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanjaya Wijesinghe",
+    "Email": "client.sanjaya.wijesinghe.117@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Weligama"
+  },
+  {
+    "Type": "Client",
+    "Name": "Anushka Dissanayake",
+    "Email": "client.anushka.dissanayake.118@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalutara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pradeep Abeysekara",
+    "Email": "client.pradeep.abeysekara.119@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Pasikudah"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pravin Ranasinghe",
+    "Email": "client.pravin.ranasinghe.120@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Arugam Bay"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanjaya Rathnayake",
+    "Email": "client.sanjaya.rathnayake.121@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Panadura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Zainab Farook",
+    "Email": "client.zainab.farook.122@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 08 (Borella)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dulani Hettiarachchi",
+    "Email": "client.dulani.hettiarachchi.123@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 15 (Mattakkuliya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Mohamed Alwis",
+    "Email": "client.mohamed.alwis.124@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Hatton"
+  },
+  {
+    "Type": "Client",
+    "Name": "Niroshan Jayasinghe",
+    "Email": "client.niroshan.jayasinghe.125@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Niroshan Fonseka",
+    "Email": "client.niroshan.fonseka.126@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mannar"
+  },
+  {
+    "Type": "Client",
+    "Name": "Malith Jayasinghe",
+    "Email": "client.malith.jayasinghe.127@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ratnapura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Suraj Jayawardena",
+    "Email": "client.suraj.jayawardena.128@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Dambulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Fatima Fernando",
+    "Email": "client.fatima.fernando.129@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalmunai"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kushan Jayawardena",
+    "Email": "client.kushan.jayawardena.130@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ella"
+  },
+  {
+    "Type": "Client",
+    "Name": "Malith Bandara",
+    "Email": "client.malith.bandara.131@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandana"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanduni Bandara",
+    "Email": "client.sanduni.bandara.132@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalmunai"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nadeesha Perera",
+    "Email": "client.nadeesha.perera.133@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 15 (Mattakkuliya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Niroshan Jayasinghe",
+    "Email": "client.niroshan.jayasinghe.134@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ampara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Shenal Mendis",
+    "Email": "client.shenal.mendis.135@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalmunai"
+  },
+  {
+    "Type": "Client",
+    "Name": "Manuja Perera",
+    "Email": "client.manuja.perera.136@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Nallur"
+  },
+  {
+    "Type": "Client",
+    "Name": "Chathura Mendis",
+    "Email": "client.chathura.mendis.137@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Beruwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Gihan Senanayake",
+    "Email": "client.gihan.senanayake.138@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ampara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Isuru Farook",
+    "Email": "client.isuru.farook.139@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandana"
+  },
+  {
+    "Type": "Client",
+    "Name": "Lahiru Farook",
+    "Email": "client.lahiru.farook.140@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Nallur"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanduni Mohamed",
+    "Email": "client.sanduni.mohamed.141@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kiribathgoda"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kavindu Perera",
+    "Email": "client.kavindu.perera.142@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kotte"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dulani Hettiarachchi",
+    "Email": "client.dulani.hettiarachchi.143@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Danushka Senanayake",
+    "Email": "client.danushka.senanayake.144@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 13 (Kotahena)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Danushka Azeez",
+    "Email": "client.danushka.azeez.145@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Wadduwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sithara Wijesinghe",
+    "Email": "client.sithara.wijesinghe.146@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Beruwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Imran Azeez",
+    "Email": "client.imran.azeez.147@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Katunayake"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pradeep Wijesinghe",
+    "Email": "client.pradeep.wijesinghe.148@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mount Lavinia"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dinuka Herath",
+    "Email": "client.dinuka.herath.149@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Maharagama"
+  },
+  {
+    "Type": "Client",
+    "Name": "Gihan Jayasinghe",
+    "Email": "client.gihan.jayasinghe.150@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Aluthgama"
+  },
+  {
+    "Type": "Client",
+    "Name": "Anushka Azeez",
+    "Email": "client.anushka.azeez.151@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ravindu Hettiarachchi",
+    "Email": "client.ravindu.hettiarachchi.152@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Panadura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dilshan Wijesinghe",
+    "Email": "client.dilshan.wijesinghe.153@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Badulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dhammika Silva",
+    "Email": "client.dhammika.silva.154@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 04 (Bambalapitiya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kasun Bandara",
+    "Email": "client.kasun.bandara.155@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 12 (Hultsdorf)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Vindya Mohamed",
+    "Email": "client.vindya.mohamed.156@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Weligama"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ahamed Subramaniam",
+    "Email": "client.ahamed.subramaniam.157@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalutara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Isuru Wickramasinghe",
+    "Email": "client.isuru.wickramasinghe.158@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Weligama"
+  },
+  {
+    "Type": "Client",
+    "Name": "Isuru Rathnayake",
+    "Email": "client.isuru.rathnayake.159@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 14 (Grandpass)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Manuja Abeysekara",
+    "Email": "client.manuja.abeysekara.160@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalutara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Isuru Gunawardena",
+    "Email": "client.isuru.gunawardena.161@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Dehiwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Suraj Mendis",
+    "Email": "client.suraj.mendis.162@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Panadura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Zainab Subramaniam",
+    "Email": "client.zainab.subramaniam.163@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Puttalam"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sachini Farook",
+    "Email": "client.sachini.farook.164@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kilinochchi"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kasun Liyanage",
+    "Email": "client.kasun.liyanage.165@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Nallur"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sithara Herath",
+    "Email": "client.sithara.herath.166@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kelaniya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ravindu Azeez",
+    "Email": "client.ravindu.azeez.167@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Hikkaduwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Maheshi Perera",
+    "Email": "client.maheshi.perera.168@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Arugam Bay"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sithara Perera",
+    "Email": "client.sithara.perera.169@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Nallur"
+  },
+  {
+    "Type": "Client",
+    "Name": "Imran Subramaniam",
+    "Email": "client.imran.subramaniam.170@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Wadduwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ravindu Perera",
+    "Email": "client.ravindu.perera.171@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Beruwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Anushka Fernando",
+    "Email": "client.anushka.fernando.172@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Malabe"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pravin Karunaratne",
+    "Email": "client.pravin.karunaratne.173@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Gampaha"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nadeesha Farook",
+    "Email": "client.nadeesha.farook.174@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hiruni Nanayakkara",
+    "Email": "client.hiruni.nanayakkara.175@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Mohamed Silva",
+    "Email": "client.mohamed.silva.176@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kaduwela"
+  },
+  {
+    "Type": "Client",
+    "Name": "Niroshan Azeez",
+    "Email": "client.niroshan.azeez.177@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 08 (Borella)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dulani Nanayakkara",
+    "Email": "client.dulani.nanayakkara.178@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Dehiwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kushan Jayawardena",
+    "Email": "client.kushan.jayawardena.179@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bandarawela"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pravin Mendis",
+    "Email": "client.pravin.mendis.180@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mount Lavinia"
+  },
+  {
+    "Type": "Client",
+    "Name": "Rizwan Wijesinghe",
+    "Email": "client.rizwan.wijesinghe.181@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Moratuwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dulani Liyanage",
+    "Email": "client.dulani.liyanage.182@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Jaffna"
+  },
+  {
+    "Type": "Client",
+    "Name": "Shenal Rathnayake",
+    "Email": "client.shenal.rathnayake.183@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandana"
+  },
+  {
+    "Type": "Client",
+    "Name": "Manuja Perera",
+    "Email": "client.manuja.perera.184@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Point Pedro"
+  },
+  {
+    "Type": "Client",
+    "Name": "Maheshi Nanayakkara",
+    "Email": "client.maheshi.nanayakkara.185@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 07 (Cinnamon Gardens)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Malith Senanayake",
+    "Email": "client.malith.senanayake.186@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Arugam Bay"
+  },
+  {
+    "Type": "Client",
+    "Name": "Isuru Abeysekara",
+    "Email": "client.isuru.abeysekara.187@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalmunai"
+  },
+  {
+    "Type": "Client",
+    "Name": "Chamari Herath",
+    "Email": "client.chamari.herath.188@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ampara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Maheshi Jayawardena",
+    "Email": "client.maheshi.jayawardena.189@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ampara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Maheshi Gunawardena",
+    "Email": "client.maheshi.gunawardena.190@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Battaramulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Naveen Jayasinghe",
+    "Email": "client.naveen.jayasinghe.191@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kiribathgoda"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hiruni Wickramasinghe",
+    "Email": "client.hiruni.wickramasinghe.192@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 15 (Mattakkuliya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Niroshan Dissanayake",
+    "Email": "client.niroshan.dissanayake.193@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandy"
+  },
+  {
+    "Type": "Client",
+    "Name": "Charith Nanayakkara",
+    "Email": "client.charith.nanayakkara.194@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Malabe"
+  },
+  {
+    "Type": "Client",
+    "Name": "Fatima Hettiarachchi",
+    "Email": "client.fatima.hettiarachchi.195@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Galle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Farhan Wickramasinghe",
+    "Email": "client.farhan.wickramasinghe.196@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Gampola"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kavindu Nanayakkara",
+    "Email": "client.kavindu.nanayakkara.197@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 04 (Bambalapitiya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dulani Azeez",
+    "Email": "client.dulani.azeez.198@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kurunegala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Farhan Senanayake",
+    "Email": "client.farhan.senanayake.199@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dharshana Ranasinghe",
+    "Email": "client.dharshana.ranasinghe.200@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 12 (Hultsdorf)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dilshan Dissanayake",
+    "Email": "client.dilshan.dissanayake.201@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Beruwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Buddhika Azeez",
+    "Email": "client.buddhika.azeez.202@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Gampaha"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pravin Subramaniam",
+    "Email": "client.pravin.subramaniam.203@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Battaramulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hashan Mendis",
+    "Email": "client.hashan.mendis.204@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Arugam Bay"
+  },
+  {
+    "Type": "Client",
+    "Name": "Imran Wijesinghe",
+    "Email": "client.imran.wijesinghe.205@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 11 (Pettah)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanduni Alwis",
+    "Email": "client.sanduni.alwis.206@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Nuwara Eliya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pravin Alwis",
+    "Email": "client.pravin.alwis.207@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Polonnaruwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Mohamed Azeez",
+    "Email": "client.mohamed.azeez.208@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Badulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ashan Perera",
+    "Email": "client.ashan.perera.209@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Panadura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ravindu Fernando",
+    "Email": "client.ravindu.fernando.210@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mount Lavinia"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dhammika Wijesinghe",
+    "Email": "client.dhammika.wijesinghe.211@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Battaramulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ravindu Mohamed",
+    "Email": "client.ravindu.mohamed.212@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 10 (Maradana)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ashen Karunaratne",
+    "Email": "client.ashen.karunaratne.213@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 03 (Kollupitiya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Tharindu Rathnayake",
+    "Email": "client.tharindu.rathnayake.214@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Dehiwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dinuka Abeysekara",
+    "Email": "client.dinuka.abeysekara.215@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Hatton"
+  },
+  {
+    "Type": "Client",
+    "Name": "Zainab Bandara",
+    "Email": "client.zainab.bandara.216@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mirissa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hashan Alwis",
+    "Email": "client.hashan.alwis.217@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Hikkaduwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sachini Kulatunga",
+    "Email": "client.sachini.kulatunga.218@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalmunai"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dilshan Hettiarachchi",
+    "Email": "client.dilshan.hettiarachchi.219@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Galle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Anushka Bandara",
+    "Email": "client.anushka.bandara.220@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Anuradhapura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Isuru Fonseka",
+    "Email": "client.isuru.fonseka.221@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bentota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Rizwan Liyanage",
+    "Email": "client.rizwan.liyanage.222@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Chilaw"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hashan Bandara",
+    "Email": "client.hashan.bandara.223@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Matale"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanjaya Fernando",
+    "Email": "client.sanjaya.fernando.224@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Moratuwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kasun Nanayakkara",
+    "Email": "client.kasun.nanayakkara.225@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Tangalle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dinuka Kulatunga",
+    "Email": "client.dinuka.kulatunga.226@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pravin Mohamed",
+    "Email": "client.pravin.mohamed.227@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandana"
+  },
+  {
+    "Type": "Client",
+    "Name": "Naveen Subramaniam",
+    "Email": "client.naveen.subramaniam.228@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Gampaha"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hiruni Silva",
+    "Email": "client.hiruni.silva.229@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mount Lavinia"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nadeesha Silva",
+    "Email": "client.nadeesha.silva.230@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kotte"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kavindu Subramaniam",
+    "Email": "client.kavindu.subramaniam.231@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kasun Alwis",
+    "Email": "client.kasun.alwis.232@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Hambantota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Vindya Jayawardena",
+    "Email": "client.vindya.jayawardena.233@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Nuwara Eliya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pradeep Mohamed",
+    "Email": "client.pradeep.mohamed.234@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Trincomalee"
+  },
+  {
+    "Type": "Client",
+    "Name": "Maheshi Azeez",
+    "Email": "client.maheshi.azeez.235@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 11 (Pettah)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanduni Farook",
+    "Email": "client.sanduni.farook.236@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kiribathgoda"
+  },
+  {
+    "Type": "Client",
+    "Name": "Lahiru Silva",
+    "Email": "client.lahiru.silva.237@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mannar"
+  },
+  {
+    "Type": "Client",
+    "Name": "Rizwan Jayawardena",
+    "Email": "client.rizwan.jayawardena.238@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ampara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Maheshi Herath",
+    "Email": "client.maheshi.herath.239@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 09 (Dematagoda)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pradeep Fonseka",
+    "Email": "client.pradeep.fonseka.240@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Battaramulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Mohamed Kulatunga",
+    "Email": "client.mohamed.kulatunga.241@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hashan Perera",
+    "Email": "client.hashan.perera.242@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 04 (Bambalapitiya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Naveen Jayawardena",
+    "Email": "client.naveen.jayawardena.243@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Katunayake"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kushan Jayawardena",
+    "Email": "client.kushan.jayawardena.244@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 10 (Maradana)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pravin Rathnayake",
+    "Email": "client.pravin.rathnayake.245@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Dambulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dilshan Liyanage",
+    "Email": "client.dilshan.liyanage.246@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Malabe"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nadeesha Bandara",
+    "Email": "client.nadeesha.bandara.247@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Wattala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ashan Dissanayake",
+    "Email": "client.ashan.dissanayake.248@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kurunegala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pravin Rathnayake",
+    "Email": "client.pravin.rathnayake.249@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Panadura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pradeep Subramaniam",
+    "Email": "client.pradeep.subramaniam.250@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Matale"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kavindu Fernando",
+    "Email": "client.kavindu.fernando.251@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Batticaloa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sithara Perera",
+    "Email": "client.sithara.perera.252@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Matara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Vindya Jayawardena",
+    "Email": "client.vindya.jayawardena.253@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kelaniya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Chathura Liyanage",
+    "Email": "client.chathura.liyanage.254@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalmunai"
+  },
+  {
+    "Type": "Client",
+    "Name": "Mohamed Azeez",
+    "Email": "client.mohamed.azeez.255@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Matale"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dinuka Mohamed",
+    "Email": "client.dinuka.mohamed.256@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 05 (Havelock Town)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ruwan Alwis",
+    "Email": "client.ruwan.alwis.257@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Malabe"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dulani Kulatunga",
+    "Email": "client.dulani.kulatunga.258@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Manuja Perera",
+    "Email": "client.manuja.perera.259@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ratnapura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kavindu Herath",
+    "Email": "client.kavindu.herath.260@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Unawatuna"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ashen Farook",
+    "Email": "client.ashen.farook.261@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Nugegoda"
+  },
+  {
+    "Type": "Client",
+    "Name": "Naveen Herath",
+    "Email": "client.naveen.herath.262@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ratnapura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ahamed Mohamed",
+    "Email": "client.ahamed.mohamed.263@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kaduwela"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hiruni Mohamed",
+    "Email": "client.hiruni.mohamed.264@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandy"
+  },
+  {
+    "Type": "Client",
+    "Name": "Zainab Abeysekara",
+    "Email": "client.zainab.abeysekara.265@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kiribathgoda"
+  },
+  {
+    "Type": "Client",
+    "Name": "Kasun Mohamed",
+    "Email": "client.kasun.mohamed.266@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Hikkaduwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Charith Nanayakkara",
+    "Email": "client.charith.nanayakkara.267@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Negombo"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dulani Fernando",
+    "Email": "client.dulani.fernando.268@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mount Lavinia"
+  },
+  {
+    "Type": "Client",
+    "Name": "Rizwan Jayawardena",
+    "Email": "client.rizwan.jayawardena.269@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandy"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dinuka Senanayake",
+    "Email": "client.dinuka.senanayake.270@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 04 (Bambalapitiya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ruwan Nanayakkara",
+    "Email": "client.ruwan.nanayakkara.271@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kalmunai"
+  },
+  {
+    "Type": "Client",
+    "Name": "Rizwan Dissanayake",
+    "Email": "client.rizwan.dissanayake.272@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Ratnapura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Danushka Subramaniam",
+    "Email": "client.danushka.subramaniam.273@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 02 (Slave Island)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dinuka Rathnayake",
+    "Email": "client.dinuka.rathnayake.274@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kurunegala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanduni Karunaratne",
+    "Email": "client.sanduni.karunaratne.275@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kandy"
+  },
+  {
+    "Type": "Client",
+    "Name": "Zainab Senanayake",
+    "Email": "client.zainab.senanayake.276@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Matale"
+  },
+  {
+    "Type": "Client",
+    "Name": "Rizwan Mohamed",
+    "Email": "client.rizwan.mohamed.277@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Vavuniya"
+  },
+  {
+    "Type": "Client",
+    "Name": "Mohamed Perera",
+    "Email": "client.mohamed.perera.278@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Unawatuna"
+  },
+  {
+    "Type": "Client",
+    "Name": "Naveen Fernando",
+    "Email": "client.naveen.fernando.279@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Dehiwala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Niroshan Wijesinghe",
+    "Email": "client.niroshan.wijesinghe.280@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Anuradhapura"
+  },
+  {
+    "Type": "Client",
+    "Name": "Manuja Subramaniam",
+    "Email": "client.manuja.subramaniam.281@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Unawatuna"
+  },
+  {
+    "Type": "Client",
+    "Name": "Pravin Azeez",
+    "Email": "client.pravin.azeez.282@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 07 (Cinnamon Gardens)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ravindu Gunawardena",
+    "Email": "client.ravindu.gunawardena.283@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 15 (Mattakkuliya)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sachini Ranasinghe",
+    "Email": "client.sachini.ranasinghe.284@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Badulla"
+  },
+  {
+    "Type": "Client",
+    "Name": "Fatima Abeysekara",
+    "Email": "client.fatima.abeysekara.285@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Aluthgama"
+  },
+  {
+    "Type": "Client",
+    "Name": "Farhan Bandara",
+    "Email": "client.farhan.bandara.286@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Moratuwa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hiruni Abeysekara",
+    "Email": "client.hiruni.abeysekara.287@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Aluthgama"
+  },
+  {
+    "Type": "Client",
+    "Name": "Hiruni Karunaratne",
+    "Email": "client.hiruni.karunaratne.288@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Matara"
+  },
+  {
+    "Type": "Client",
+    "Name": "Isuru Subramaniam",
+    "Email": "client.isuru.subramaniam.289@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Katugastota"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ashen Nanayakkara",
+    "Email": "client.ashen.nanayakkara.290@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Batticaloa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Farhan Abeysekara",
+    "Email": "client.farhan.abeysekara.291@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Wattala"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sanjaya Farook",
+    "Email": "client.sanjaya.farook.292@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Malabe"
+  },
+  {
+    "Type": "Client",
+    "Name": "Sachini Jayasinghe",
+    "Email": "client.sachini.jayasinghe.293@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Mirissa"
+  },
+  {
+    "Type": "Client",
+    "Name": "Vindya Jayasinghe",
+    "Email": "client.vindya.jayasinghe.294@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 06 (Wellawatte)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Mohamed Silva",
+    "Email": "client.mohamed.silva.295@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Unawatuna"
+  },
+  {
+    "Type": "Client",
+    "Name": "Ashan Fonseka",
+    "Email": "client.ashan.fonseka.296@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kegalle"
+  },
+  {
+    "Type": "Client",
+    "Name": "Danushka Farook",
+    "Email": "client.danushka.farook.297@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Colombo 05 (Havelock Town)"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dinuka Mendis",
+    "Email": "client.dinuka.mendis.298@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Aluthgama"
+  },
+  {
+    "Type": "Client",
+    "Name": "Nadeesha Ranasinghe",
+    "Email": "client.nadeesha.ranasinghe.299@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Kaduwela"
+  },
+  {
+    "Type": "Client",
+    "Name": "Dinuka Ranasinghe",
+    "Email": "client.dinuka.ranasinghe.300@hitmeup.seed.lk",
+    "Password": "Customer2026!",
+    "Role": "customer",
+    "BusinessName": "N/A",
+    "Category": "N/A",
+    "City": "Bandarawela"
+  }
+]

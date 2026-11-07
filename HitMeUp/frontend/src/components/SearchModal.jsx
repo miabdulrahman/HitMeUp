@@ -134,11 +134,11 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#1F1B16]/50 p-4 backdrop-blur-xs sm:p-6 md:p-10"
+      className="ios-popup-backdrop fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#1F1B16]/50 p-4 backdrop-blur-xs sm:p-6 md:p-10"
       onClick={onClose}
     >
       <div
-        className="relative my-6 flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_12px_32px_rgba(31,27,22,0.14)]"
+        className="ios-popup-card relative my-6 flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_12px_32px_rgba(31,27,22,0.14)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Header Bar */}

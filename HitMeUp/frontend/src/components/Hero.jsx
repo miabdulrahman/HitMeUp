@@ -297,7 +297,7 @@ function Hero({ onSearch }) {
 
             {/* Live Instant Suggestions Dropdown */}
             {showDropdown && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7]/98 dark:bg-[#1F1F1F]/98 p-2 text-left shadow-[0_20px_50px_rgba(31,27,22,0.18)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="ios-popup-card absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7]/98 dark:bg-[#1F1F1F]/98 p-2 text-left shadow-[0_20px_50px_rgba(31,27,22,0.18)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
                 <div className="flex items-center justify-between border-b border-[#E6E0D6] dark:border-white/10 px-3 py-1.5 text-xs font-mono text-[#7B7266] dark:text-[#CFC6B8]">
                   <span>Matching live passes ({suggestions.length})</span>
                   <button

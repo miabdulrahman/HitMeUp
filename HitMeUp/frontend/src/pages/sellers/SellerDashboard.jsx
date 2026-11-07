@@ -6,6 +6,7 @@ import { convertToWebP } from "../../utils/imageOptimizer";
 import { generateDeals } from "../../services/aiService";
 import AICommandCenter from "../../components/AICommandCenter";
 import SellerLocationMapPicker from "../../components/SellerLocationMapPicker";
+import QrCameraScannerModal from "../../components/QrCameraScannerModal";
 import {
   LogOut,
   Plus,
@@ -33,6 +34,7 @@ import {
   Wand2,
   Upload,
   Camera,
+  QrCode,
   Image as ImageIcon
 } from "lucide-react";
 
@@ -93,6 +95,8 @@ const SellerDashboard = () => {
   const [voucherCodeInput, setVoucherCodeInput] = useState("");
   const [redeemLoading, setRedeemLoading] = useState(false);
   const [redeemResult, setRedeemResult] = useState(null);
+  const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
+  const [autoRedeemOnScan, setAutoRedeemOnScan] = useState(true);
 
   const initialFormState = {
     title: "",
@@ -506,27 +510,27 @@ const SellerDashboard = () => {
     }
   };
 
-  const handleRedeemVoucher = async (e) => {
-    e.preventDefault();
-    if (!voucherCodeInput.trim()) return;
+  const executeVoucherRedemption = async (codeToRedeem) => {
+    const cleanCode = (codeToRedeem || "").trim().toUpperCase();
+    if (!cleanCode) return;
 
     setRedeemLoading(true);
     setRedeemResult(null);
 
     try {
       const res = await voucherApi.redeemVoucher({
-        voucherCode: voucherCodeInput.trim(),
+        voucherCode: cleanCode,
         businessId: businessProfile?._id
       });
 
       setRedeemResult({
         success: true,
-        message: res.message || "Voucher verified and redeemed.",
-        data: res.voucher || res.redemption || { code: voucherCodeInput.trim() },
+        message: res.message || `Voucher ${cleanCode} verified and redeemed.`,
+        data: res.voucher || res.redemption || { code: cleanCode },
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       });
       setVoucherCodeInput("");
-      showToast("Customer voucher redeemed.");
+      showToast(`Customer voucher ${cleanCode} redeemed.`);
       fetchMyDeals();
     } catch (err) {
       setRedeemResult({
@@ -535,6 +539,21 @@ const SellerDashboard = () => {
       });
     } finally {
       setRedeemLoading(false);
+    }
+  };
+
+  const handleRedeemVoucher = async (e) => {
+    e.preventDefault();
+    await executeVoucherRedemption(voucherCodeInput);
+  };
+
+  const handleQrCodeScanned = async (scannedCode) => {
+    setIsQrScannerOpen(false);
+    setVoucherCodeInput(scannedCode);
+    if (autoRedeemOnScan) {
+      await executeVoucherRedemption(scannedCode);
+    } else {
+      showToast(`Scanned code: ${scannedCode}`);
     }
   };
 
@@ -953,22 +972,31 @@ const SellerDashboard = () => {
                     </h3>
                   </div>
                   <p className="mt-1 text-[13px] text-[#525252]">
-                    Enter the shopper&apos;s voucher code (<span className="font-mono text-[12px] text-[#171717]">HMU-XXXX-XXXXXX</span>) at checkout to verify and mark it redeemed.
+                    Scan the customer&apos;s QR pass with your camera or enter their serial code (<span className="font-mono text-[12px] text-[#171717]">HMU-XXXX-XXXXXX</span>) at checkout.
                   </p>
                 </div>
 
                 <form onSubmit={handleRedeemVoucher} className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setIsQrScannerOpen(true)}
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#D94832]/35 bg-[#D94832]/10 px-3.5 text-[13px] font-semibold text-[#D94832] transition-colors hover:bg-[#D94832] hover:text-white cursor-pointer"
+                    title="Scan customer QR code using camera"
+                  >
+                    <Camera className="h-4 w-4" strokeWidth={1.75} />
+                    <span>Scan QR</span>
+                  </button>
                   <input
                     type="text"
                     value={voucherCodeInput}
                     onChange={(e) => setVoucherCodeInput(e.target.value.toUpperCase())}
                     placeholder="HMU-8420-CMB"
-                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-[#FAFAFA] px-3.5 font-mono text-[13px] uppercase tracking-wider text-[#171717] placeholder-[#A3A3A3] focus:border-[#171717] focus:bg-white focus:outline-none sm:w-64"
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-[#FAFAFA] px-3.5 font-mono text-[13px] uppercase tracking-wider text-[#171717] placeholder-[#A3A3A3] focus:border-[#171717] focus:bg-white focus:outline-none sm:w-56"
                   />
                   <button
                     type="submit"
                     disabled={redeemLoading || !voucherCodeInput.trim()}
-                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#171717] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#171717] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#262626] disabled:opacity-50 cursor-pointer"
                   >
                     {redeemLoading ? "Verifying..." : "Verify & redeem"}
                   </button>
@@ -1942,6 +1970,15 @@ const SellerDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Live Camera QR Code Scanner Modal */}
+      <QrCameraScannerModal
+        isOpen={isQrScannerOpen}
+        onClose={() => setIsQrScannerOpen(false)}
+        onDetected={handleQrCodeScanned}
+        autoRedeem={autoRedeemOnScan}
+        onToggleAutoRedeem={setAutoRedeemOnScan}
+      />
     </div>
   );
 };

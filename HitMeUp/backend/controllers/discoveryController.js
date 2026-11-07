@@ -259,7 +259,8 @@ exports.getNearbyDeals = async (req, res) => {
       ).exec();
       const fallbackDealQuery = { status: "active", endDate: { $gt: now } };
       if (category && category !== "all" && category !== "All") {
-        fallbackDealQuery.category = { $regex: new RegExp(`^${category}$`, "i") };
+        const catRegex = buildCategoryRegex(category);
+        if (catRegex) fallbackDealQuery.category = catRegex;
       }
 
       const availableDeals = await Deal.find(fallbackDealQuery)

@@ -33,8 +33,10 @@ const FALLBACK_NOTES = [
 ];
 
 function getInitials(name) {
-  if (!name) return "HM";
-  const parts = name.trim().split(" ");
+  if (!name || typeof name !== "string") return "HM";
+  const clean = name.trim();
+  if (!clean) return "HM";
+  const parts = clean.split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
@@ -69,17 +71,24 @@ function Testimonials() {
         if (!isMounted) return;
         const liveReviews = res?.reviews || [];
         if (liveReviews.length > 0) {
-          const formatted = liveReviews.map((r) => ({
-            _id: r._id,
-            comment: r.comment,
-            userName: r.userId?.name || "Verified Shopper",
-            userAvatar: r.userId?.avatar || null,
-            businessName: r.businessId?.name || "Local Merchant",
-            location: r.businessId?.city || r.businessId?.address || "Sri Lanka",
-            rating: r.rating || 5,
-            dealTitle: r.dealId?.title || null,
-            tag: "Verified redemption",
-          }));
+          const formatted = liveReviews.map((r) => {
+            const loc =
+              r.businessId?.address?.city ||
+              r.businessId?.city ||
+              (typeof r.businessId?.address === "string" ? r.businessId.address : "") ||
+              "Sri Lanka";
+            return {
+              _id: r._id,
+              comment: r.comment || "",
+              userName: r.userId?.name || "Verified Shopper",
+              userAvatar: r.userId?.avatar || null,
+              businessName: r.businessId?.name || "Local Merchant",
+              location: loc,
+              rating: typeof r.rating === "number" ? r.rating : 5,
+              dealTitle: r.dealId?.title || null,
+              tag: "Verified redemption",
+            };
+          });
           setReviews(formatted);
         } else {
           setReviews(FALLBACK_NOTES);

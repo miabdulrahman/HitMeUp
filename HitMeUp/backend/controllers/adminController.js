@@ -846,6 +846,12 @@ const rejectSellerApplication = async (req, res) => {
     business.reviewedAt = new Date();
     await business.save();
 
+    // Immediately unpublish any active deals for rejected business
+    await Deal.updateMany(
+      { businessId: business._id, status: "active" },
+      { $set: { status: "draft" } }
+    );
+
     await recordAdminActivity({
       req,
       action: "SELLER_REJECTED",
@@ -1089,6 +1095,12 @@ const suspendSeller = async (req, res) => {
     seller.status = "inactive";
     seller.suspensionReason = cleanReason;
     await seller.save();
+
+    // Immediately unpublish all active deals of suspended seller so they disappear from buyer discovery
+    await Deal.updateMany(
+      { businessId: seller._id, status: "active" },
+      { $set: { status: "draft" } }
+    );
 
     await recordAdminActivity({
       req,

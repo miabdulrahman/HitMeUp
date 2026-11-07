@@ -356,6 +356,11 @@ export const discoveryApi = {
     const query = new URLSearchParams(params).toString();
     return apiRequest(`/discovery/reviews/business/${businessId}${query ? `?${query}` : ""}`);
   },
+
+  getRecentPlatformReviews: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/discovery/reviews/recent${query ? `?${query}` : ""}`);
+  },
 };
 
 // ----------------------------------------------------------------------

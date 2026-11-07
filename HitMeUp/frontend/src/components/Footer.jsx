@@ -7,7 +7,11 @@ function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
           {/* Brand */}
           <div>
-            <a href="#home" className="inline-block" aria-label="HitMeUp Home">
+            <a
+              href="#home"
+              className="keep-light-logo inline-flex items-center rounded-lg py-0.5 dark:bg-[#FDFBF7] dark:px-2.5 dark:py-1"
+              aria-label="HitMeUp Home"
+            >
               <img
                 src="/logo.png"
                 alt="HitMeUp"

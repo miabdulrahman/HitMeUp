@@ -7,6 +7,7 @@ import WhyHitMeUp from "../components/WhyHitMeUp";
 import ForBusiness from "../components/ForBusiness";
 import HowItWorks from "../components/HowItWorks";
 import Testimonials from "../components/Testimonials";
+import FAQ from "../components/FAQ";
 import CTA from "../components/CTA";
 import Footer from "../components/Footer";
 
@@ -32,6 +33,7 @@ function LandingPage() {
         <ForBusiness />
         <HowItWorks />
         <Testimonials />
+        <FAQ />
         <CTA />
       </main>
       <Footer />

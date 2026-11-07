@@ -4,7 +4,8 @@ import { normalizeCategory, getCategorySlug } from "../data/categories";
 import DealCard from "./DealCard";
 import DealDetailModal from "./DealDetailModal";
 import MapDiscoveryView from "./MapDiscoveryView";
-import { dealApi } from "../services/api";
+import { dealApi, discoveryApi } from "../services/api";
+import { useLocationContext } from "../context/LocationContext";
 import { isDealExpired } from "../utils/dealTimer";
 import {
   Tag,
@@ -14,6 +15,7 @@ import {
   Search,
   SlidersHorizontal,
   X,
+  Navigation,
 } from "lucide-react";
 
 // Helper to generate dynamic endDates for sample passes
@@ -238,18 +240,45 @@ const SHOWCASE_DEALS = [
   },
 ];
 
-function FeaturedDeals() {
+function FeaturedDeals({ initialSearch = "" }) {
+  const { userLocation, hasRealLocation, requestLocation, radius } = useLocationContext();
   const sectionRef = useRef(null);
   const navigate = useNavigate();
   const [dealsList, setDealsList] = useState([]);
   const [isUsingShowcase, setIsUsingShowcase] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [searchFilter, setSearchFilter] = useState("");
-  const [sortBy, setSortBy] = useState("featured"); // featured | discount | price-asc | stock
+  const [searchFilter, setSearchFilter] = useState(initialSearch);
+  const [sortBy, setSortBy] = useState("discount"); // default to highest discount / top deals
   const [displayMode, setDisplayMode] = useState("grid"); // grid | map
   const [loading, setLoading] = useState(true);
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [showNearby, setShowNearby] = useState(hasRealLocation);
+
+  // Sync with real location state
+  useEffect(() => {
+    if (hasRealLocation) {
+      setShowNearby(true);
+    }
+  }, [hasRealLocation]);
+
+  const handleToggleNearby = () => {
+    if (showNearby && hasRealLocation) {
+      setShowNearby(false);
+    } else if (hasRealLocation) {
+      setShowNearby(true);
+    } else {
+      // Client not accepted location yet: request permission
+      requestLocation();
+      setShowNearby(true);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof initialSearch === "string") {
+      setSearchFilter(initialSearch);
+    }
+  }, [initialSearch]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -273,8 +302,24 @@ function FeaturedDeals() {
     const fetchDeals = async () => {
       setLoading(true);
       try {
-        const response = await dealApi.getDeals();
-        const liveDeals = response.deals || response.data || [];
+        let liveDeals = [];
+
+        // If Show Nearby is active AND client accepted location, fetch nearby deals
+        if (showNearby && hasRealLocation && userLocation?.latitude && userLocation?.longitude) {
+          const res = await discoveryApi.getNearbyDeals({
+            lat: userLocation.latitude,
+            lng: userLocation.longitude,
+            radius: radius || 25,
+          });
+          liveDeals = res.deals || [];
+        } else {
+          // If client not accepted or Show Nearby is toggled off: show all top deals across platform
+          const response = await dealApi.getDeals({
+            limit: 50,
+            sort: "discount_desc",
+          });
+          liveDeals = response.deals || response.data || [];
+        }
 
         if (isMounted) {
           if (Array.isArray(liveDeals) && liveDeals.length > 0) {
@@ -312,7 +357,9 @@ function FeaturedDeals() {
                   startDate: d.startDate,
                   durationHours: d.durationHours,
                   status: d.status,
-                  distance: locationCity,
+                  distance: d.distanceText || (d.distanceKm !== undefined && d.distanceKm !== null ? `${d.distanceKm} km away` : locationCity),
+                  distanceText: d.distanceText || (d.distanceKm !== undefined && d.distanceKm !== null ? `${d.distanceKm} km away` : locationCity),
+                  distanceKm: d.distanceKm,
                   location: locationCity,
                   rating: 4.8,
                   reviewsCount: 35,
@@ -354,7 +401,7 @@ function FeaturedDeals() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [showNearby, hasRealLocation, userLocation, radius]);
 
   const categories = [
     "All",
@@ -437,21 +484,37 @@ function FeaturedDeals() {
         {/* Section Header */}
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
-            <div className="inline-flex items-center gap-2 text-[13px] font-medium text-[#7B7266]">
-              <span className="h-2 w-2 rounded-full bg-[#166534]" />
-              <span>
-                {isUsingShowcase
-                  ? "Neighborhood pass feed (sample preview)"
-                  : "Live unexpired counter passes"}
-              </span>
+            <div className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-[#7B7266]">
+              {showNearby && hasRealLocation ? (
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-[#BBF7D0] bg-[#F0FDF4] px-2.5 py-0.5 text-[11px] font-mono font-medium text-[#166534]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A] animate-pulse" />
+                  <span>Showing deals near your location (within {radius}km)</span>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-[#FED7AA] bg-[#FFF7ED] px-2.5 py-0.5 text-[11px] font-medium text-[#C2410C]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#EA580C]" />
+                    <span>Showing all top deals</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleToggleNearby}
+                    className="inline-flex items-center gap-1 rounded-md border border-[#E6E0D6] bg-white px-2 py-0.5 text-[11px] font-medium text-[#D94832] transition-colors hover:bg-[#EFE9DF] cursor-pointer"
+                  >
+                    <Navigation size={11} strokeWidth={1.5} />
+                    <span>Show nearby</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <h2 className="mt-1.5 text-[28px] sm:text-[32px] font-medium tracking-[-0.025em] text-[#1F1B16]">
-              Deals near you
+              {showNearby && hasRealLocation ? "Deals near you" : "All Top Deals"}
             </h2>
             <p className="mt-1.5 max-w-[54ch] text-[15px] text-[#5E554A]">
-              Filter active markdowns by category, sort by discount, or open the
-              full street map to explore pinned stores across Colombo.
+              {showNearby && hasRealLocation
+                ? `Filter active markdowns by category, sort by discount, or open the full street map to explore pinned stores within ${radius}km.`
+                : "Explore top verified flash markdowns and counter passes across all stores. Turn on 'Show nearby' to filter deals closest to your street."}
             </p>
           </div>
 
@@ -499,10 +562,61 @@ function FeaturedDeals() {
           </div>
         ) : (
           <>
+            {/* Active Search Filter Banner */}
+            {searchFilter && (
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] px-4 py-2.5 shadow-sm">
+                <div className="flex items-center gap-2 text-[13px] text-[#1F1B16]">
+                  <span className="text-[#7B7266]">Filtered by:</span>
+                  <span className="font-medium text-[#D94832]">"{searchFilter}"</span>
+                  <span className="font-mono text-[11px] text-[#7B7266]">
+                    ({filteredDeals.length} {filteredDeals.length === 1 ? "pass" : "passes"} found)
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSearchFilter("")}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#E6E0D6] bg-white px-2.5 py-1 text-[11px] font-medium text-[#5E554A] transition-colors hover:bg-[#EFE9DF] hover:text-[#1F1B16] cursor-pointer"
+                >
+                  <X size={12} strokeWidth={1.5} />
+                  <span>Clear filter</span>
+                </button>
+              </div>
+            )}
+
             {/* Interactive Filter & Sort Toolbar */}
             <div className="mt-7 flex flex-col justify-between gap-3 rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] p-3 lg:flex-row lg:items-center">
-              {/* Category Pills with Live Counts */}
+              {/* Category Pills with Live Counts + Show Nearby Filter */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+                {/* Dedicated Show Nearby Filter Button */}
+                <button
+                  type="button"
+                  onClick={handleToggleNearby}
+                  className={`inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-[13px] font-medium transition-all duration-150 cursor-pointer ${
+                    showNearby && hasRealLocation
+                      ? "bg-[#D94832] text-white shadow-xs"
+                      : showNearby && !hasRealLocation
+                      ? "border border-[#D94832] bg-[#FFF7ED] text-[#D94832]"
+                      : "border border-[#E6E0D6] bg-white text-[#5E554A] hover:border-[#D94832]/50 hover:bg-[#F7F4EE] hover:text-[#D94832]"
+                  }`}
+                  title={
+                    showNearby && hasRealLocation
+                      ? "Currently showing deals near your street. Click to view all top deals."
+                      : "Filter flash deals closest to your street"
+                  }
+                >
+                  <Navigation
+                    size={13}
+                    strokeWidth={1.75}
+                    className={showNearby && hasRealLocation ? "animate-pulse" : ""}
+                  />
+                  <span>Show nearby</span>
+                  {showNearby && hasRealLocation && (
+                    <span className="flex h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+                  )}
+                </button>
+
+                <div className="h-5 w-px bg-[#E6E0D6] mx-0.5 shrink-0" />
+
                 {categories.map((cat) => {
                   const active = selectedCategory === cat;
                   const count = categoryCounts[cat] ?? 0;
@@ -567,8 +681,8 @@ function FeaturedDeals() {
                     aria-label="Sort deals"
                     className="bg-transparent text-[12px] font-medium text-[#1F1B16] focus:outline-none cursor-pointer"
                   >
-                    <option value="featured">Sort: Featured</option>
-                    <option value="discount">Highest discount</option>
+                    <option value="discount">Highest discount (Top deals)</option>
+                    <option value="featured">Featured passes</option>
                     <option value="price-asc">Lowest price (Rs.)</option>
                     <option value="stock">Ending soonest</option>
                   </select>

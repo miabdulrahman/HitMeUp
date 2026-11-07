@@ -21,6 +21,12 @@ const voucherSchema = new mongoose.Schema(
       required: true
     },
 
+    paymentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Payment",
+      default: null
+    },
+
     code: {
       type: String,
       required: true,
@@ -40,7 +46,9 @@ const voucherSchema = new mongoose.Schema(
         "ACTIVE",
         "REDEEMED",
         "EXPIRED",
-        "CANCELLED"
+        "CANCELLED",
+        "REFUNDED",
+        "VOID"
       ],
       default: "ACTIVE"
     },
@@ -59,5 +67,8 @@ const voucherSchema = new mongoose.Schema(
     timestamps: true
   }
 );
+
+voucherSchema.index({ customerId: 1, status: 1 });
+voucherSchema.index({ dealId: 1, status: 1 });
 
 module.exports = mongoose.models.Voucher || mongoose.model("Voucher", voucherSchema);

@@ -1,65 +1,36 @@
 import {
   ArrowRight,
   MapPin,
-  Clock3,
-  QrCode,
-  Check,
   Search,
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle2,
-  RotateCcw,
+  Navigation,
+  Store,
+  QrCode,
+  Tag,
+  X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { dealApi } from "../services/api";
+import { isDealExpired } from "../utils/dealTimer";
+import DealDetailModal from "./DealDetailModal";
 
-const SAMPLE_PASSES = [
+const HERO_SCENES = [
   {
-    id: "pass-1",
-    discount: "35% off",
-    category: "Food & drink",
-    merchant: "Commons Roastery & Bakehouse",
-    neighborhood: "Bambalapitiya, Colombo 04 · 0.8 km",
-    title: "Afternoon espresso & sourdough tartlet for two",
-    price: 1950,
-    oldPrice: 3000,
-    remaining: 6,
-    serial: "HMU-8420-CMB",
-    windowText: "Show QR at checkout before 6:00 PM",
+    id: "street-market",
     image: "/hero-cover.jpg",
-    initialSeconds: 8078, // 02h 14m 38s
+    label: "Evening street market · Walk in deals",
   },
   {
-    id: "pass-2",
-    discount: "30% off",
-    category: "Bakery & cafe",
-    merchant: "Galle Road Bakehouse",
-    neighborhood: "Wellawatte, Colombo 06 · 1.4 km",
-    title: "Artisan sourdough loaf & two iced cinnamon lattes",
-    price: 1260,
-    oldPrice: 1800,
-    remaining: 11,
-    serial: "HMU-3091-WEL",
-    windowText: "Valid for walk-in pickup until 7:30 PM",
+    id: "artisan-cafe",
     image:
-      "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80",
-    initialSeconds: 5620, // 01h 33m 40s
+      "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1920&q=85",
+    label: "Cafes and bakeries · Colombo 04",
   },
   {
-    id: "pass-3",
-    discount: "40% off",
-    category: "Wellness & spa",
-    merchant: "Ayur Botanica Lounge",
-    neighborhood: "Kollupitiya, Colombo 03 · 1.1 km",
-    title: "45-minute weekday head, neck & shoulder therapy",
-    price: 2700,
-    oldPrice: 4500,
-    remaining: 4,
-    serial: "HMU-6104-KLP",
-    windowText: "Walk-in slot reserved for 2 hours after claim",
+    id: "local-dining",
     image:
-      "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=900&q=80",
-    initialSeconds: 11415, // 03h 10m 15s
+      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1920&q=85",
+    label: "Neighborhood dining and retail · Galle Road",
   },
 ];
 
@@ -71,24 +42,15 @@ const NEIGHBORHOODS = [
   "Mount Lavinia",
 ];
 
-function formatDuration(totalSeconds) {
-  const safe = Math.max(0, totalSeconds);
-  const hrs = String(Math.floor(safe / 3600)).padStart(2, "0");
-  const mins = String(Math.floor((safe % 3600) / 60)).padStart(2, "0");
-  const secs = String(safe % 60).padStart(2, "0");
-  return `${hrs}h ${mins}m ${secs}s`;
-}
-
-function Hero() {
+function Hero({ onSearch }) {
   const revealRefs = useRef([]);
+  const formRef = useRef(null);
   const navigate = useNavigate();
-
   const [searchText, setSearchText] = useState("");
-  const [activePassIndex, setActivePassIndex] = useState(0);
-  const [timers, setTimers] = useState(() =>
-    SAMPLE_PASSES.map((p) => p.initialSeconds)
-  );
-  const [scanSimulated, setScanSimulated] = useState(false);
+  const [activeScene, setActiveScene] = useState(0);
+  const [allDeals, setAllDeals] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedDeal, setSelectedDeal] = useState(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -110,14 +72,66 @@ function Hero() {
     return () => observer.disconnect();
   }, []);
 
-  // Live ticking countdown for the hero voucher preview
+  // Auto-advance background scene every 7 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimers((prev) =>
-        prev.map((seconds) => (seconds > 60 ? seconds - 1 : seconds))
-      );
-    }, 1000);
-    return () => clearInterval(interval);
+    const timer = setInterval(() => {
+      setActiveScene((prev) => (prev + 1) % HERO_SCENES.length);
+    }, 7000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Preload deals for instant search suggestions
+  useEffect(() => {
+    let isMounted = true;
+    dealApi
+      .getDeals()
+      .then((res) => {
+        const list = res.deals || res.data || [];
+        if (isMounted && Array.isArray(list)) {
+          const active = list
+            .filter((d) => !isDealExpired(d))
+            .map((d) => ({
+              id: d._id || d.id,
+              _id: d._id,
+              title: d.title,
+              business: d.businessId?.name || d.businessName || "Local store",
+              businessId: d.businessId,
+              category: d.category || "General",
+              price: `Rs. ${Number(d.discountedPrice || d.price || 0).toLocaleString()}`,
+              rawPrice: Number(d.discountedPrice || d.price || 0),
+              oldPrice: `Rs. ${Number(d.originalPrice || d.oldPrice || 0).toLocaleString()}`,
+              rawOldPrice: Number(d.originalPrice || d.oldPrice || 0),
+              discount: `${d.discountPercentage || 0}% off`,
+              discountPercentage: Number(d.discountPercentage || 0),
+              image: d.imageUrl || d.image || "/hero-cover.jpg",
+              location: d.businessId?.address?.city || "Colombo",
+              distance: d.businessId?.address?.city || "Colombo",
+              endDate: d.endDate,
+              vouchersLeft: d.availableQuantity ?? 10,
+              description: d.description || "",
+              terms: d.terms || "Present pass at counter",
+            }));
+          setAllDeals(active);
+        }
+      })
+      .catch((err) => {
+        console.info("Deals preload for hero search suggestions:", err?.message);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (formRef.current && !formRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const addRef = (el) => {
@@ -126,13 +140,33 @@ function Hero() {
     }
   };
 
-  const activePass = SAMPLE_PASSES[activePassIndex];
-  const savings = activePass.oldPrice - activePass.price;
+  const suggestions = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+    if (q.length < 2 || allDeals.length === 0) return [];
+    return allDeals
+      .filter((d) => {
+        const title = (d.title || "").toLowerCase();
+        const biz = (d.business || "").toLowerCase();
+        const cat = (d.category || "").toLowerCase();
+        const city = (d.location || "").toLowerCase();
+        return (
+          title.includes(q) ||
+          biz.includes(q) ||
+          cat.includes(q) ||
+          city.includes(q)
+        );
+      })
+      .slice(0, 4);
+  }, [searchText, allDeals]);
 
   const handleHeroSearch = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const trimmed = searchText.trim();
-    if (trimmed) {
+    setShowDropdown(false);
+
+    if (onSearch) {
+      onSearch(trimmed);
+    } else if (trimmed) {
       navigate(`/deals?q=${encodeURIComponent(trimmed)}`);
     } else {
       const dealsSection = document.getElementById("deals");
@@ -145,335 +179,305 @@ function Hero() {
   };
 
   const handleSelectNeighborhood = (area) => {
-    navigate(`/deals?q=${encodeURIComponent(area)}`);
-  };
-
-  const handleSwitchPass = (nextIdx) => {
-    setScanSimulated(false);
-    setActivePassIndex(nextIdx);
+    setSearchText(area);
+    setShowDropdown(false);
+    if (onSearch) {
+      onSearch(area);
+    } else {
+      navigate(`/deals?q=${encodeURIComponent(area)}`);
+    }
   };
 
   return (
     <section
       id="home"
-      className="relative border-b border-[#E6E0D6] bg-[#F7F4EE] pt-28 pb-20 lg:pt-36 lg:pb-24"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden border-b border-[#E6E0D6] dark:border-[#272727] bg-[#F7F4EE] dark:bg-[#131209] pt-24 pb-16 lg:pt-28 lg:pb-20 transition-colors duration-300"
     >
-      <div className="mx-auto max-w-[1200px] px-6">
-        <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
-          {/* Left column: Asymmetric direct copy + interactive search */}
-          <div ref={addRef} className="reveal lg:col-span-7">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-[#E6E0D6] bg-[#FDFBF7] px-3 py-1 text-[12px] font-medium text-[#5E554A]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#D94832]" />
-              <span>Neighborhood flash deals across Sri Lanka</span>
+      {/* Full Screen Background Slideshow with Flat Theme Overlay (Rule B4) */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {HERO_SCENES.map((scene, index) => {
+          const isCurrent = index === activeScene;
+          return (
+            <div
+              key={scene.id}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                isCurrent ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <img
+                key={isCurrent ? `${scene.id}-active` : scene.id}
+                src={scene.image}
+                alt=""
+                aria-hidden="true"
+                loading={index === 0 ? "eager" : "lazy"}
+                className={`h-full w-full object-cover object-center ${
+                  isCurrent ? "hero-bg-zoom" : ""
+                }`}
+              />
             </div>
+          );
+        })}
 
-            <h1 className="text-[clamp(2.4rem,4.8vw,4.1rem)] font-medium leading-[1.06] tracking-[-0.03em] text-[#1F1B16]">
-              Local markdowns you can{" "}
-              <span className="serif font-normal text-[#D94832]">
-                walk in and redeem
-              </span>{" "}
-              today
-            </h1>
+        {/* Matte blurred glass scrim over the background image */}
+        <div className="absolute inset-0 backdrop-blur-[6px] bg-black/25 dark:bg-black/45" />
+      </div>
 
-            <p className="mt-5 max-w-[58ch] text-[16px] leading-[1.65] text-[#5E554A]">
-              Cafes, bakeries, salons, and retail counters post short-window
-              discounts when tables or shelves are quiet. Claim a free voucher
-              pass online and scan your QR code at the shop counter.
-            </p>
+      {/* Main Centered Hero Content */}
+      <div className="relative z-10 mx-auto w-full max-w-[1200px] px-6">
+        <div ref={addRef} className="reveal mx-auto max-w-[680px] text-center">
+          {/* Location Signal Pill */}
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#E6E0D6] dark:border-white/15 bg-[#FDFBF7]/90 dark:bg-[#1F1F1F]/80 px-4 py-1.5 text-xs font-medium text-[#1F1B16] dark:text-[#FDFBF7] backdrop-blur-md">
+            <MapPin size={13} strokeWidth={1.5} className="text-[#D94832] dark:text-[#FF7A59]" />
+            <span>Neighborhood flash passes across Sri Lanka</span>
+          </div>
 
-            {/* Interactive Search Bar */}
+          {/* Heading 1 */}
+          <h1 className="mx-auto max-w-[680px] text-4xl sm:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] [text-wrap:balance]">
+            Flash deals from local shops
+            <br />
+            around your street corner
+          </h1>
+
+          {/* Subheading */}
+          <p className="mx-auto mt-6 max-w-[680px] text-base sm:text-lg font-normal leading-relaxed text-white/90 drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)] [text-wrap:pretty]">
+            Cafes, bakeries, salons, and retail counters release limited quantity passes during quiet hours.
+            Claim your voucher online for free and scan your verified QR code at the counter.
+          </p>
+
+          {/* Interactive Search Bar with Live Suggestions */}
+          <div ref={formRef} className="relative mx-auto mt-8 max-w-[600px]">
             <form
               onSubmit={handleHeroSearch}
-              className="mt-7 flex max-w-[560px] flex-col gap-2 rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] p-2 shadow-[0_2px_10px_rgba(31,27,22,0.04)] sm:flex-row sm:items-center"
+              className="flex flex-col gap-2 rounded-2xl border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#1F1F1F] p-2 shadow-[0_12px_36px_rgba(31,27,22,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:flex-row sm:items-center"
             >
-              <div className="relative flex flex-1 items-center">
+              <label className="relative flex flex-1 items-center">
+                <span className="sr-only">Search deals</span>
                 <Search
-                  size={16}
+                  size={18}
                   strokeWidth={1.5}
-                  className="pointer-events-none ml-3 text-[#7B7266]"
+                  className="pointer-events-none ml-3.5 text-[#7B7266] dark:text-[#A89F91]"
                 />
                 <input
                   type="text"
                   value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
+                  onFocus={() => {
+                    if (searchText.trim().length >= 2) setShowDropdown(true);
+                  }}
+                  onChange={(e) => {
+                    setSearchText(e.target.value);
+                    setShowDropdown(true);
+                  }}
                   placeholder="Search coffee, bakery, salon, or street..."
-                  className="h-10 w-full bg-transparent px-3 text-[14px] text-[#1F1B16] placeholder-[#7B7266] focus:outline-none"
+                  className="h-11 w-full bg-transparent px-3 text-sm text-[#1F1B16] dark:text-[#FDFBF7] placeholder-[#7B7266] dark:placeholder-[#A89F91] focus:outline-none"
                 />
-              </div>
+                {searchText && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchText("");
+                      setShowDropdown(false);
+                      if (onSearch) onSearch("");
+                    }}
+                    className="mr-2 text-[#7B7266] dark:text-[#A89F91] hover:text-[#1F1B16] dark:hover:text-[#FDFBF7] cursor-pointer"
+                  >
+                    <X size={15} />
+                  </button>
+                )}
+              </label>
 
+              {/* Nested radius formula: 16px outer - 8px gap = 8px (rounded-lg) */}
               <button
                 type="submit"
-                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#D94832] px-5 text-[13px] font-medium text-white transition-colors duration-150 hover:bg-[#C23B26] cursor-pointer"
+                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#D94832] px-4 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#C23B26] active:scale-[0.98] cursor-pointer"
               >
                 <span>Find passes</span>
-                <ArrowRight size={15} strokeWidth={1.5} />
+                <ArrowRight size={16} strokeWidth={1.5} />
               </button>
             </form>
 
-            {/* Quick Neighborhood Chips */}
-            <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 inline-flex items-center gap-1 text-[12px] text-[#7B7266]">
-                <MapPin size={12} strokeWidth={1.5} className="text-[#D94832]" />
-                Nearby areas:
-              </span>
-              {NEIGHBORHOODS.map((area) => (
-                <button
-                  key={area}
-                  type="button"
-                  onClick={() => handleSelectNeighborhood(area)}
-                  className="rounded-md border border-[#E6E0D6] bg-[#FDFBF7] px-2.5 py-1 text-[12px] text-[#5E554A] transition-colors duration-150 hover:border-[#1F1B16]/30 hover:bg-[#EFE9DF] hover:text-[#1F1B16] cursor-pointer"
-                >
-                  {area}
-                </button>
-              ))}
-            </div>
+            {/* Live Instant Suggestions Dropdown */}
+            {showDropdown && suggestions.length > 0 && (
+              <div className="ios-popup-card absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7]/98 dark:bg-[#1F1F1F]/98 p-2 text-left shadow-[0_20px_50px_rgba(31,27,22,0.18)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+                <div className="flex items-center justify-between border-b border-[#E6E0D6] dark:border-white/10 px-3 py-1.5 text-xs font-mono text-[#7B7266] dark:text-[#CFC6B8]">
+                  <span>Matching live passes ({suggestions.length})</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowDropdown(false)}
+                    className="text-[#7B7266] dark:text-[#CFC6B8] hover:text-[#1F1B16] dark:hover:text-white"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
 
-            {/* Secondary Action Links */}
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <a
-                href="#deals"
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#E6E0D6] bg-[#FDFBF7] px-4 text-[13px] font-medium text-[#1F1B16] transition-colors duration-150 hover:bg-[#EFE9DF]"
-              >
-                <span>Browse live pass feed</span>
-              </a>
-
-              <Link
-                to="/register"
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#E6E0D6] bg-transparent px-4 text-[13px] font-medium text-[#5E554A] transition-colors duration-150 hover:bg-[#EFE9DF] hover:text-[#1F1B16]"
-              >
-                <span>List your storefront</span>
-                <ArrowRight size={14} strokeWidth={1.5} />
-              </Link>
-            </div>
-
-            {/* Honest product facts */}
-            <div className="mt-10 grid grid-cols-1 gap-4 border-t border-[#E6E0D6] pt-6 sm:grid-cols-3">
-              <div>
-                <p className="font-mono text-[13px] font-medium text-[#1F1B16]">
-                  Rs. 0 to claim
-                </p>
-                <p className="mt-0.5 text-[13px] text-[#7B7266]">
-                  Reserve a pass online and pay at the counter
-                </p>
-              </div>
-              <Link to="/deals?view=map" className="group block cursor-pointer">
-                <p className="font-mono text-[13px] font-medium text-[#1F1B16] group-hover:text-[#D94832] transition-colors">
-                  Live map pins →
-                </p>
-                <p className="mt-0.5 text-[13px] text-[#7B7266]">
-                  Filter active offers by street distance
-                </p>
-              </Link>
-              <div>
-                <p className="font-mono text-[13px] font-medium text-[#1F1B16]">
-                  QR counter pass
-                </p>
-                <p className="mt-0.5 text-[13px] text-[#7B7266]">
-                  Instant verification with serial code
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right column: Interactive Live Voucher Ticket Switcher */}
-          <div
-            ref={addRef}
-            className="reveal lg:col-span-5"
-            style={{ transitionDelay: "80ms" }}
-          >
-            <div className="mx-auto max-w-[440px]">
-              {/* Pass Switcher Control Bar */}
-              <div className="mb-2.5 flex items-center justify-between px-1">
-                <div className="flex items-center gap-1.5">
-                  {SAMPLE_PASSES.map((pass, idx) => (
+                <div className="divide-y divide-[#E6E0D6]/60 dark:divide-white/5 py-1">
+                  {suggestions.map((deal) => (
                     <button
-                      key={pass.id}
+                      key={deal.id || deal._id}
                       type="button"
-                      onClick={() => handleSwitchPass(idx)}
-                      className={`h-7 rounded-md px-2.5 font-mono text-[11px] transition-colors duration-150 cursor-pointer ${
-                        idx === activePassIndex
-                          ? "bg-[#1F1B16] font-medium text-[#FDFBF7]"
-                          : "border border-[#E6E0D6] bg-[#FDFBF7] text-[#7B7266] hover:text-[#1F1B16]"
-                      }`}
+                      onClick={() => {
+                        setSelectedDeal(deal);
+                        setShowDropdown(false);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-colors duration-150 hover:bg-[#EFE9DF]/70 dark:hover:bg-white/10 cursor-pointer"
                     >
-                      0{idx + 1} · {pass.discount}
+                      <img
+                        src={deal.image || "/hero-cover.jpg"}
+                        alt=""
+                        className="h-11 w-11 shrink-0 rounded-lg border border-[#E6E0D6] dark:border-white/15 object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded bg-[#D94832] px-1.5 py-0.5 font-mono text-[10px] font-medium text-white">
+                            {deal.discount}
+                          </span>
+                          <span className="truncate text-xs text-[#7B7266] dark:text-[#CFC6B8]">
+                            {deal.business} · {deal.location}
+                          </span>
+                        </div>
+                        <p className="truncate text-sm font-medium text-[#1F1B16] dark:text-[#FDFBF7]">
+                          {deal.title}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <span className="font-mono text-sm font-semibold text-[#D94832] dark:text-[#FF8A6B]">
+                          {deal.price}
+                        </span>
+                      </div>
                     </button>
                   ))}
                 </div>
 
-                <div className="flex items-center gap-1">
+                <div className="border-t border-[#E6E0D6] dark:border-white/10 p-1.5 pt-2">
                   <button
                     type="button"
-                    onClick={() =>
-                      handleSwitchPass(
-                        (activePassIndex - 1 + SAMPLE_PASSES.length) %
-                          SAMPLE_PASSES.length
-                      )
-                    }
-                    aria-label="Previous sample pass"
-                    className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E6E0D6] bg-[#FDFBF7] text-[#5E554A] transition-colors hover:bg-[#EFE9DF] hover:text-[#1F1B16] cursor-pointer"
+                    onClick={(e) => handleHeroSearch(e)}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#EFE9DF] dark:bg-white/10 py-2 text-xs font-semibold text-[#1F1B16] dark:text-[#FDFBF7] transition-colors hover:bg-[#D94832] hover:text-white cursor-pointer"
                   >
-                    <ChevronLeft size={14} strokeWidth={1.5} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleSwitchPass(
-                        (activePassIndex + 1) % SAMPLE_PASSES.length
-                      )
-                    }
-                    aria-label="Next sample pass"
-                    className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E6E0D6] bg-[#FDFBF7] text-[#5E554A] transition-colors hover:bg-[#EFE9DF] hover:text-[#1F1B16] cursor-pointer"
-                  >
-                    <ChevronRight size={14} strokeWidth={1.5} />
+                    <span>View all matching passes in feed</span>
+                    <ArrowRight size={13} strokeWidth={1.5} />
                   </button>
                 </div>
               </div>
+            )}
+          </div>
 
-              {/* Voucher Ticket Card */}
-              <div className="rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] p-5 shadow-[0_4px_20px_rgba(31,27,22,0.06)]">
-                {/* Top receipt header */}
-                <div className="flex items-center justify-between border-b border-[#E6E0D6] pb-3.5">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center rounded-[5px] bg-[#D94832] px-2 py-0.5 font-mono text-[11px] font-medium text-white">
-                      {activePass.discount}
-                    </span>
-                    <span className="text-[12px] font-medium text-[#5E554A]">
-                      {activePass.category}
-                    </span>
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 font-mono text-[12px] text-[#5E554A] tabular-nums">
-                    <Clock3
-                      size={13}
-                      strokeWidth={1.5}
-                      className="text-[#D94832]"
-                    />
-                    {formatDuration(timers[activePassIndex])}
-                  </span>
-                </div>
+          {/* Quick Neighborhood Filter Chips */}
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <span className="text-xs font-medium text-white/85 drop-shadow-sm">Popular areas:</span>
+            {NEIGHBORHOODS.map((area) => (
+              <button
+                key={area}
+                type="button"
+                onClick={() => handleSelectNeighborhood(area)}
+                className="rounded-lg border border-white/20 bg-black/40 hover:bg-black/60 px-3 py-1 text-xs font-medium text-white backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-white/40 cursor-pointer shadow-sm"
+              >
+                {area}
+              </button>
+            ))}
+          </div>
 
-                {/* Deal preview image & merchant details */}
-                <div className="mt-4 overflow-hidden rounded-lg border border-[#E6E0D6] bg-[#EFE9DF]">
-                  <div className="relative h-44 w-full">
-                    <img
-                      src={activePass.image}
-                      alt={activePass.title}
-                      className="h-full w-full object-cover"
-                    />
-                    <div className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-md bg-[#1F1B16]/85 px-2.5 py-1 text-[11px] font-medium text-[#FDFBF7] backdrop-blur-sm">
-                      <MapPin
-                        size={12}
-                        strokeWidth={1.5}
-                        className="text-[#D94832]"
-                      />
-                      <span>{activePass.neighborhood}</span>
-                    </div>
-                  </div>
-                </div>
+          {/* Secondary Action Buttons */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm">
+            <Link
+              to="/deals?view=map"
+              className="group inline-flex items-center gap-2 rounded-lg border border-white/25 bg-black/45 hover:bg-black/65 px-4 py-2 font-semibold text-white backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] shadow-sm"
+            >
+              <Navigation
+                size={15}
+                strokeWidth={1.5}
+                className="text-[#FF7A59]"
+              />
+              <span>Explore street map</span>
+              <ArrowRight
+                size={14}
+                strokeWidth={1.5}
+                className="transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0.5"
+              />
+            </Link>
 
-                <div className="mt-4">
-                  <p className="text-[12px] font-medium text-[#7B7266]">
-                    {activePass.merchant}
-                  </p>
-                  <h2 className="mt-1 text-[18px] font-medium leading-snug text-[#1F1B16]">
-                    {activePass.title}
-                  </h2>
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-black/40 hover:bg-black/60 px-4 py-2 font-medium text-white/90 backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-white active:scale-[0.98] shadow-sm"
+            >
+              <Store size={15} strokeWidth={1.5} />
+              <span>Own a store? List your storefront</span>
+            </Link>
+          </div>
 
-                  <div className="mt-3 flex items-baseline justify-between">
-                    <div className="flex items-baseline gap-2 font-mono tabular-nums">
-                      <span className="text-[22px] font-medium text-[#1F1B16]">
-                        Rs. {activePass.price.toLocaleString()}
-                      </span>
-                      <span className="text-[13px] text-[#7B7266] line-through">
-                        Rs. {activePass.oldPrice.toLocaleString()}
-                      </span>
-                    </div>
-                    <span className="font-mono text-[12px] text-[#166534] tabular-nums">
-                      {activePass.remaining} passes left
-                    </span>
-                  </div>
-                </div>
-
-                {/* Signature perforated voucher divider */}
-                <div className="ticket-divider my-5" />
-
-                {/* Interactive Bottom Voucher Stub */}
-                {scanSimulated ? (
-                  <div className="rounded-lg border border-[#BBF7D0] bg-[#F0FDF4] p-3.5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-2.5">
-                        <CheckCircle2
-                          size={18}
-                          strokeWidth={1.75}
-                          className="mt-0.5 shrink-0 text-[#166534]"
-                        />
-                        <div>
-                          <p className="text-[13px] font-medium text-[#166534]">
-                            Counter pass verified · Saved Rs.{" "}
-                            {savings.toLocaleString()}
-                          </p>
-                          <p className="mt-0.5 font-mono text-[11px] text-[#166534]/80">
-                            Serial {activePass.serial} marked redeemed at POS
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setScanSimulated(false)}
-                        className="inline-flex items-center gap-1 rounded border border-[#BBF7D0] bg-white px-2 py-1 text-[11px] font-medium text-[#166534] hover:bg-[#DCFCE7] cursor-pointer"
-                      >
-                        <RotateCcw size={11} strokeWidth={1.5} />
-                        Reset
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-[11px] text-[#7B7266]">
-                          Counter voucher serial
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => setScanSimulated(true)}
-                          className="rounded border border-[#E6E0D6] bg-[#F7F4EE] px-2 py-0.5 text-[11px] font-medium text-[#D94832] transition-colors hover:border-[#D94832]/40 hover:bg-[#EFE9DF] cursor-pointer"
-                        >
-                          Simulate counter scan
-                        </button>
-                      </div>
-                      <p className="mt-0.5 font-mono text-[14px] font-medium tracking-tight text-[#1F1B16]">
-                        {activePass.serial}
-                      </p>
-                      <p className="mt-1 inline-flex items-center gap-1 text-[12px] text-[#5E554A]">
-                        <Check
-                          size={13}
-                          strokeWidth={1.5}
-                          className="text-[#166534]"
-                        />
-                        <span>{activePass.windowText}</span>
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setScanSimulated(true)}
-                      title="Click to simulate cashier QR scan"
-                      className="group flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-[#E6E0D6] bg-white p-2 text-[#1F1B16] transition-colors hover:border-[#D94832] cursor-pointer"
-                    >
-                      <QrCode
-                        size={36}
-                        strokeWidth={1.5}
-                        className="transition-colors group-hover:text-[#D94832]"
-                      />
-                    </button>
-                  </div>
-                )}
+          {/* Product Pillars */}
+          <div className="mx-auto mt-9 grid max-w-[780px] grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-white/15 bg-black/45 p-4 text-center backdrop-blur-md shadow-sm">
+              <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-[#FF8A6B]">
+                <Tag size={15} strokeWidth={1.5} />
               </div>
+              <p className="font-mono text-sm font-semibold text-white">
+                Free reservation
+              </p>
+              <p className="mt-1 text-xs text-white/80">
+                Reserve a pass online and pay at the counter
+              </p>
+            </div>
+
+            <Link
+              to="/deals?view=map"
+              className="group block rounded-xl border border-white/15 bg-black/45 p-4 text-center backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#FF8A6B]/50 hover:bg-black/60 shadow-sm"
+            >
+              <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-[#FF8A6B]">
+                <MapPin size={15} strokeWidth={1.5} />
+              </div>
+              <p className="font-mono text-sm font-semibold text-white group-hover:text-[#FF8A6B] transition-colors">
+                Live street pins
+              </p>
+              <p className="mt-1 text-xs text-white/80">
+                Filter active offers by walking distance
+              </p>
+            </Link>
+
+            <div className="rounded-xl border border-white/15 bg-black/45 p-4 text-center backdrop-blur-md shadow-sm">
+              <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-[#FF8A6B]">
+                <QrCode size={15} strokeWidth={1.5} />
+              </div>
+              <p className="font-mono text-sm font-semibold text-white">
+                QR counter pass
+              </p>
+              <p className="mt-1 text-xs text-white/80">
+                Instant cashier verification with serial code
+              </p>
+            </div>
+          </div>
+
+          {/* Scene Switcher Controls */}
+          <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-[#E6E0D6] dark:border-white/15 bg-[#FDFBF7]/90 dark:bg-[#14110E]/65 px-4 py-1.5 backdrop-blur-md">
+            <span className="font-mono text-xs text-[#5E554A] dark:text-[#CFC6B8]">
+              {HERO_SCENES[activeScene].label}
+            </span>
+            <div className="flex items-center gap-1.5">
+              {HERO_SCENES.map((scene, idx) => (
+                <button
+                  key={scene.id}
+                  type="button"
+                  onClick={() => setActiveScene(idx)}
+                  aria-label={`Show ${scene.label}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                    idx === activeScene
+                      ? "w-5 bg-[#D94832] dark:bg-[#FF7A59]"
+                      : "w-1.5 bg-[#7B7266]/35 dark:bg-white/35 hover:bg-[#7B7266]/60 dark:hover:bg-white/60"
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Detail Modal for Clicked Search Suggestions */}
+      {selectedDeal && (
+        <DealDetailModal
+          deal={selectedDeal}
+          isOpen={!!selectedDeal}
+          onClose={() => setSelectedDeal(null)}
+        />
+      )}
     </section>
   );
 }

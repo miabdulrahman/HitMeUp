@@ -20,9 +20,23 @@ const userSchema = new mongoose.Schema(
         "Please provide a valid email address"
       ]
     },
+
+    googleId:{
+      type:String,
+      unique:true,
+      sparse:true
+    },
+
+    authProvider:{
+      type:String,
+      enum:["local", "google"],
+      default:"local"
+    },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function(){
+        return this.authProvider === "local";
+      },
       minlength: [6, "Password must be at least 6 characters"],
       select: false // Exclude password from query results by default
     },
@@ -39,6 +53,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: ""
     },
+    coverImage: {
+      type: String,
+      default: ""
+    },
     avatar: {
       type: String,
       default: ""
@@ -49,6 +67,10 @@ const userSchema = new mongoose.Schema(
       default: null
     },
     isActive: {
+      type: Boolean,
+      default: true
+    },
+    isEmailVerified: {
       type: Boolean,
       default: true
     }
@@ -69,6 +91,9 @@ userSchema.pre("save", async function () {
 
 // Compare candidate password with hashed password
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if(!this.password){
+    return false;
+  }
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
@@ -79,4 +104,26 @@ userSchema.methods.toSafeObject = function () {
   return obj;
 };
 
-module.exports = mongoose.models.User || mongoose.model("User", userSchema);
+// Register both "user" and "User" so populate("ref: 'User'") and populate("ref: 'user'") both work seamlessly
+const UserModel =
+  mongoose.models.user ||
+  mongoose.models.User ||
+  mongoose.model("user", userSchema);
+
+if (!mongoose.models.User) {
+  try {
+    mongoose.model("User", userSchema);
+  } catch (e) {
+    // Already defined
+  }
+}
+
+if (!mongoose.models.user) {
+  try {
+    mongoose.model("user", userSchema);
+  } catch (e) {
+    // Already defined
+  }
+}
+
+module.exports = UserModel;

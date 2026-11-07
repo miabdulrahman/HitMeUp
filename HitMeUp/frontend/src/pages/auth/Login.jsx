@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Mail,
@@ -10,13 +10,16 @@ import {
   Clock,
   MapPin,
   AlertCircle,
+  CheckCircle2,
   QrCode,
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
+import GoogleSignInButton from "../../components/GoogleSignInButton";
+import ForgotPasswordModal from "../../components/auth/ForgotPasswordModal";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -26,7 +29,10 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -34,17 +40,21 @@ const Login = () => {
       [e.target.name]: e.target.value,
     }));
     if (error) setError("");
+    if (successMessage) setSuccessMessage("");
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     try {
       const user = await login(formData.email.trim(), formData.password);
 
-      if (user?.role === "business" || user?.role === "seller") {
+      if (user?.role === "admin") {
+        navigate("/admin");
+      } else if (user?.role === "business" || user?.role === "seller") {
         navigate("/seller/dashboard");
       } else {
         navigate("/customer/dashboard");
@@ -56,6 +66,34 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  const handleGoogleSuccess = useCallback(async (credential) => {
+    setError("");
+    setGoogleLoading(true);
+
+    try {
+      const user = await loginWithGoogle(credential);
+      navigate(
+        user?.role === "business" || user?.role === "seller"
+          ? "/seller/dashboard"
+          : "/customer/dashboard"
+      );
+    } catch (err) {
+      console.error("Google login error:", err);
+      setError(err.message || "Google sign-in failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  }, [loginWithGoogle, navigate]);
+
+  const handleGoogleError = useCallback((err) => {
+    setError(err.message || "Google sign-in failed. Please try again.");
+  }, []);
+
+  const handlePasswordResetSuccess = useCallback(({ email, message }) => {
+    setFormData((previous) => ({ ...previous, email }));
+    setSuccessMessage(message);
+  }, []);
 
   const fillDemo = (role) => {
     if (role === "customer") {
@@ -70,6 +108,7 @@ const Login = () => {
       });
     }
     setError("");
+    setSuccessMessage("");
   };
 
   return (
@@ -78,13 +117,12 @@ const Login = () => {
         {/* Left Brand Showcase Panel */}
         <div className="flex flex-col justify-between border-b border-[#E6E0D6] bg-[#1F1B16] p-8 text-[#FDFBF7] sm:p-10 lg:col-span-5 lg:border-b-0 lg:border-r">
           <div className="flex items-center justify-between">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#FDFBF7] font-mono text-[14px] font-medium text-[#1F1B16]">
-                H
-              </span>
-              <span className="text-[18px] font-semibold tracking-[-0.03em] text-[#FDFBF7]">
-                HitMeUp
-              </span>
+            <Link to="/" className="inline-flex items-center rounded-xl bg-white px-3 py-1.5 shadow-sm transition-transform hover:scale-[1.02]" aria-label="HitMeUp Home">
+              <img
+                src="/logo.png"
+                alt="HitMeUp"
+                className="h-7 w-auto object-contain"
+              />
             </Link>
 
             <Link
@@ -200,6 +238,17 @@ const Login = () => {
               </div>
             </div>
 
+            {/* Success Alert Banner */}
+            {successMessage && (
+              <div
+                className="mt-5 flex items-start gap-2.5 rounded-lg border border-[#166534]/25 bg-[#166534]/5 p-3.5 text-[13px] text-[#166534]"
+                role="status"
+              >
+                <CheckCircle2 size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" />
+                <div>{successMessage}</div>
+              </div>
+            )}
+
             {/* Error Alert Banner */}
             {error && (
               <div
@@ -246,18 +295,17 @@ const Login = () => {
                   >
                     Password
                   </label>
-                  <Link
-                    to="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert(
-                        "Contact support@hitmeup.com to reset your account credentials."
-                      );
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError("");
+                      setSuccessMessage("");
+                      setForgotPasswordOpen(true);
                     }}
-                    className="text-[12px] font-medium text-[#5E554A] hover:text-[#1F1B16]"
+                    className="text-[12px] font-medium text-[#5E554A] hover:text-[#D94832] transition-colors cursor-pointer"
                   >
                     Forgot password?
-                  </Link>
+                  </button>
                 </div>
                 <div className="relative flex items-center">
                   <div className="pointer-events-none absolute left-3.5 text-[#7B7266]">
@@ -269,7 +317,7 @@ const Login = () => {
                     name="password"
                     autoComplete="current-password"
                     required
-                    placeholder="Enter your password"
+                    placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
                     className="h-11 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-10 text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
@@ -277,7 +325,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 p-1 text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
+                    className="absolute right-3 text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
@@ -290,16 +338,14 @@ const Login = () => {
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2 select-none cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded border-[#E6E0D6] accent-[#D94832] cursor-pointer"
+                    className="h-4 w-4 rounded border-[#E6E0D6] text-[#D94832] focus:ring-[#D94832]"
                   />
-                  <span className="text-[13px] text-[#5E554A]">
-                    Keep me signed in
-                  </span>
+                  <span className="text-[13px] text-[#5E554A]">Remember this browser</span>
                 </label>
               </div>
 
@@ -322,6 +368,18 @@ const Login = () => {
               </button>
             </form>
 
+            <div className="my-5 flex items-center gap-3 text-[11px] text-[#7B7266]">
+              <span className="h-px flex-1 bg-[#E6E0D6]" />
+              <span>OR</span>
+              <span className="h-px flex-1 bg-[#E6E0D6]" />
+            </div>
+
+            <GoogleSignInButton
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              disabled={loading || googleLoading}
+            />
+
             <div className="mt-8 border-t border-[#E6E0D6] pt-6 text-center">
               <p className="text-[13px] text-[#5E554A]">
                 Don&apos;t have an account yet?{" "}
@@ -336,6 +394,14 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={forgotPasswordOpen}
+        onClose={() => setForgotPasswordOpen(false)}
+        initialEmail={formData.email}
+        onSuccess={handlePasswordResetSuccess}
+      />
     </div>
   );
 };

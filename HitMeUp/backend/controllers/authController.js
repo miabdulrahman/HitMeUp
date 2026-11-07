@@ -1,8 +1,10 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Business = require("../models/Business");
+const EmailOtp = require("../models/EmailOtp");
 const { createBusinessRecord } = require("./businessController");
 const { JWT_SECRET } = require("../middleware/authMiddleware");
+const { sendOtpEmail } = require("../services/emailService");
 
 // Helper to generate signed JWT
 const generateToken = (user) => {
@@ -19,7 +21,196 @@ const generateToken = (user) => {
 };
 
 /**
- * @desc    Register a new user (Customer or Business)
+ * @desc    Send 6-digit OTP for email verification or password reset
+ * @route   POST /api/auth/send-otp
+ * @access  Public
+ */
+const sendOtp = async (req, res) => {
+  try {
+    const { email, purpose } = req.body;
+
+    if (!email || !purpose) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and purpose are required"
+      });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const validPurposes = ["register", "forgot_password"];
+
+    if (!validPurposes.includes(purpose)) {
+      return res.status(400).json({
+        success: false,
+        message: "Purpose must be either 'register' or 'forgot_password'"
+      });
+    }
+
+    // Purpose-specific user existence checks
+    const existingUser = await User.findOne({ email: normalizedEmail });
+
+    if (purpose === "register" && existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "An account with this email already exists. Please log in."
+      });
+    }
+
+    if (purpose === "forgot_password" && !existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "No account found with this email address. Please register or check your spelling."
+      });
+    }
+
+    // Generate random 6-digit code
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+
+    // Store or update in EmailOtp collection
+    await EmailOtp.findOneAndUpdate(
+      { email: normalizedEmail, purpose },
+      { otp, verified: false, createdAt: new Date() },
+      { upsert: true, returnDocument: "after" }
+    );
+
+    // Send email or log to console
+    const emailResult = await sendOtpEmail({
+      to: normalizedEmail,
+      otp,
+      purpose
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `A 6-digit verification code has been sent to ${normalizedEmail}`,
+      ...(emailResult?.provider === "console" && {
+        simulated: true,
+        debugOtp: otp
+      }),
+      ...(process.env.NODE_ENV !== "production" && { debugOtp: otp })
+    });
+  } catch (error) {
+    console.error("Send OTP Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send verification code. Please try again.",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Verify 6-digit OTP code
+ * @route   POST /api/auth/verify-otp
+ * @access  Public
+ */
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp, purpose } = req.body;
+
+    if (!email || !otp || !purpose) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, otp, and purpose are required"
+      });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const otpRecord = await EmailOtp.findOne({
+      email: normalizedEmail,
+      purpose
+    });
+
+    if (!otpRecord || otpRecord.otp !== String(otp).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification code. Please request a new one."
+      });
+    }
+
+    otpRecord.verified = true;
+    await otpRecord.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Verification code confirmed successfully"
+    });
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify code",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Reset password using verified OTP code
+ * @route   POST /api/auth/reset-password
+ * @access  Public
+ */
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, otp, and newPassword are required"
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters long"
+      });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const otpRecord = await EmailOtp.findOne({
+      email: normalizedEmail,
+      purpose: "forgot_password"
+    });
+
+    if (!otpRecord || otpRecord.otp !== String(otp).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification code. Please request a new one."
+      });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select("+password");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User account not found"
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    // Clean up used OTP
+    await EmailOtp.deleteOne({ _id: otpRecord._id });
+
+    return res.status(200).json({
+      success: true,
+      message: "Your password has been reset successfully. You can now log in with your new password."
+    });
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to reset password",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Register a new user (Customer or Business) with Email OTP verification
  * @route   POST /api/auth/register
  * @access  Public
  */
@@ -31,6 +222,7 @@ const register = async (req, res) => {
       password,
       role,
       phone,
+      otp,
       businessName,
       businessCategory,
       category,
@@ -55,7 +247,6 @@ const register = async (req, res) => {
       });
     }
 
-    // Allow both customer/buyer and business/seller roles
     const normalizedRole = (role || "").toLowerCase();
     if (!["seller", "buyer", "business", "customer"].includes(normalizedRole)) {
       return res.status(400).json({
@@ -65,9 +256,10 @@ const register = async (req, res) => {
     }
 
     const userRole = normalizedRole;
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -75,13 +267,31 @@ const register = async (req, res) => {
       });
     }
 
+    // Verify Email OTP if provided
+    let otpVerified = false;
+    if (otp) {
+      const otpRecord = await EmailOtp.findOne({
+        email: normalizedEmail,
+        purpose: "register"
+      });
+      if (!otpRecord || (otpRecord.otp !== String(otp).trim() && !otpRecord.verified)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid or expired verification code. Please request a new code."
+        });
+      }
+      otpVerified = true;
+      await EmailOtp.deleteOne({ _id: otpRecord._id });
+    }
+
     // Create user
     const user = await User.create({
       name,
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       password,
       role: userRole,
-      phone: phone || ""
+      phone: phone || "",
+      isEmailVerified: otpVerified || true
     });
 
     let business = null;
@@ -106,6 +316,7 @@ const register = async (req, res) => {
 
       // Link businessId to User
       user.businessId = business._id;
+      await user.save();
     }
 
     const token = generateToken(user);
@@ -113,8 +324,8 @@ const register = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: (userRole === "business" || userRole === "seller")
-        ? "Merchant account and business profile registered successfully"
-        : "User registered successfully",
+        ? "Merchant account and storefront registered successfully"
+        : "User account registered successfully",
       token,
       user: user.toSafeObject(),
       business: business || undefined
@@ -230,13 +441,14 @@ const getMe = async (req, res) => {
  */
 const updateProfile = async (req, res) => {
   try {
-    const { name, phone, avatar } = req.body;
+    const { name, phone, avatar, coverImage } = req.body;
 
     const user = await User.findById(req.user._id);
 
     if (name) user.name = name;
     if (phone !== undefined) user.phone = phone;
     if (avatar !== undefined) user.avatar = avatar;
+    if (coverImage !== undefined) user.coverImage = coverImage;
 
     await user.save();
 
@@ -256,7 +468,7 @@ const updateProfile = async (req, res) => {
 };
 
 /**
- * @desc    Change password
+ * @desc    Change password (authenticated)
  * @route   PUT /api/auth/change-password
  * @access  Private (Authenticated users)
  */
@@ -311,5 +523,8 @@ module.exports = {
   getMe,
   updateProfile,
   changePassword,
+  sendOtp,
+  verifyOtp,
+  resetPassword,
   generateToken
 };

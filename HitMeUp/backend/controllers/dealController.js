@@ -177,6 +177,37 @@ const createDeal = async (req, res) => {
       });
     }
 
+    // Verify Super Admin Approval & Active Status (requirement: sellers cannot publish deals until approved)
+    if (req.user.role !== "admin") {
+      const isApproved =
+        business.applicationStatus === "approved" ||
+        (business.isVerified &&
+          business.applicationStatus !== "rejected" &&
+          business.applicationStatus !== "pending" &&
+          business.applicationStatus !== "under_review");
+
+      if (business.status === "inactive" || business.suspensionReason) {
+        return res.status(403).json({
+          success: false,
+          message: `Your seller account is currently suspended by administration${business.suspensionReason ? `: "${business.suspensionReason}"` : ""}. You cannot publish deals.`
+        });
+      }
+
+      if (business.applicationStatus === "rejected") {
+        return res.status(403).json({
+          success: false,
+          message: `Your seller application was rejected${business.rejectionReason ? `: "${business.rejectionReason}"` : ""}. You cannot publish deals.`
+        });
+      }
+
+      if (!isApproved) {
+        return res.status(403).json({
+          success: false,
+          message: "Your seller account is awaiting Super Admin approval. You cannot publish deals until approved."
+        });
+      }
+    }
+
     // Calculate Pricing
     let pricing;
     try {
@@ -297,7 +328,32 @@ const getDeals = async (req, res) => {
       }
     }
 
-    if (businessId) {
+    // Ensure only deals from active and Super Admin-approved businesses are returned for buyers
+    if (!status || status.toLowerCase() === "active") {
+      const activeApprovedBusinesses = await Business.find({
+        status: "active",
+        $or: [
+          { applicationStatus: "approved" },
+          { isVerified: true, applicationStatus: { $ne: "rejected" } }
+        ]
+      }).distinct("_id");
+
+      if (businessId) {
+        if (!activeApprovedBusinesses.some((id) => id.toString() === businessId.toString())) {
+          return res.status(200).json({
+            success: true,
+            count: 0,
+            total: 0,
+            page: Number(page),
+            totalPages: 0,
+            deals: []
+          });
+        }
+        query.businessId = businessId;
+      } else {
+        query.businessId = { $in: activeApprovedBusinesses };
+      }
+    } else if (businessId) {
       query.businessId = businessId;
     }
 
@@ -381,7 +437,7 @@ const getDealById = async (req, res) => {
   try {
     const deal = await Deal.findById(req.params.id).populate(
       "businessId",
-      "name category address location phone email logoUrl isVerified"
+      "name category address location phone email logoUrl isVerified status applicationStatus ownerId"
     );
 
     if (!deal) {
@@ -389,6 +445,33 @@ const getDealById = async (req, res) => {
         success: false,
         message: "Deal not found"
       });
+    }
+
+    const now = new Date();
+    const isOwnerOrAdmin =
+      req.user &&
+      (req.user.role === "admin" ||
+        (deal.businessId?.ownerId &&
+          deal.businessId.ownerId.toString() === req.user._id.toString()));
+
+    if (!isOwnerOrAdmin) {
+      if (deal.status !== "active" || (deal.endDate && new Date(deal.endDate) <= now)) {
+        return res.status(404).json({
+          success: false,
+          message: "Deal not found or has expired"
+        });
+      }
+      if (
+        deal.businessId?.status === "inactive" ||
+        (deal.businessId?.applicationStatus &&
+          deal.businessId.applicationStatus !== "approved" &&
+          !deal.businessId.isVerified)
+      ) {
+        return res.status(404).json({
+          success: false,
+          message: "This deal is not currently available as the merchant store is inactive."
+        });
+      }
     }
 
     // Check if expired
@@ -524,6 +607,27 @@ const updateDeal = async (req, res) => {
         success: false,
         message: "You are not authorized to update this deal"
       });
+    }
+
+    if (req.user.role !== "admin") {
+      if (business.status === "inactive" || business.suspensionReason) {
+        return res.status(403).json({
+          success: false,
+          message: "Your seller account is currently suspended. You cannot update deals."
+        });
+      }
+      const isApproved =
+        business.applicationStatus === "approved" ||
+        (business.isVerified &&
+          business.applicationStatus !== "rejected" &&
+          business.applicationStatus !== "pending" &&
+          business.applicationStatus !== "under_review");
+      if (!isApproved) {
+        return res.status(403).json({
+          success: false,
+          message: "Your seller account is awaiting Super Admin approval. You cannot publish deals until approved."
+        });
+      }
     }
 
     const {

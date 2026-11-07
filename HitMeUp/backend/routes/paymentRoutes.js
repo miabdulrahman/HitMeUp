@@ -1,38 +1,45 @@
 const express = require("express");
-
 const {
+  getMyPayments,
+  getAllPayments,
+  getPaymentById,
+  refundPayment,
+  getDashboardSummary,
+  getReceipt,
   createPayment,
   verifyPayment,
-  paymentWebhook,
-  getPaymentById
+  paymentWebhook
 } = require("../controllers/paymentController");
-
-const { protect } = require("../middleware/authMiddleware");
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// DEMO webhook - development only
-if (process.env.NODE_ENV !== "production") {
-  router.post("/webhook", paymentWebhook);
-}
+// GET /api/payments/dashboard/summary - MongoDB analytics metrics
+router.get("/dashboard/summary", protect, getDashboardSummary);
 
-// Create payment
-// POST /api/payments/create  
+// GET /api/payments/my-payments - Authenticated customer's payments
+router.get("/my-payments", protect, getMyPayments);
+
+// GET /api/payments - Role-scoped payments list (Seller/Admin)
+router.get("/", protect, authorizeRoles("business", "seller", "admin"), getAllPayments);
+
+// Backward-compatible create / verify / webhook
 router.post("/create", protect, createPayment);
-
-// Verify payment
-// POST /api/payments/verify
 router.post("/verify", protect, verifyPayment);
-
-// Payment gateway callback/webhook
-// POST /api/payments/webhook
-//
-// This normally should NOT use normal user authentication.
-// The real gateway should authenticate its own webhook.
 router.post("/webhook", paymentWebhook);
 
-// Get payment
-// GET /api/payments/:id
+// GET /api/payments/:id/receipt - Formatted receipt
+router.get("/:id/receipt", protect, getReceipt);
+
+// POST /api/payments/:id/refund - Simulated refund endpoint
+router.post(
+  "/:id/refund",
+  protect,
+  authorizeRoles("business", "seller", "admin"),
+  refundPayment
+);
+
+// GET /api/payments/:id - Single payment record
 router.get("/:id", protect, getPaymentById);
 
 module.exports = router;

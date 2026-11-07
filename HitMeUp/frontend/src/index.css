@@ -1,7 +1,9 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Warm stone ramp for marketing & discovery */
+  color-scheme: light;
+  /* Warm stone ramp for marketing & discovery (Light Theme) */
   --bg-page: #F7F4EE;
   --bg-card: #FDFBF7;
   --bg-raised: #EFE9DF;
@@ -14,7 +16,7 @@
   --primary: #D94832;
   --primary-hover: #C23B26;
 
-  /* App & dashboard neutral graphite ramp */
+  /* App & dashboard neutral graphite ramp (Light Theme) */
   --app-bg: #FAFAFA;
   --app-sidebar: #F4F4F5;
   --app-card: #FFFFFF;
@@ -45,6 +47,36 @@
   --font-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-display: 'Newsreader', Georgia, serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Dark Theme Palette (landing-page-design Rule B4: #131209, #181818, #1F1F1F, #272727, #313131) */
+html.dark {
+  color-scheme: dark;
+  --bg-page: #131209;
+  --bg-card: #1F1F1F;
+  --bg-raised: #272727;
+  --border-stone: #313131;
+  --text-primary: #FDFBF7;
+  --text-secondary: #CFC6B8;
+  --text-muted: #8E867B;
+
+  --app-bg: #131209;
+  --app-sidebar: #181818;
+  --app-card: #1F1F1F;
+  --app-raised: #272727;
+  --app-border: #313131;
+  --app-ink: #FDFBF7;
+  --app-secondary: #CFC6B8;
+  --app-muted: #8E867B;
+
+  --ink: #FDFBF7;
+  --ink-light: #CFC6B8;
+  --ink-muted: #8E867B;
+  --surface: #131209;
+  --surface-warm: #272727;
+  --white: #1F1F1F;
+  --border: #313131;
+  --border-light: #272727;
 }
 
 * {
@@ -226,3 +258,301 @@ body:has(.dashboard-page) {
   max-width: 760px;
   margin: 0 auto;
 }
+
+/* Full-screen Hero Ken Burns Animation */
+@keyframes heroKenBurns {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.08) translate3d(-1%, -1%, 0);
+  }
+}
+
+.hero-bg-zoom {
+  animation: heroKenBurns 14s ease-out forwards;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg-zoom {
+    animation: none;
+  }
+}
+
+/* ============================================================================
+   iOS App-Opening Spring Animation for All Website Popups, Modals & Drawers
+   Uses Apple's signature spring curve: cubic-bezier(0.32, 0.72, 0, 1)
+   ============================================================================ */
+@keyframes iosBackdropFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes iosAppOpenPopup {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translate3d(0, 22px, 0);
+  }
+  68% {
+    opacity: 1;
+    transform: scale(1.015) translate3d(0, -2px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes iosDrawerSlideLeft {
+  0% {
+    opacity: 0.6;
+    transform: translate3d(100%, 0, 0) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.ios-popup-backdrop,
+div.fixed.inset-0.z-50,
+div.fixed.inset-0.z-\[60\] {
+  animation: iosBackdropFadeIn 240ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  will-change: opacity;
+}
+
+.ios-popup-card,
+div.fixed.inset-0.z-50:not(.justify-end) > div,
+div.fixed.inset-0.z-\[60\] > div {
+  animation: iosAppOpenPopup 380ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
+.ios-drawer-panel,
+div.fixed.inset-0.z-50.justify-end > div {
+  animation: iosDrawerSlideLeft 380ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  transform-origin: right center;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ios-popup-backdrop,
+  .ios-popup-card,
+  .ios-drawer-panel,
+  div.fixed.inset-0.z-50,
+  div.fixed.inset-0.z-\[60\],
+  div.fixed.inset-0.z-50 > div,
+  div.fixed.inset-0.z-\[60\] > div {
+    animation: none !important;
+  }
+}
+
+/* HitMeUp Platform Admin Canvas */
+body:has(.admin-shell) {
+  background-color: var(--app-bg);
+  color: var(--app-ink);
+}
+
+/* ============================================================================
+   Site-Wide Dark Mode Token Remapping (Rule B4 Flat Dark Palette)
+   Automatically adapts all arbitrary hex classes across Landing, Discovery,
+   Category, Auth, Checkout, Customer Dashboard, Seller Dashboard & Admin pages
+   ============================================================================ */
+html.dark body {
+  background-color: #131209;
+  color: #FDFBF7;
+}
+
+/* Primary Page & Section Canvas (#F7F4EE, #FAF7F2, #FAFAFA, #F8F9FB -> #131209) */
+html.dark .bg-\[\#F7F4EE\],
+html.dark .bg-\[\#FAF7F2\],
+html.dark .bg-\[\#FAFAFA\],
+html.dark .bg-\[\#F8F9FB\],
+html.dark .bg-gray-50,
+html.dark .bg-slate-50,
+html.dark .bg-zinc-50 {
+  background-color: #131209 !important;
+}
+
+html.dark .bg-\[\#F7F4EE\]\/90,
+html.dark .bg-\[\#F7F4EE\]\/95 {
+  background-color: rgba(19, 18, 9, 0.92) !important;
+}
+
+/* Card & Surface Canvas (#FDFBF7, #FFFFFF -> #1F1F1F) */
+html.dark .bg-\[\#FDFBF7\]:not(.keep-light-logo):not(.keep-light-surface),
+html.dark .bg-white:not(.keep-light-logo):not(.keep-light-surface) {
+  background-color: #1F1F1F !important;
+}
+
+html.dark .bg-\[\#FDFBF7\]\/95,
+html.dark .bg-white\/95,
+html.dark .bg-white\/90 {
+  background-color: rgba(31, 31, 31, 0.94) !important;
+}
+
+/* Raised / Chip / Sidebar Surface (#EFE9DF, #F4F4F5 -> #272727) */
+html.dark .bg-\[\#EFE9DF\],
+html.dark .bg-\[\#EFE9DF\]\/70,
+html.dark .bg-\[\#EFE9DF\]\/60,
+html.dark .bg-\[\#EFE9DF\]\/50,
+html.dark .bg-\[\#F4F4F5\],
+html.dark .bg-gray-100,
+html.dark .bg-slate-100,
+html.dark .bg-zinc-100 {
+  background-color: #272727 !important;
+}
+
+/* Hairline Ledger Grid Dividers (where bg-[#E6E0D6] is used as 1px gap background) */
+html.dark .bg-\[\#E6E0D6\],
+html.dark .bg-\[\#E4E4E7\],
+html.dark .bg-gray-200,
+html.dark .bg-slate-200 {
+  background-color: #313131 !important;
+}
+
+/* Hover Surface States */
+html.dark .hover\:bg-\[\#EFE9DF\]:hover,
+html.dark .hover\:bg-\[\#EFE9DF\]\/60:hover,
+html.dark .hover\:bg-\[\#F7F4EE\]:hover,
+html.dark .hover\:bg-\[\#FAF7F2\]:hover,
+html.dark .hover\:bg-\[\#F4F4F5\]:hover,
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-gray-100:hover,
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover {
+  background-color: #272727 !important;
+}
+
+/* Status Badge Surfaces in Dark Mode */
+html.dark .bg-\[\#F0FDF4\],
+html.dark .bg-emerald-50,
+html.dark .bg-green-50 {
+  background-color: rgba(22, 101, 52, 0.22) !important;
+}
+
+html.dark .bg-\[\#FEF2F2\],
+html.dark .bg-red-50,
+html.dark .bg-rose-50 {
+  background-color: rgba(185, 28, 28, 0.22) !important;
+}
+
+html.dark .bg-\[\#FFFBEB\],
+html.dark .bg-amber-50,
+html.dark .bg-yellow-50 {
+  background-color: rgba(180, 83, 9, 0.22) !important;
+}
+
+/* Borders (#E6E0D6, #E4E4E7 -> #313131) */
+html.dark .border-\[\#E6E0D6\],
+html.dark .border-\[\#E6E0D6\]\/80,
+html.dark .border-\[\#E6E0D6\]\/70,
+html.dark .border-\[\#E6E0D6\]\/60,
+html.dark .border-\[\#E4E4E7\],
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300,
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-300,
+html.dark .border-zinc-200 {
+  border-color: #313131 !important;
+}
+
+html.dark .divide-\[\#E6E0D6\] > :not(:last-child),
+html.dark .divide-gray-100 > :not(:last-child),
+html.dark .divide-gray-200 > :not(:last-child) {
+  border-color: #313131 !important;
+}
+
+/* Primary Ink Text (#1F1B16, #171717, #111827 -> #FDFBF7) */
+html.dark .text-\[\#1F1B16\]:not(.keep-dark-ink),
+html.dark .text-\[\#171717\]:not(.keep-dark-ink),
+html.dark .text-\[\#111827\]:not(.keep-dark-ink),
+html.dark .text-gray-900,
+html.dark .text-gray-800,
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-zinc-900 {
+  color: #FDFBF7 !important;
+}
+
+/* Secondary Body Text (#5E554A, #525252 -> #CFC6B8) */
+html.dark .text-\[\#5E554A\],
+html.dark .text-\[\#525252\],
+html.dark .text-gray-700,
+html.dark .text-gray-600,
+html.dark .text-slate-700,
+html.dark .text-slate-600,
+html.dark .text-zinc-600 {
+  color: #CFC6B8 !important;
+}
+
+/* Muted / Caption / Label Text (#7B7266, #737373 -> #8E867B) */
+html.dark .text-\[\#7B7266\],
+html.dark .text-\[\#737373\],
+html.dark .text-gray-500,
+html.dark .text-gray-400,
+html.dark .text-slate-500,
+html.dark .text-slate-400,
+html.dark .text-zinc-500 {
+  color: #8E867B !important;
+}
+
+/* Hover Text States */
+html.dark .hover\:text-\[\#1F1B16\]:hover,
+html.dark .hover\:text-\[\#171717\]:hover,
+html.dark .hover\:text-gray-900:hover,
+html.dark .hover\:text-slate-900:hover {
+  color: #FDFBF7 !important;
+}
+
+/* Status Text Contrast in Dark Mode */
+html.dark .text-\[\#166534\],
+html.dark .text-emerald-700,
+html.dark .text-green-700 {
+  color: #4ADE80 !important;
+}
+
+html.dark .text-\[\#B45309\],
+html.dark .text-amber-700 {
+  color: #FBBF24 !important;
+}
+
+html.dark .text-\[\#B91C1C\],
+html.dark .text-red-700,
+html.dark .text-rose-700 {
+  color: #F87171 !important;
+}
+
+/* Dark Ink CTA Buttons (#1F1B16 button background becomes warm ivory or terracotta in dark mode) */
+html.dark a.bg-\[\#1F1B16\],
+html.dark button.bg-\[\#1F1B16\] {
+  background-color: #D94832 !important;
+  color: #FFFFFF !important;
+}
+
+html.dark a.bg-\[\#1F1B16\]:hover,
+html.dark button.bg-\[\#1F1B16\]:hover {
+  background-color: #C23B26 !important;
+}
+
+/* Form Inputs, Selects & Textareas in Dark Mode */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html.dark select,
+html.dark textarea {
+  color: #FDFBF7;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #8E867B !important;
+}
+
+

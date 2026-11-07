@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { dealApi, businessApi, voucherApi } from "../../services/api";
+import { dealApi, businessApi, voucherApi, uploadApi } from "../../services/api";
+import { convertToWebP } from "../../utils/imageOptimizer";
 import { generateDeals } from "../../services/aiService";
 import AICommandCenter from "../../components/AICommandCenter";
 import SellerLocationMapPicker from "../../components/SellerLocationMapPicker";
+import QrCameraScannerModal from "../../components/QrCameraScannerModal";
 import {
   LogOut,
   Plus,
@@ -29,7 +31,11 @@ import {
   Share2,
   Compass,
   BarChart3,
-  Wand2
+  Wand2,
+  Upload,
+  Camera,
+  QrCode,
+  Image as ImageIcon
 } from "lucide-react";
 
 const SellerDashboard = () => {
@@ -63,6 +69,8 @@ const SellerDashboard = () => {
     description: "",
     latitude: "",
     longitude: "",
+    logoUrl: "",
+    coverImageUrl: "",
   });
 
   const [deals, setDeals] = useState([]);
@@ -74,6 +82,10 @@ const SellerDashboard = () => {
   const [lastSynced, setLastSynced] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dealImageUploading, setDealImageUploading] = useState(false);
+  const [dealUploadStatus, setDealUploadStatus] = useState("");
+  const [storeLogoUploading, setStoreLogoUploading] = useState(false);
+  const [storeCoverUploading, setStoreCoverUploading] = useState(false);
   const [editingDeal, setEditingDeal] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
@@ -83,6 +95,8 @@ const SellerDashboard = () => {
   const [voucherCodeInput, setVoucherCodeInput] = useState("");
   const [redeemLoading, setRedeemLoading] = useState(false);
   const [redeemResult, setRedeemResult] = useState(null);
+  const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
+  const [autoRedeemOnScan, setAutoRedeemOnScan] = useState(true);
 
   const initialFormState = {
     title: "",
@@ -93,7 +107,8 @@ const SellerDashboard = () => {
     durationHours: 24,
     availableQuantity: 30,
     status: "active",
-    terms: "Valid during store operating hours. One voucher per customer."
+    terms: "Valid during store operating hours. One voucher per customer.",
+    imageUrl: ""
   };
   const [formData, setFormData] = useState(initialFormState);
 
@@ -119,6 +134,8 @@ const SellerDashboard = () => {
           description: res.business.description || "",
           latitude: coords[1] || 6.9271,
           longitude: coords[0] || 79.8612,
+          logoUrl: res.business.logoUrl || "",
+          coverImageUrl: res.business.coverImageUrl || "",
         });
       }
     } catch (err) {
@@ -198,7 +215,25 @@ const SellerDashboard = () => {
     : 0;
   const savingsAmount = originalPriceNum - calculatedDiscountedPrice;
 
+  const isApproved =
+    businessProfile?.applicationStatus === "approved" ||
+    (businessProfile?.isVerified &&
+      businessProfile?.applicationStatus !== "rejected" &&
+      businessProfile?.applicationStatus !== "pending" &&
+      businessProfile?.applicationStatus !== "under_review");
+
+  const isSuspended =
+    businessProfile?.status === "inactive" || Boolean(businessProfile?.suspensionReason);
+
   const handleOpenCreate = () => {
+    if (isSuspended) {
+      showToast("Your seller account is suspended. Deal publishing is disabled.");
+      return;
+    }
+    if (!isApproved) {
+      showToast("Your store is awaiting Super Admin approval. Deal publishing will unlock once approved.");
+      return;
+    }
     setIsProfileModalOpen(false);
     setEditingDeal(null);
     setFormData({
@@ -224,7 +259,8 @@ const SellerDashboard = () => {
       durationHours: 24,
       availableQuantity: deal.availableQuantity || 30,
       status: deal.status || "active",
-      terms: deal.terms || "Valid during store operating hours. One voucher per customer."
+      terms: deal.terms || "Valid during store operating hours. One voucher per customer.",
+      imageUrl: deal.imageUrl || ""
     });
     setFormError("");
     setShowAiHelper(false);
@@ -307,6 +343,14 @@ const SellerDashboard = () => {
 
   const handleSubmitDeal = async (e) => {
     e.preventDefault();
+    if (isSuspended) {
+      setFormError("Your seller account is currently suspended. Deal creation is disabled.");
+      return;
+    }
+    if (!isApproved) {
+      setFormError("Your store is awaiting Super Admin approval. Deals can only be published once approved.");
+      return;
+    }
     setFormLoading(true);
     setFormError("");
 
@@ -320,7 +364,8 @@ const SellerDashboard = () => {
           discountPercentage: Number(formData.discountPercentage),
           availableQuantity: Number(formData.availableQuantity),
           status: formData.status,
-          terms: formData.terms
+          terms: formData.terms,
+          imageUrl: formData.imageUrl || ""
         });
         showToast("Deal updated.");
       } else {
@@ -333,7 +378,8 @@ const SellerDashboard = () => {
           durationHours: Number(formData.durationHours),
           availableQuantity: Number(formData.availableQuantity),
           status: formData.status,
-          terms: formData.terms
+          terms: formData.terms,
+          imageUrl: formData.imageUrl || ""
         });
         showToast("Deal published to the neighborhood feed.");
       }
@@ -350,13 +396,21 @@ const SellerDashboard = () => {
 
   const handleToggleStatus = async (deal) => {
     const nextStatus = deal.status === "active" ? "draft" : "active";
+    if (nextStatus === "active" && isSuspended) {
+      showToast("Cannot activate deal while account is suspended.");
+      return;
+    }
+    if (nextStatus === "active" && !isApproved) {
+      showToast("Cannot activate deal while awaiting Super Admin approval.");
+      return;
+    }
     try {
       await dealApi.updateDealStatus(deal._id, nextStatus);
       showToast(`Deal switched to ${nextStatus === "active" ? "Live" : "Paused"}.`);
       fetchMyDeals();
     } catch (err) {
       console.error("Toggle status error:", err);
-      showToast("Failed to update status");
+      showToast(err.message || "Failed to update status");
     }
   };
 
@@ -398,7 +452,9 @@ const SellerDashboard = () => {
           city: profileForm.city.trim(),
           street: profileForm.address.trim(),
           country: "Sri Lanka"
-        }
+        },
+        logoUrl: profileForm.logoUrl || "",
+        coverImageUrl: profileForm.coverImageUrl || ""
       };
 
       if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
@@ -421,27 +477,94 @@ const SellerDashboard = () => {
     }
   };
 
-  const handleRedeemVoucher = async (e) => {
-    e.preventDefault();
-    if (!voucherCodeInput.trim()) return;
+
+  const handleDealImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setDealImageUploading(true);
+      setDealUploadStatus("Converting to WebP...");
+      const webpFile = await convertToWebP(file, { maxWidth: 1600, maxHeight: 1200, quality: 0.85 });
+      setDealUploadStatus("Uploading to cloud...");
+      const res = await uploadApi.uploadImage(webpFile, "deals");
+      if (res?.url) {
+        setFormData((prev) => ({ ...prev, imageUrl: res.url }));
+        showToast("Deal cover converted to WebP and uploaded.");
+      }
+    } catch (err) {
+      console.error("Deal image upload error:", err);
+      setFormError(err.message || "Failed to process and upload deal image");
+    } finally {
+      setDealImageUploading(false);
+      setDealUploadStatus("");
+      e.target.value = "";
+    }
+  };
+
+  const handleStoreLogoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setStoreLogoUploading(true);
+      const webpFile = await convertToWebP(file, { maxWidth: 512, maxHeight: 512, quality: 0.9 });
+      const res = await uploadApi.uploadImage(webpFile, "stores/logos");
+      if (res?.url) {
+        setProfileForm((prev) => ({ ...prev, logoUrl: res.url }));
+        showToast("Store logo converted to WebP and uploaded.");
+      }
+    } catch (err) {
+      console.error("Store logo upload error:", err);
+      showToast(err.message || "Failed to upload store logo");
+    } finally {
+      setStoreLogoUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleStoreCoverChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setStoreCoverUploading(true);
+      const webpFile = await convertToWebP(file, { maxWidth: 1920, maxHeight: 1080, quality: 0.85 });
+      const res = await uploadApi.uploadImage(webpFile, "stores/covers");
+      if (res?.url) {
+        setProfileForm((prev) => ({ ...prev, coverImageUrl: res.url }));
+        showToast("Store cover banner converted to WebP and uploaded.");
+      }
+    } catch (err) {
+      console.error("Store cover upload error:", err);
+      showToast(err.message || "Failed to upload store cover banner");
+    } finally {
+      setStoreCoverUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const executeVoucherRedemption = async (codeToRedeem) => {
+    const cleanCode = (codeToRedeem || "").trim().toUpperCase();
+    if (!cleanCode) return;
 
     setRedeemLoading(true);
     setRedeemResult(null);
 
     try {
       const res = await voucherApi.redeemVoucher({
-        voucherCode: voucherCodeInput.trim(),
+        voucherCode: cleanCode,
         businessId: businessProfile?._id
       });
 
       setRedeemResult({
         success: true,
-        message: res.message || "Voucher verified and redeemed.",
-        data: res.voucher || res.redemption || { code: voucherCodeInput.trim() },
+        message: res.message || `Voucher ${cleanCode} verified and redeemed.`,
+        data: res.voucher || res.redemption || { code: cleanCode },
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       });
       setVoucherCodeInput("");
-      showToast("Customer voucher redeemed.");
+      showToast(`Customer voucher ${cleanCode} redeemed.`);
       fetchMyDeals();
     } catch (err) {
       setRedeemResult({
@@ -450,6 +573,21 @@ const SellerDashboard = () => {
       });
     } finally {
       setRedeemLoading(false);
+    }
+  };
+
+  const handleRedeemVoucher = async (e) => {
+    e.preventDefault();
+    await executeVoucherRedemption(voucherCodeInput);
+  };
+
+  const handleQrCodeScanned = async (scannedCode) => {
+    setIsQrScannerOpen(false);
+    setVoucherCodeInput(scannedCode);
+    if (autoRedeemOnScan) {
+      await executeVoucherRedemption(scannedCode);
+    } else {
+      showToast(`Scanned code: ${scannedCode}`);
     }
   };
 
@@ -518,13 +656,12 @@ const SellerDashboard = () => {
         <div>
           {/* Brand Header */}
           <div className="flex h-[60px] items-center justify-between border-b border-[#E4E4E7] px-4">
-            <Link to="/" className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#171717] font-mono text-[11px] font-medium text-white">
-                HMU
-              </span>
-              <span className="text-[14px] font-semibold tracking-tight text-[#171717]">
-                HitMeUp
-              </span>
+            <Link to="/" className="flex items-center" aria-label="HitMeUp Home">
+              <img
+                src="/logo.png"
+                alt="HitMeUp"
+                className="h-7 w-auto object-contain"
+              />
             </Link>
             <span className="rounded border border-[#D4D4D8] bg-white px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#525252]">
               Seller
@@ -536,7 +673,19 @@ const SellerDashboard = () => {
             <button
               type="button"
               onClick={handleOpenCreate}
-              className="flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-[#D94832] px-3 text-[13px] font-medium text-white transition-colors hover:bg-[#C23B26]"
+              disabled={!isApproved || isSuspended}
+              title={
+                isSuspended
+                  ? "Seller account is suspended"
+                  : !isApproved
+                  ? "Awaiting Super Admin approval"
+                  : "Create new flash deal"
+              }
+              className={`flex h-9 w-full items-center justify-center gap-1.5 rounded-md px-3 text-[13px] font-medium transition-colors ${
+                !isApproved || isSuspended
+                  ? "bg-[#D4D4D8] text-[#71717A] cursor-not-allowed"
+                  : "bg-[#D94832] text-white hover:bg-[#C23B26]"
+              }`}
             >
               <Plus className="h-4 w-4" strokeWidth={1.75} />
               New deal
@@ -594,9 +743,17 @@ const SellerDashboard = () => {
         {/* Store Account Footer */}
         <div className="border-t border-[#E4E4E7] p-3">
           <div className="mb-2 flex items-center gap-2.5 px-2 py-1.5">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#171717] font-mono text-[11px] font-medium text-white">
-              {storeDisplayName.charAt(0).toUpperCase()}
-            </div>
+            {businessProfile?.logoUrl ? (
+              <img
+                src={businessProfile.logoUrl}
+                alt={storeDisplayName}
+                className="h-7 w-7 shrink-0 rounded-full object-cover border border-[#E4E4E7]"
+              />
+            ) : (
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#171717] font-mono text-[11px] font-medium text-white">
+                {storeDisplayName.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-medium text-[#171717]">
                 {storeDisplayName}
@@ -676,7 +833,19 @@ const SellerDashboard = () => {
             <button
               type="button"
               onClick={handleOpenCreate}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[#D94832] px-3 text-[12px] font-medium text-white transition-colors hover:bg-[#C23B26]"
+              disabled={!isApproved || isSuspended}
+              title={
+                isSuspended
+                  ? "Seller account is suspended"
+                  : !isApproved
+                  ? "Awaiting Super Admin approval"
+                  : "Create new flash deal"
+              }
+              className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[12px] font-medium transition-colors ${
+                !isApproved || isSuspended
+                  ? "bg-[#D4D4D8] text-[#71717A] cursor-not-allowed"
+                  : "bg-[#D94832] text-white hover:bg-[#C23B26]"
+              }`}
             >
               <Plus className="h-3.5 w-3.5" strokeWidth={1.75} />
               New deal
@@ -711,63 +880,141 @@ const SellerDashboard = () => {
 
         {/* Workspace Canvas */}
         <main className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6">
-          {/* Store Identity Bar (Shown on Overview & Store) */}
-          {(activeSection === "home" || activeSection === "store") && (
-            <div className="mb-6 flex flex-col justify-between gap-4 rounded-xl border border-[#E4E4E7] bg-white p-5 sm:flex-row sm:items-center">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded border border-[#E4E4E7] bg-[#F4F4F5] px-2 py-0.5 text-[11px] font-medium text-[#525252]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" />
-                    Verified merchant
-                  </span>
-                  <span className="rounded border border-[#E4E4E7] bg-[#FAFAFA] px-2 py-0.5 text-[11px] font-medium text-[#525252]">
-                    {storeCategory}
-                  </span>
-                  <span
-                    className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 font-mono text-[11px] ${
-                      hasMapCoordinates
-                        ? "border-[#BBF7D0] bg-[#F0FDF4] text-[#16A34A]"
-                        : "border-[#FDE68A] bg-[#FFFBEB] text-[#D97706]"
-                    }`}
-                  >
-                    <MapPin className="h-3 w-3" strokeWidth={1.5} />
-                    {hasMapCoordinates
-                      ? `Pinned ${Number(businessProfile.location.coordinates[1]).toFixed(3)}°N, ${Number(businessProfile.location.coordinates[0]).toFixed(3)}°E`
-                      : "Map pin not set"}
-                  </span>
-                </div>
-
-                <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-[#171717]">
-                  {storeDisplayName}
-                </h2>
-
-                <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#525252]">
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5 text-[#737373]" strokeWidth={1.5} />
-                    {businessProfile?.address?.street ? `${businessProfile.address.street}, ${storeCity}` : storeCity}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5 text-[#737373]" strokeWidth={1.5} />
-                    {storeHours}
-                  </span>
-                  {(businessProfile?.phone || user?.phone) && (
-                    <span className="inline-flex items-center gap-1 font-mono text-[11px]">
-                      <Phone className="h-3.5 w-3.5 text-[#737373]" strokeWidth={1.5} />
-                      {businessProfile?.phone || user?.phone}
-                    </span>
-                  )}
+          {/* Super Admin Approval & Suspension Alert Banner */}
+          {isSuspended ? (
+            <div className="mb-6 rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 shadow-xs">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm">Merchant Account Suspended</h4>
+                  <p className="mt-1 text-xs leading-relaxed text-red-700">
+                    Your store has been suspended by administration{businessProfile?.suspensionReason ? ` (Reason: "${businessProfile.suspensionReason}")` : ""}. All your deals have been hidden from the buyer discovery feed, and publishing new deals is paused. Please contact Super Admin support to reactivate your store.
+                  </p>
                 </div>
               </div>
+            </div>
+          ) : !isApproved ? (
+            <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 shadow-xs">
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm">Store Awaiting Super Admin Approval</h4>
+                  <p className="mt-1 text-xs leading-relaxed text-amber-800">
+                    {businessProfile?.applicationStatus === "rejected"
+                      ? `Your seller application was not approved (${businessProfile.rejectionReason || "Application rejected"}). You cannot publish deals until re-evaluated.`
+                      : "Your merchant account is currently pending review by Super Admin. You can set up your store profile and preview draft deals, but deals will only become visible to buyers once approved."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleOpenStoreModal}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#D4D4D8] bg-white px-3.5 text-[13px] font-medium text-[#171717] transition-colors hover:bg-[#F4F4F5]"
-                >
-                  <MapPin className="h-3.5 w-3.5 text-[#D94832]" strokeWidth={1.5} />
-                  {hasMapCoordinates ? "Edit store & map pin" : "Pin store on map"}
-                </button>
+          {/* Store Identity Bar (Shown on Overview & Store) */}
+          {(activeSection === "home" || activeSection === "store") && (
+            <div className="mb-6 overflow-hidden rounded-xl border border-[#E4E4E7] bg-white">
+              {businessProfile?.coverImageUrl && (
+                <div className="relative h-36 w-full sm:h-44 overflow-hidden bg-[#F4F4F5]">
+                  <img
+                    src={businessProfile.coverImageUrl}
+                    alt={`${storeDisplayName} cover`}
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                </div>
+              )}
+              <div className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center">
+                <div className="flex items-start gap-4">
+                  {businessProfile?.logoUrl ? (
+                    <img
+                      src={businessProfile.logoUrl}
+                      alt={storeDisplayName}
+                      className={`h-16 w-16 shrink-0 rounded-xl object-cover border-2 border-white shadow-sm ${
+                        businessProfile?.coverImageUrl ? "-mt-10 relative z-10 bg-white" : ""
+                      }`}
+                    />
+                  ) : (
+                    <div
+                      className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-[#171717] font-mono text-[20px] font-semibold text-white border-2 border-white shadow-sm ${
+                        businessProfile?.coverImageUrl ? "-mt-10 relative z-10" : ""
+                      }`}
+                    >
+                      {storeDisplayName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {isSuspended ? (
+                        <span className="inline-flex items-center gap-1.5 rounded border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
+                          Account Suspended
+                        </span>
+                      ) : businessProfile?.applicationStatus === "rejected" ? (
+                        <span className="inline-flex items-center gap-1.5 rounded border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
+                          Application Rejected
+                        </span>
+                      ) : !isApproved ? (
+                        <span className="inline-flex items-center gap-1.5 rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          Pending Super Admin Approval
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded border border-[#BBF7D0] bg-[#F0FDF4] px-2 py-0.5 text-[11px] font-medium text-[#16A34A]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" />
+                          Verified Merchant
+                        </span>
+                      )}
+                      <span className="rounded border border-[#E4E4E7] bg-[#FAFAFA] px-2 py-0.5 text-[11px] font-medium text-[#525252]">
+                        {storeCategory}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 font-mono text-[11px] ${
+                          hasMapCoordinates
+                            ? "border-[#BBF7D0] bg-[#F0FDF4] text-[#16A34A]"
+                            : "border-[#FDE68A] bg-[#FFFBEB] text-[#D97706]"
+                        }`}
+                      >
+                        <MapPin className="h-3 w-3" strokeWidth={1.5} />
+                        {hasMapCoordinates
+                          ? `Pinned ${Number(businessProfile.location.coordinates[1]).toFixed(3)}°N, ${Number(businessProfile.location.coordinates[0]).toFixed(3)}°E`
+                          : "Map pin not set"}
+                      </span>
+                    </div>
+
+                    <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-[#171717]">
+                      {storeDisplayName}
+                    </h2>
+
+                    <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#525252]">
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 text-[#737373]" strokeWidth={1.5} />
+                        {businessProfile?.address?.street ? `${businessProfile.address.street}, ${storeCity}` : storeCity}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5 text-[#737373]" strokeWidth={1.5} />
+                        {storeHours}
+                      </span>
+                      {(businessProfile?.phone || user?.phone) && (
+                        <span className="inline-flex items-center gap-1 font-mono text-[11px]">
+                          <Phone className="h-3.5 w-3.5 text-[#737373]" strokeWidth={1.5} />
+                          {businessProfile?.phone || user?.phone}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleOpenStoreModal}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#D4D4D8] bg-white px-3.5 text-[13px] font-medium text-[#171717] transition-colors hover:bg-[#F4F4F5]"
+                  >
+                    <Store className="h-3.5 w-3.5 text-[#D94832]" strokeWidth={1.5} />
+                    Edit storefront & branding
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -829,22 +1076,31 @@ const SellerDashboard = () => {
                     </h3>
                   </div>
                   <p className="mt-1 text-[13px] text-[#525252]">
-                    Enter the shopper&apos;s voucher code (<span className="font-mono text-[12px] text-[#171717]">HMU-XXXX-XXXXXX</span>) at checkout to verify and mark it redeemed.
+                    Scan the customer&apos;s QR pass with your camera or enter their serial code (<span className="font-mono text-[12px] text-[#171717]">HMU-XXXX-XXXXXX</span>) at checkout.
                   </p>
                 </div>
 
                 <form onSubmit={handleRedeemVoucher} className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setIsQrScannerOpen(true)}
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#D94832]/35 bg-[#D94832]/10 px-3.5 text-[13px] font-semibold text-[#D94832] transition-colors hover:bg-[#D94832] hover:text-white cursor-pointer"
+                    title="Scan customer QR code using camera"
+                  >
+                    <Camera className="h-4 w-4" strokeWidth={1.75} />
+                    <span>Scan QR</span>
+                  </button>
                   <input
                     type="text"
                     value={voucherCodeInput}
                     onChange={(e) => setVoucherCodeInput(e.target.value.toUpperCase())}
                     placeholder="HMU-8420-CMB"
-                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-[#FAFAFA] px-3.5 font-mono text-[13px] uppercase tracking-wider text-[#171717] placeholder-[#A3A3A3] focus:border-[#171717] focus:bg-white focus:outline-none sm:w-64"
+                    className="h-10 w-full rounded-lg border border-[#D4D4D8] bg-[#FAFAFA] px-3.5 font-mono text-[13px] uppercase tracking-wider text-[#171717] placeholder-[#A3A3A3] focus:border-[#171717] focus:bg-white focus:outline-none sm:w-56"
                   />
                   <button
                     type="submit"
                     disabled={redeemLoading || !voucherCodeInput.trim()}
-                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#171717] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#171717] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#262626] disabled:opacity-50 cursor-pointer"
                   >
                     {redeemLoading ? "Verifying..." : "Verify & redeem"}
                   </button>
@@ -1001,7 +1257,19 @@ const SellerDashboard = () => {
                     <button
                       type="button"
                       onClick={handleOpenCreate}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#D94832] px-4 text-[13px] font-medium text-white hover:bg-[#C23B26]"
+                      disabled={!isApproved || isSuspended}
+                      title={
+                        isSuspended
+                          ? "Seller account is suspended"
+                          : !isApproved
+                          ? "Awaiting Super Admin approval"
+                          : "Create new flash deal"
+                      }
+                      className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-medium transition-colors ${
+                        !isApproved || isSuspended
+                          ? "bg-[#D4D4D8] text-[#71717A] cursor-not-allowed"
+                          : "bg-[#D94832] text-white hover:bg-[#C23B26]"
+                      }`}
                     >
                       <Plus className="h-4 w-4" />
                       Create first deal
@@ -1034,8 +1302,23 @@ const SellerDashboard = () => {
                           return (
                             <tr key={deal._id} className="hover:bg-[#FAFAFA]">
                               <td className="px-4 py-3">
-                                <p className="font-medium text-[#171717]">{deal.title}</p>
-                                <p className="line-clamp-1 text-[12px] text-[#737373]">{deal.description}</p>
+                                <div className="flex items-center gap-3">
+                                  {deal.imageUrl ? (
+                                    <img
+                                      src={deal.imageUrl}
+                                      alt={deal.title}
+                                      className="h-10 w-10 shrink-0 rounded-lg object-cover border border-[#E4E4E7]"
+                                    />
+                                  ) : (
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F4F4F5] text-[#A1A1AA]">
+                                      <ImageIcon className="h-4 w-4" strokeWidth={1.5} />
+                                    </div>
+                                  )}
+                                  <div className="min-w-0">
+                                    <p className="font-medium text-[#171717]">{deal.title}</p>
+                                    <p className="line-clamp-1 text-[12px] text-[#737373]">{deal.description}</p>
+                                  </div>
+                                </div>
                               </td>
                               <td className="px-4 py-3 text-[12px] text-[#525252]">{deal.category}</td>
                               <td className="px-4 py-3 font-mono tabular-nums">
@@ -1379,6 +1662,56 @@ const SellerDashboard = () => {
                 )}
               </div>
 
+              {/* Deal Cover Photo (WebP Enforced) */}
+              <div>
+                <label className="mb-1.5 flex items-center justify-between text-[13px] font-medium text-[#171717]">
+                  <span>Deal cover photo</span>
+                  <span className="text-[11px] font-mono text-[#16A34A] bg-[#F0FDF4] px-1.5 py-0.5 rounded border border-[#BBF7D0]">
+                    Auto-converted to WebP
+                  </span>
+                </label>
+
+                {formData.imageUrl ? (
+                  <div className="relative overflow-hidden rounded-xl border border-[#E4E4E7] bg-[#FAFAFA]">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Deal cover preview"
+                      className="h-40 w-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, imageUrl: "" }))}
+                        className="rounded-lg bg-black/75 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur hover:bg-black"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label
+                    className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#D4D4D8] bg-[#FAFAFA] p-5 text-center transition-colors cursor-pointer hover:border-[#171717] hover:bg-white ${
+                      dealImageUploading ? "pointer-events-none opacity-60" : ""
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleDealImageChange}
+                      className="hidden"
+                      disabled={dealImageUploading}
+                    />
+                    <Upload className="h-6 w-6 text-[#737373]" strokeWidth={1.5} />
+                    <span className="mt-2 text-[13px] font-medium text-[#171717]">
+                      {dealImageUploading ? dealUploadStatus || "Processing..." : "Click to upload deal cover"}
+                    </span>
+                    <span className="mt-0.5 text-[11px] text-[#737373]">
+                      Auto-converts to WebP before upload to cloud
+                    </span>
+                  </label>
+                )}
+              </div>
+
               {/* Deal Title */}
               <div>
                 <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
@@ -1475,11 +1808,15 @@ const SellerDashboard = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={formLoading}
-                  className="h-9 rounded-lg bg-[#D94832] px-5 text-[13px] font-medium text-white hover:bg-[#C23B26] disabled:opacity-60"
+                  disabled={formLoading || !isApproved || isSuspended}
+                  className="h-9 rounded-lg bg-[#D94832] px-5 text-[13px] font-medium text-white hover:bg-[#C23B26] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {formLoading
                     ? "Saving..."
+                    : !isApproved
+                    ? "Awaiting Super Admin Approval"
+                    : isSuspended
+                    ? "Account Suspended"
                     : editingDeal
                     ? "Save changes"
                     : "Publish deal"}
@@ -1516,6 +1853,103 @@ const SellerDashboard = () => {
             </div>
 
             <form onSubmit={handleUpdateProfile} className="max-h-[82vh] overflow-y-auto p-6 space-y-4">
+              {/* Storefront Images (WebP Enforced) */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {/* Store Profile Logo */}
+                <div>
+                  <label className="mb-1.5 flex items-center justify-between text-[13px] font-medium text-[#171717]">
+                    <span>Store profile logo</span>
+                    <span className="text-[10px] font-mono text-[#16A34A] bg-[#F0FDF4] px-1.5 py-0.5 rounded border border-[#BBF7D0]">
+                      WebP
+                    </span>
+                  </label>
+                  {profileForm.logoUrl ? (
+                    <div className="relative flex items-center gap-3 rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] p-2.5">
+                      <img
+                        src={profileForm.logoUrl}
+                        alt="Store logo"
+                        className="h-14 w-14 rounded-lg object-cover border border-[#E4E4E7]"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-medium text-[#171717] truncate">Logo uploaded</p>
+                        <p className="text-[11px] text-[#737373]">Optimized WebP</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setProfileForm((prev) => ({ ...prev, logoUrl: "" }))}
+                        className="rounded-md border border-[#E4E4E7] bg-white px-2 py-1 text-[11px] font-medium text-[#525252] hover:bg-[#F4F4F5]"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <label
+                      className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#D4D4D8] bg-[#FAFAFA] p-4 text-center cursor-pointer hover:border-[#171717] hover:bg-white ${
+                        storeLogoUploading ? "pointer-events-none opacity-60" : ""
+                      }`}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleStoreLogoChange}
+                        className="hidden"
+                        disabled={storeLogoUploading}
+                      />
+                      <Camera className="h-5 w-5 text-[#737373]" strokeWidth={1.5} />
+                      <span className="mt-1 text-[12px] font-medium text-[#171717]">
+                        {storeLogoUploading ? "Uploading..." : "Upload logo"}
+                      </span>
+                      <span className="text-[10px] text-[#737373]">Square logo or shop icon</span>
+                    </label>
+                  )}
+                </div>
+
+                {/* Store Cover Banner */}
+                <div>
+                  <label className="mb-1.5 flex items-center justify-between text-[13px] font-medium text-[#171717]">
+                    <span>Store cover banner</span>
+                    <span className="text-[10px] font-mono text-[#16A34A] bg-[#F0FDF4] px-1.5 py-0.5 rounded border border-[#BBF7D0]">
+                      WebP
+                    </span>
+                  </label>
+                  {profileForm.coverImageUrl ? (
+                    <div className="relative rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] overflow-hidden">
+                      <img
+                        src={profileForm.coverImageUrl}
+                        alt="Store cover banner"
+                        className="h-16 w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setProfileForm((prev) => ({ ...prev, coverImageUrl: "" }))}
+                        className="absolute top-1.5 right-1.5 rounded bg-black/75 px-2 py-0.5 text-[10px] font-medium text-white hover:bg-black"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <label
+                      className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#D4D4D8] bg-[#FAFAFA] p-4 text-center cursor-pointer hover:border-[#171717] hover:bg-white ${
+                        storeCoverUploading ? "pointer-events-none opacity-60" : ""
+                      }`}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleStoreCoverChange}
+                        className="hidden"
+                        disabled={storeCoverUploading}
+                      />
+                      <ImageIcon className="h-5 w-5 text-[#737373]" strokeWidth={1.5} />
+                      <span className="mt-1 text-[12px] font-medium text-[#171717]">
+                        {storeCoverUploading ? "Uploading..." : "Upload cover photo"}
+                      </span>
+                      <span className="text-[10px] text-[#737373]">Wide store front or interior</span>
+                    </label>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1.5 block text-[13px] font-medium text-[#171717]">
@@ -1656,6 +2090,15 @@ const SellerDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Live Camera QR Code Scanner Modal */}
+      <QrCameraScannerModal
+        isOpen={isQrScannerOpen}
+        onClose={() => setIsQrScannerOpen(false)}
+        onDetected={handleQrCodeScanned}
+        autoRedeem={autoRedeemOnScan}
+        onToggleAutoRedeem={setAutoRedeemOnScan}
+      />
     </div>
   );
 };

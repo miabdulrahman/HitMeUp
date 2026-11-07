@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { searchLocations } from "../../data/sriLankaLocations";
 import { useAuth } from "../../context/useAuth";
+import { authApi } from "../../services/api";
+import EmailVerificationModal from "../../components/auth/EmailVerificationModal";
 
 const BUSINESS_CATEGORIES = [
   "Restaurant",
@@ -58,6 +60,8 @@ const Register = () => {
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [devOtp, setDevOtp] = useState("");
 
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [isCityOpen, setIsCityOpen] = useState(false);
@@ -204,34 +208,49 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const isBusiness = formData.role === "business";
-      const payload = {
-        name: formData.name.trim(),
+      // Step 1: Send 6-digit email OTP verification code
+      const otpRes = await authApi.sendOtp({
         email: formData.email.trim().toLowerCase(),
-        password: formData.password,
-        phone: formData.phone.trim(),
-        role: formData.role,
-        ...(isBusiness && {
-          businessName: (formData.businessName || formData.name).trim(),
-          businessCategory: formData.businessCategory || "Restaurant",
-          city: (formData.city || "Colombo").trim(),
-        }),
-      };
-
-      const user = await register(payload);
-
-      if (user?.role === "business" || user?.role === "seller") {
-        navigate("/seller/dashboard");
-      } else {
-        navigate("/customer/dashboard");
+        purpose: "register",
+      });
+      if (otpRes?.debugOtp) {
+        setDevOtp(otpRes.debugOtp);
       }
+      // Step 2: Open verification dialog
+      setIsVerifyModalOpen(true);
     } catch (err) {
       console.error("Registration error:", err);
       setError(
-        err.message || "Could not create account. Please check your details."
+        err.message || "Could not send verification code. Please check your email."
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCompleteRegistrationWithOtp = async (otp) => {
+    const isBusiness = formData.role === "business";
+    const payload = {
+      name: formData.name.trim(),
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password,
+      phone: formData.phone.trim(),
+      role: formData.role,
+      otp,
+      ...(isBusiness && {
+        businessName: (formData.businessName || formData.name).trim(),
+        businessCategory: formData.businessCategory || "Restaurant",
+        city: (formData.city || "Colombo").trim(),
+      }),
+    };
+
+    const user = await register(payload);
+    setIsVerifyModalOpen(false);
+
+    if (user?.role === "business" || user?.role === "seller") {
+      navigate("/seller/dashboard");
+    } else {
+      navigate("/customer/dashboard");
     }
   };
 
@@ -243,13 +262,12 @@ const Register = () => {
         {/* Left Brand Showcase Panel */}
         <div className="flex flex-col justify-between border-b border-[#E6E0D6] bg-[#1F1B16] p-8 text-[#FDFBF7] sm:p-10 lg:col-span-5 lg:border-b-0 lg:border-r">
           <div className="flex items-center justify-between">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#FDFBF7] font-mono text-[14px] font-medium text-[#1F1B16]">
-                H
-              </span>
-              <span className="text-[18px] font-semibold tracking-[-0.03em] text-[#FDFBF7]">
-                HitMeUp
-              </span>
+            <Link to="/" className="inline-flex items-center rounded-xl bg-white px-3 py-1.5 shadow-sm transition-transform hover:scale-[1.02]" aria-label="HitMeUp Home">
+              <img
+                src="/logo.png"
+                alt="HitMeUp"
+                className="h-7 w-auto object-contain"
+              />
             </Link>
 
             <Link
@@ -750,13 +768,13 @@ const Register = () => {
                 {loading ? (
                   <>
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    <span>Creating account...</span>
+                    <span>Sending verification code...</span>
                   </>
                 ) : (
                   <>
-                    <UserPlus size={16} strokeWidth={1.5} />
+                    <ShieldCheck size={16} strokeWidth={1.5} />
                     <span>
-                      {isBusiness ? "Register store" : "Create shopper account"}
+                      {isBusiness ? "Verify email & register store" : "Verify email & create account"}
                     </span>
                   </>
                 )}
@@ -777,6 +795,21 @@ const Register = () => {
           </div>
         </div>
       </div>
+
+      {/* Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={isVerifyModalOpen}
+        onClose={() => setIsVerifyModalOpen(false)}
+        email={formData.email}
+        initialOtp={devOtp}
+        onVerified={handleCompleteRegistrationWithOtp}
+        onResend={() =>
+          authApi.sendOtp({
+            email: formData.email.trim().toLowerCase(),
+            purpose: "register",
+          })
+        }
+      />
     </div>
   );
 };

@@ -7,13 +7,16 @@ function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
           {/* Brand */}
           <div>
-            <a href="#home" className="inline-flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#1F1B16] font-mono text-[12px] font-medium text-[#FDFBF7]">
-                H
-              </span>
-              <span className="text-[17px] font-semibold tracking-[-0.03em] text-[#1F1B16]">
-                HitMeUp
-              </span>
+            <a
+              href="#home"
+              className="inline-flex items-center py-0.5"
+              aria-label="HitMeUp Home"
+            >
+              <img
+                src="/logo.png"
+                alt="HitMeUp"
+                className="h-8 w-auto object-contain"
+              />
             </a>
 
             <p className="mt-3.5 max-w-[280px] text-[13px] leading-[1.65] text-[#5E554A]">

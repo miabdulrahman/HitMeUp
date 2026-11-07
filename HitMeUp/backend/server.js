@@ -1,3 +1,5 @@
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 require("dotenv").config();
 
 const dns = require("dns");
@@ -26,13 +28,18 @@ const authRoutes = require("./routes/authRoutes");
 const businessRoutes = require("./routes/businessRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const gatewayRoutes = require("./routes/gatewayRoutes");
 const voucherRoutes = require("./routes/voucherRoutes");
 const discoveryRoutes = require("./routes/discoveryRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+// Set JSON limit high enough for image data URLs if uploaded as base64
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 
 // Reusable MongoDB connection for serverless (Vercel) & traditional servers
 const connectDB = async () => {
@@ -85,6 +92,9 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/businesses", businessRoutes);
 
+// Image Upload Endpoint (Cloudinary with WebP conversion)
+app.use("/api/upload", uploadRoutes);
+
 // AI routes
 app.use("/api/ai", airoutes);
 
@@ -94,10 +104,14 @@ app.use("/api/deals", dealRoutes);
 // Member 4: Orders, Payments & Vouchers
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/gateway", gatewayRoutes);
 app.use("/api/vouchers", voucherRoutes);
 
 // Member 3: Deal Discovery, Location, Favorites & Reviews
 app.use("/api/discovery", discoveryRoutes);
+
+// Platform Administration Console (Admin RBAC enforced)
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 

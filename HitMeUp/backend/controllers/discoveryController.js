@@ -3,6 +3,10 @@ const Business = require("../models/Business");
 const Favorite = require("../models/Favorite");
 const Review = require("../models/Review");
 
+const escapeRegex = (string) => {
+  return String(string || "").replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+};
+
 /**
  * Discovery Controller - Member 3 (Deal Discovery & Location)
  * Handles deal searching, category filtering, proximity/geospatial discovery,
@@ -104,6 +108,7 @@ exports.searchDeals = async (req, res) => {
     const {
       q,
       keyword,
+      search,
       category,
       minPrice,
       maxPrice,
@@ -114,7 +119,7 @@ exports.searchDeals = async (req, res) => {
       limit = 20
     } = req.query;
 
-    const searchTerm = (q || keyword || "").trim();
+    const searchTerm = (q || keyword || search || "").trim();
     const now = new Date();
 
     // Auto-expire deals that have passed their end date
@@ -156,30 +161,33 @@ exports.searchDeals = async (req, res) => {
       query.discountPercentage = { $gte: Number(minDiscount) };
     }
 
-    // Keyword search across Deal title, description, or matched Business
+    // Keyword search across Deal title, description, category, tags, or matched Business
     if (searchTerm) {
-      // Find businesses matching name or category first (must be active & approved)
+      const safeSearch = escapeRegex(searchTerm);
+      const searchRegex = new RegExp(safeSearch, "i");
+
+      // Find businesses matching name, description, category, or location
       const matchingBusinesses = await Business.find({
         _id: { $in: activeApprovedBusinessIds },
         $or: [
-          { name: { $regex: searchTerm, $options: "i" } },
-          { category: { $regex: searchTerm, $options: "i" } },
-          { "address.city": { $regex: searchTerm, $options: "i" } }
+          { name: { $regex: safeSearch, $options: "i" } },
+          { businessName: { $regex: safeSearch, $options: "i" } },
+          { category: { $regex: safeSearch, $options: "i" } },
+          { description: { $regex: safeSearch, $options: "i" } },
+          { "address.city": { $regex: safeSearch, $options: "i" } },
+          { "address.street": { $regex: safeSearch, $options: "i" } },
+          { "address.state": { $regex: safeSearch, $options: "i" } }
         ]
       }).select("_id");
 
       const businessIds = matchingBusinesses.map((b) => b._id);
 
-      query.$and = [
-        { businessId: { $in: activeApprovedBusinessIds } },
-        {
-          $or: [
-            { title: { $regex: searchTerm, $options: "i" } },
-            { description: { $regex: searchTerm, $options: "i" } },
-            { category: { $regex: searchTerm, $options: "i" } },
-            { businessId: { $in: businessIds } }
-          ]
-        }
+      query.$or = [
+        { title: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex },
+        { tags: searchRegex },
+        { businessId: { $in: businessIds } }
       ];
     }
 

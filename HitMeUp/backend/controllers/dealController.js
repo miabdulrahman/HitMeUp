@@ -288,6 +288,8 @@ const getDeals = async (req, res) => {
     const {
       category,
       search,
+      q,
+      keyword,
       status,
       businessId,
       minDiscount,
@@ -296,6 +298,8 @@ const getDeals = async (req, res) => {
       limit = 50,
       page = 1
     } = req.query;
+
+    const searchTerm = (search || q || keyword || "").trim();
 
     const query = {};
     const now = new Date();
@@ -361,9 +365,26 @@ const getDeals = async (req, res) => {
       query.discountedPrice = { $lte: Number(maxPrice) };
     }
 
-    if (search) {
-      const searchRegex = new RegExp(search.trim(), "i");
-      query.$or = [{ title: searchRegex }, { description: searchRegex }, { category: searchRegex }];
+    if (searchTerm) {
+      const safeSearch = searchTerm.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+      const searchRegex = new RegExp(safeSearch, "i");
+
+      const matchingBusinesses = await Business.find({
+        $or: [
+          { name: { $regex: safeSearch, $options: "i" } },
+          { category: { $regex: safeSearch, $options: "i" } },
+          { "address.city": { $regex: safeSearch, $options: "i" } },
+          { "address.street": { $regex: safeSearch, $options: "i" } }
+        ]
+      }).select("_id");
+      const matchedBizIds = matchingBusinesses.map((b) => b._id);
+
+      query.$or = [
+        { title: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex },
+        { businessId: { $in: matchedBizIds } }
+      ];
     }
 
     // Determine Sort Order

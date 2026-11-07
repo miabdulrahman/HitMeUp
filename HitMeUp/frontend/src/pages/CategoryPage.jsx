@@ -82,7 +82,10 @@ function CategoryPage({ defaultView }) {
       setLoading(true);
       try {
         let liveDeals = [];
-        const catName = currentCategory ? currentCategory.name : undefined;
+        const catName =
+          currentCategory && currentCategory.name !== "All"
+            ? currentCategory.name
+            : undefined;
 
         if (nearbyMode && userLocation) {
           const response = await discoveryApi.getNearbyDeals({
@@ -103,10 +106,9 @@ function CategoryPage({ defaultView }) {
           }
         } else {
           setNearbyFallback(null);
-          const response = await discoveryApi.searchDeals({
-            category: catName,
-            sortBy,
-          });
+          const searchParamsObj = { sortBy };
+          if (catName) searchParamsObj.category = catName;
+          const response = await discoveryApi.searchDeals(searchParamsObj);
           liveDeals = response.deals || [];
         }
 

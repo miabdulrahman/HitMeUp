@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { LocationProvider } from "./context/LocationContext.jsx";
+import { ThemeProvider, FloatingThemeToggle } from "./context/ThemeContext.jsx";
 import LocationPromptBanner from "./components/LocationPromptBanner.jsx";
 import { useAuth } from "./context/useAuth";
 import LandingPage from "./pages/LandingPage";
@@ -44,11 +45,13 @@ const DashboardRedirect = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <LocationProvider>
-        <BrowserRouter>
-          <LocationPromptBanner />
-          <Routes>
+    <ThemeProvider>
+      <AuthProvider>
+        <LocationProvider>
+          <BrowserRouter>
+            <LocationPromptBanner />
+            <FloatingThemeToggle />
+            <Routes>
             {/* Public Storefront Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/category/:slug" element={<CategoryPage />} />
@@ -93,9 +96,10 @@ function App() {
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BrowserRouter>
-      </LocationProvider>
-    </AuthProvider>
+          </BrowserRouter>
+        </LocationProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

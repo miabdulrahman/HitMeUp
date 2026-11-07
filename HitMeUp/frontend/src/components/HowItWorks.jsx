@@ -8,14 +8,14 @@ const STEPS = [
     title: "Check nearby passes",
     description:
       "Browse the live pass grid or street map to see which neighborhood shops have active markdowns right now.",
-    badge: "Street map & feed",
+    badge: "Street map and feed",
   },
   {
     number: "02",
     title: "Claim your pass",
     description:
-      "Reserve a free walk-in voucher pass or complete checkout online before the batch timer expires.",
-    badge: "Rs. 0 to reserve",
+      "Reserve a free walk in voucher pass or complete checkout online before the batch timer expires.",
+    badge: "Free to reserve",
   },
   {
     number: "03",
@@ -55,15 +55,19 @@ function HowItWorks() {
   }, []);
 
   return (
-    <section id="how-it-works" className="bg-[#1F1B16] py-20 text-[#FDFBF7]">
+    <section
+      id="how-it-works"
+      className="border-b border-[#E6E0D6] dark:border-[#272727] bg-[#F7F4EE] dark:bg-[#181818] py-20 text-[#1F1B16] dark:text-[#FDFBF7] transition-colors duration-300"
+    >
       <div ref={sectionRef} className="reveal mx-auto max-w-[1200px] px-6">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-[540px]">
-            <p className="text-[13px] font-medium text-[#A89F91]">
+            <span className="font-mono text-xs uppercase tracking-wider text-[#7B7266] dark:text-[#A89F91]">
               How it works
-            </p>
+            </span>
 
-            <h2 className="mt-2 text-[28px] sm:text-[32px] font-medium tracking-[-0.025em] text-[#FDFBF7]">
+            {/* Heading 3: text-3xl sm:text-4xl, Semibold (Rule B1) */}
+            <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-[#1F1B16] dark:text-[#FDFBF7] [text-wrap:balance]">
               From street map to counter redemption in four steps
             </h2>
           </div>
@@ -77,7 +81,7 @@ function HowItWorks() {
                 className={`h-8 rounded-md px-3 font-mono text-[12px] transition-colors cursor-pointer ${
                   activeStep === idx
                     ? "bg-[#D94832] font-medium text-white"
-                    : "border border-white/15 bg-white/5 text-[#A89F91] hover:text-white"
+                    : "border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#1F1F1F] text-[#5E554A] dark:text-[#A89F91] hover:text-[#1F1B16] dark:hover:text-white"
                 }`}
               >
                 Step {s.number}
@@ -97,10 +101,10 @@ function HowItWorks() {
                   key={step.number}
                   type="button"
                   onClick={() => setActiveStep(idx)}
-                  className={`flex flex-col justify-between rounded-xl border p-5 text-left transition-colors duration-150 cursor-pointer ${
+                  className={`flex flex-col justify-between rounded-xl border p-5 text-left transition-colors duration-200 cursor-pointer ${
                     isSelected
-                      ? "border-[#D94832] bg-[#29231D]"
-                      : "border-white/10 bg-[#241F19] hover:border-white/25 hover:bg-[#29231D]"
+                      ? "border-[#D94832] bg-[#FDFBF7] dark:bg-[#272727] shadow-xs"
+                      : "border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7]/75 dark:bg-[#1F1F1F] hover:border-[#D94832]/50 hover:bg-[#FDFBF7] dark:hover:bg-[#272727]"
                   }`}
                 >
                   <div>
@@ -109,31 +113,31 @@ function HowItWorks() {
                         className={`inline-flex rounded-[5px] px-2 py-0.5 font-mono text-[11px] tabular-nums ${
                           isSelected
                             ? "bg-[#D94832] text-white"
-                            : "border border-white/15 bg-white/5 text-[#A89F91]"
+                            : "border border-[#E6E0D6] dark:border-[#313131] bg-[#EFE9DF] dark:bg-[#272727] text-[#5E554A] dark:text-[#A89F91]"
                         }`}
                       >
                         Step {step.number}
                       </span>
-                      <span className="font-mono text-[11px] text-[#A89F91]">
+                      <span className="font-mono text-[11px] text-[#7B7266] dark:text-[#A89F91]">
                         {step.badge}
                       </span>
                     </div>
 
-                    <h3 className="mt-4 text-[17px] font-medium text-[#FDFBF7]">
+                    <h3 className="mt-4 text-[17px] font-medium text-[#1F1B16] dark:text-[#FDFBF7]">
                       {step.title}
                     </h3>
 
-                    <p className="mt-2 text-[13px] leading-[1.6] text-[#A89F91]">
+                    <p className="mt-2 text-[13px] leading-[1.6] text-[#5E554A] dark:text-[#A89F91]">
                       {step.description}
                     </p>
                   </div>
 
-                  <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-3 text-[12px]">
+                  <div className="mt-5 flex items-center justify-between border-t border-[#E6E0D6] dark:border-[#313131] pt-3 text-[12px]">
                     <span
                       className={
                         isSelected
                           ? "font-medium text-[#D94832]"
-                          : "text-[#A89F91]"
+                          : "text-[#7B7266] dark:text-[#A89F91]"
                       }
                     >
                       {isSelected ? "Showing preview" : "Click to preview"}
@@ -142,7 +146,7 @@ function HowItWorks() {
                       size={13}
                       strokeWidth={1.5}
                       className={
-                        isSelected ? "text-[#D94832]" : "text-[#A89F91]"
+                        isSelected ? "text-[#D94832]" : "text-[#7B7266] dark:text-[#A89F91]"
                       }
                     />
                   </div>
@@ -152,20 +156,20 @@ function HowItWorks() {
           </div>
 
           {/* Right: Interactive Step Preview Panel */}
-          <div className="flex flex-col justify-between rounded-xl border border-white/15 bg-[#26211B] p-6 lg:col-span-5">
+          <div className="flex flex-col justify-between rounded-xl border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#1F1F1F] p-6 lg:col-span-5">
             <div>
-              <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
+              <div className="flex items-center justify-between border-b border-[#E6E0D6] dark:border-[#313131] pb-3.5">
                 <span className="font-mono text-[12px] text-[#D94832]">
                   Step {STEPS[activeStep].number} · {STEPS[activeStep].title}
                 </span>
-                <span className="font-mono text-[11px] text-[#A89F91]">
+                <span className="font-mono text-[11px] text-[#7B7266] dark:text-[#A89F91]">
                   Live flow
                 </span>
               </div>
 
               {activeStep === 0 && (
                 <div className="mt-5 space-y-3">
-                  <p className="text-[13px] text-[#A89F91]">
+                  <p className="text-[13px] text-[#5E554A] dark:text-[#A89F91]">
                     Pinned neighborhood stores with active passes near your
                     current street:
                   </p>
@@ -188,7 +192,7 @@ function HowItWorks() {
                   ].map((pin) => (
                     <div
                       key={pin.shop}
-                      className="flex items-center justify-between rounded-lg border border-white/10 bg-[#1F1B16] p-3.5"
+                      className="flex items-center justify-between rounded-lg border border-[#E6E0D6] dark:border-[#313131] bg-[#F7F4EE] dark:bg-[#181818] p-3.5"
                     >
                       <div className="flex items-start gap-2.5">
                         <MapPin
@@ -197,10 +201,10 @@ function HowItWorks() {
                           className="mt-0.5 shrink-0 text-[#D94832]"
                         />
                         <div>
-                          <p className="text-[13px] font-medium text-[#FDFBF7]">
+                          <p className="text-[13px] font-medium text-[#1F1B16] dark:text-[#FDFBF7]">
                             {pin.shop}
                           </p>
-                          <p className="text-[11px] text-[#A89F91]">
+                          <p className="text-[11px] text-[#7B7266] dark:text-[#A89F91]">
                             {pin.area}
                           </p>
                         </div>
@@ -215,24 +219,24 @@ function HowItWorks() {
 
               {activeStep === 1 && (
                 <div className="mt-5 space-y-4">
-                  <div className="rounded-lg border border-white/10 bg-[#1F1B16] p-4">
+                  <div className="rounded-lg border border-[#E6E0D6] dark:border-[#313131] bg-[#F7F4EE] dark:bg-[#181818] p-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-[12px] text-[#A89F91]">
+                      <span className="text-[12px] text-[#7B7266] dark:text-[#A89F91]">
                         Selected deal
                       </span>
-                      <span className="font-mono text-[11px] text-[#4ADE80]">
+                      <span className="font-mono text-[11px] text-[#166534] dark:text-[#4ADE80]">
                         6 / 15 left in batch
                       </span>
                     </div>
-                    <p className="mt-1.5 text-[15px] font-medium text-[#FDFBF7]">
+                    <p className="mt-1.5 text-[15px] font-medium text-[#1F1B16] dark:text-[#FDFBF7]">
                       Afternoon espresso &amp; sourdough tartlet for two
                     </p>
-                    <div className="mt-3 flex items-baseline justify-between border-t border-white/10 pt-3 font-mono">
+                    <div className="mt-3 flex items-baseline justify-between border-t border-[#E6E0D6] dark:border-[#313131] pt-3 font-mono">
                       <div>
-                        <span className="text-[18px] font-medium text-[#FDFBF7]">
+                        <span className="text-[18px] font-medium text-[#1F1B16] dark:text-[#FDFBF7]">
                           Rs. 1,950
                         </span>
-                        <span className="ml-2 text-[12px] text-[#A89F91] line-through">
+                        <span className="ml-2 text-[12px] text-[#7B7266] dark:text-[#A89F91] line-through">
                           Rs. 3,000
                         </span>
                       </div>
@@ -243,7 +247,7 @@ function HowItWorks() {
                   </div>
 
                   <div className="flex items-center justify-between rounded-lg border border-[#D94832]/40 bg-[#D94832]/10 px-4 py-3 text-[13px]">
-                    <span className="flex items-center gap-2 text-[#FDFBF7]">
+                    <span className="flex items-center gap-2 text-[#1F1B16] dark:text-[#FDFBF7]">
                       <Ticket size={15} className="text-[#D94832]" />
                       One pass reserved per account
                     </span>
@@ -256,29 +260,29 @@ function HowItWorks() {
 
               {activeStep === 2 && (
                 <div className="mt-5">
-                  <div className="rounded-lg border border-white/15 bg-[#FDFBF7] p-4 text-[#1F1B16]">
-                    <div className="flex items-center justify-between border-b border-[#E6E0D6] pb-2.5">
-                      <span className="font-mono text-[11px] text-[#7B7266]">
+                  <div className="rounded-lg border border-[#E6E0D6] dark:border-[#313131] bg-[#F7F4EE] dark:bg-[#181818] p-4 text-[#1F1B16] dark:text-[#FDFBF7]">
+                    <div className="flex items-center justify-between border-b border-[#E6E0D6] dark:border-[#313131] pb-2.5">
+                      <span className="font-mono text-[11px] text-[#7B7266] dark:text-[#A89F91]">
                         COUNTER VOUCHER PASS
                       </span>
-                      <span className="rounded bg-[#F0FDF4] px-2 py-0.5 font-mono text-[11px] font-medium text-[#166534]">
+                      <span className="rounded bg-[#F0FDF4] dark:bg-[#166534]/25 px-2 py-0.5 font-mono text-[11px] font-medium text-[#166534] dark:text-[#4ADE80]">
                         Active
                       </span>
                     </div>
                     <div className="mt-3 flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-[12px] text-[#7B7266]">
+                        <p className="text-[12px] text-[#7B7266] dark:text-[#A89F91]">
                           Commons Roastery · Colombo 04
                         </p>
-                        <p className="mt-0.5 font-mono text-[16px] font-semibold text-[#1F1B16]">
+                        <p className="mt-0.5 font-mono text-[16px] font-semibold text-[#1F1B16] dark:text-[#FDFBF7]">
                           HMU-8420-CMB
                         </p>
                         <p className="mt-1 font-mono text-[12px] text-[#D94832]">
                           Pay Rs. 1,950 at counter (35% off)
                         </p>
                       </div>
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-[#E6E0D6] bg-white p-2">
-                        <QrCode size={36} strokeWidth={1.5} />
+                      <div className="keep-light-surface flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-[#E6E0D6] bg-white p-2 text-[#1F1B16]">
+                        <QrCode size={36} strokeWidth={1.5} className="keep-dark-ink text-[#1F1B16]" />
                       </div>
                     </div>
                   </div>
@@ -287,20 +291,20 @@ function HowItWorks() {
 
               {activeStep === 3 && (
                 <div className="mt-5 space-y-3">
-                  <div className="rounded-lg border border-white/10 bg-[#1F1B16] p-4">
-                    <p className="text-[11px] font-mono text-[#A89F91]">
+                  <div className="rounded-lg border border-[#E6E0D6] dark:border-[#313131] bg-[#F7F4EE] dark:bg-[#181818] p-4">
+                    <p className="text-[11px] font-mono text-[#7B7266] dark:text-[#A89F91]">
                       MERCHANT COUNTER POS
                     </p>
-                    <div className="mt-2 flex items-center justify-between rounded border border-white/15 bg-[#29231D] px-3 py-2 font-mono text-[13px]">
+                    <div className="mt-2 flex items-center justify-between rounded border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#272727] px-3 py-2 font-mono text-[13px]">
                       <span>HMU-8420-CMB</span>
-                      <span className="text-[11px] text-[#4ADE80]">
+                      <span className="text-[11px] text-[#166534] dark:text-[#4ADE80]">
                         Matched
                       </span>
                     </div>
-                    <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-[#166534] bg-[#166534]/20 p-3 text-[12px] text-[#DCFCE7]">
+                    <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-[#166534]/40 bg-[#F0FDF4] dark:bg-[#166534]/20 p-3 text-[12px] text-[#166534] dark:text-[#DCFCE7]">
                       <CheckCircle2
                         size={16}
-                        className="mt-0.5 shrink-0 text-[#4ADE80]"
+                        className="mt-0.5 shrink-0 text-[#166534] dark:text-[#4ADE80]"
                       />
                       <div>
                         <p className="font-medium">
@@ -316,8 +320,8 @@ function HowItWorks() {
               )}
             </div>
 
-            <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
-              <span className="font-mono text-[12px] text-[#A89F91]">
+            <div className="mt-6 flex items-center justify-between border-t border-[#E6E0D6] dark:border-[#313131] pt-4">
+              <span className="font-mono text-[12px] text-[#7B7266] dark:text-[#A89F91]">
                 Step 0{activeStep + 1} of 04
               </span>
               <div className="flex items-center gap-2">
@@ -326,7 +330,7 @@ function HowItWorks() {
                   onClick={() =>
                     setActiveStep((prev) => (prev + 1) % STEPS.length)
                   }
-                  className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-[12px] font-medium text-[#FDFBF7] hover:bg-white/10 cursor-pointer"
+                  className="rounded-lg border border-[#E6E0D6] dark:border-[#313131] bg-[#F7F4EE] dark:bg-[#272727] px-3 py-1.5 text-[12px] font-medium text-[#1F1B16] dark:text-[#FDFBF7] hover:bg-[#EFE9DF] dark:hover:bg-[#313131] cursor-pointer"
                 >
                   Next step
                 </button>

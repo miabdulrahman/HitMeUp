@@ -34,10 +34,9 @@ function CategoryPage({ defaultView }) {
   }, [slug]);
 
   const [activeSlug, setActiveSlug] = useState(slug || "all");
-  const [searchQuery, setSearchQuery] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("q") || params.get("search") || "";
-  });
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const initialSearch = searchParams.get("q") || searchParams.get("search") || "";
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [sortBy, setSortBy] = useState("recommended");
   const [dealsList, setDealsList] = useState([]);
   const [selectedDeal, setSelectedDeal] = useState(null);
@@ -70,11 +69,7 @@ function CategoryPage({ defaultView }) {
     } else if (searchParams.get("view") === "grid") {
       setViewMode("grid");
     }
-    const urlQuery = params.get("q") || params.get("search") || "";
-    if (urlQuery !== searchQuery) {
-      setSearchQuery(urlQuery);
-    }
-  }, [location.search, defaultView]);
+  }, [searchParams, location.pathname, defaultView]);
 
   useEffect(() => {
     setActiveSlug(slug || "all");
@@ -111,9 +106,8 @@ function CategoryPage({ defaultView }) {
           }
         } else {
           setNearbyFallback(null);
-          const searchParamsObj = { sortBy, limit: 100 };
+          const searchParamsObj = { sortBy };
           if (catName) searchParamsObj.category = catName;
-          if (searchQuery.trim()) searchParamsObj.q = searchQuery.trim();
           const response = await discoveryApi.searchDeals(searchParamsObj);
           liveDeals = response.deals || [];
         }
@@ -195,20 +189,7 @@ function CategoryPage({ defaultView }) {
     return () => {
       isMounted = false;
     };
-  }, [currentCategory, nearbyMode, userLocation, nearbyRadius, sortBy, searchQuery]);
-
-  // Auto-open deal modal if dealId is provided in URL query (?dealId=...)
-  useEffect(() => {
-    const targetDealId = searchParams.get("dealId");
-    if (!targetDealId || !dealsList.length) return;
-    const match = dealsList.find(
-      (d) => String(d.id || d._id) === String(targetDealId)
-    );
-    if (match) {
-      setSelectedDeal(match);
-      setModalOpen(true);
-    }
-  }, [searchParams, dealsList]);
+  }, [currentCategory, nearbyMode, userLocation, nearbyRadius, sortBy]);
 
   const handleToggleNearby = () => {
     if (nearbyMode && hasRealLocation) {
@@ -237,21 +218,7 @@ function CategoryPage({ defaultView }) {
     navigate(nextSearch ? `?${nextSearch}` : location.pathname, { replace: true });
   };
 
-  const handleSearchChange = (val) => {
-    setSearchQuery(val);
-    const params = new URLSearchParams(location.search);
-    if (val.trim()) {
-      params.set("q", val.trim());
-    } else {
-      params.delete("q");
-      params.delete("search");
-    }
-    const nextQuery = params.toString();
-    navigate(nextQuery ? `?${nextQuery}` : location.pathname, { replace: true });
-  };
-
   const filteredDeals = useMemo(() => {
-    const qLower = searchQuery.trim().toLowerCase();
     return dealsList
       .filter((deal) => {
         // Enforce strictly active/unexpired
@@ -270,15 +237,11 @@ function CategoryPage({ defaultView }) {
                 currentCategory.slug.toLowerCase()));
 
         const matchesQuery =
-          !qLower ||
-          deal.title?.toLowerCase().includes(qLower) ||
-          deal.business?.toLowerCase().includes(qLower) ||
-          deal.category?.toLowerCase().includes(qLower) ||
-          deal.description?.toLowerCase().includes(qLower) ||
-          deal.location?.toLowerCase().includes(qLower) ||
-          deal.businessId?.name?.toLowerCase().includes(qLower) ||
-          deal.businessId?.address?.city?.toLowerCase().includes(qLower) ||
-          deal.businessId?.address?.street?.toLowerCase().includes(qLower);
+          !searchQuery.trim() ||
+          deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          deal.business.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          deal.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          deal.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
         return matchesCategory && matchesQuery;
       })
@@ -449,7 +412,7 @@ function CategoryPage({ defaultView }) {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={`Filter ${
                       currentCategory ? currentCategory.name.toLowerCase() : "deals"
                     } by store or item...`}
@@ -457,7 +420,7 @@ function CategoryPage({ defaultView }) {
                   />
                   {searchQuery && (
                     <button
-                      onClick={() => handleSearchChange("")}
+                      onClick={() => setSearchQuery("")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-medium text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
                     >
                       Clear

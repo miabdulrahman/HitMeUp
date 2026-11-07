@@ -4,7 +4,6 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { useTheme } from "../context/ThemeContext";
 import SearchModal from "./SearchModal";
-import DealDetailModal from "./DealDetailModal";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -13,7 +12,6 @@ function Navbar() {
   const { isDark, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [selectedDeal, setSelectedDeal] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [activeHash, setActiveHash] = useState("");
 
@@ -371,13 +369,6 @@ function Navbar() {
       <SearchModal
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
-        onSelectDeal={(deal) => setSelectedDeal(deal)}
-      />
-
-      <DealDetailModal
-        deal={selectedDeal}
-        isOpen={!!selectedDeal}
-        onClose={() => setSelectedDeal(null)}
       />
     </>
   );

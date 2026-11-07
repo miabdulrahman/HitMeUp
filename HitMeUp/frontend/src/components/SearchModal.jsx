@@ -27,7 +27,7 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
     const fetchLiveDeals = async () => {
       setLoading(true);
       try {
-        const response = await dealApi.getDeals({ limit: 100 });
+        const response = await dealApi.getDeals();
         const liveDeals = response.deals || response.data || [];
         if (isMounted) {
           if (Array.isArray(liveDeals)) {
@@ -42,7 +42,6 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
 
               return {
                 id: d._id || index + 1,
-                _id: d._id,
                 title: d.title,
                 business:
                   d.businessId?.name || d.businessName || "Local merchant",
@@ -94,14 +93,12 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
   if (!isOpen) return null;
 
   const filteredDeals = deals.filter((deal) => {
-    const qLower = query.trim().toLowerCase();
     const matchesQuery =
-      !qLower ||
-      deal.title?.toLowerCase().includes(qLower) ||
-      deal.business?.toLowerCase().includes(qLower) ||
-      deal.category?.toLowerCase().includes(qLower) ||
-      deal.description?.toLowerCase().includes(qLower) ||
-      deal.distance?.toLowerCase().includes(qLower);
+      !query.trim() ||
+      deal.title.toLowerCase().includes(query.toLowerCase()) ||
+      deal.business.toLowerCase().includes(query.toLowerCase()) ||
+      deal.category.toLowerCase().includes(query.toLowerCase()) ||
+      deal.description?.toLowerCase().includes(query.toLowerCase());
 
     const matchesCategory =
       selectedCategory === "all" ||
@@ -131,15 +128,7 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
     if (onSelectDeal) {
       onSelectDeal(deal);
     } else {
-      navigate(`/deals?dealId=${deal.id || deal._id}`);
-    }
-  };
-
-  const handleSearchSubmit = (e) => {
-    if (e) e.preventDefault();
-    if (query.trim()) {
-      onClose();
-      navigate(`/deals?q=${encodeURIComponent(query.trim())}`);
+      navigate(`/category/${deal.categorySlug || "food"}`);
     }
   };
 
@@ -154,17 +143,15 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
       >
         {/* Search Header Bar */}
         <div className="flex items-center gap-3 border-b border-[#E6E0D6] px-5 py-4">
-          <form onSubmit={handleSearchSubmit} className="flex flex-1 items-center gap-3">
-            <Search size={18} strokeWidth={1.5} className="shrink-0 text-[#7B7266]" />
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search deals, cafes, electronics, services..."
-              className="w-full bg-transparent text-[15px] font-normal text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none"
-            />
-          </form>
+          <Search size={18} strokeWidth={1.5} className="shrink-0 text-[#7B7266]" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search deals, cafes, electronics, services..."
+            className="w-full bg-transparent text-[15px] font-normal text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none"
+          />
           {query && (
             <button
               onClick={() => setQuery("")}
@@ -318,26 +305,15 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
           <span className="font-mono tabular-nums">
             {filteredDeals.length} active offers
           </span>
-          <div className="flex items-center gap-4">
-            {query.trim() && (
-              <button
-                type="button"
-                onClick={handleSearchSubmit}
-                className="font-medium text-[#D94832] hover:underline cursor-pointer"
-              >
-                View all results &rarr;
-              </button>
-            )}
-            <button
-              onClick={() => {
-                onClose();
-                navigate(`/categories`);
-              }}
-              className="font-medium text-[#1F1B16] hover:text-[#D94832]"
-            >
-              All categories &rarr;
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              onClose();
+              navigate(`/categories`);
+            }}
+            className="font-medium text-[#1F1B16] hover:text-[#D94832]"
+          >
+            All categories &rarr;
+          </button>
         </div>
       </div>
     </div>

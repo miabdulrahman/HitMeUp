@@ -199,13 +199,11 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
   // Filtered markers based on search query
   const filteredMarkers = markers.filter((m) => {
     if (!searchFilter.trim()) return true;
-    const q = searchFilter.trim().toLowerCase();
+    const q = searchFilter.toLowerCase();
     return (
       m.name?.toLowerCase().includes(q) ||
       m.category?.toLowerCase().includes(q) ||
-      m.address?.city?.toLowerCase().includes(q) ||
-      m.address?.street?.toLowerCase().includes(q) ||
-      m.topDeal?.title?.toLowerCase().includes(q)
+      m.address?.city?.toLowerCase().includes(q)
     );
   });
 

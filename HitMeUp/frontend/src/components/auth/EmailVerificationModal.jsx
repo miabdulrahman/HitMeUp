@@ -92,9 +92,9 @@ export default function EmailVerificationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111318]/60 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="ios-popup-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111318]/60 backdrop-blur-xs">
       <div
-        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] p-6 sm:p-7 shadow-[0_16px_40px_rgba(31,27,22,0.16)]"
+        className="ios-popup-card relative w-full max-w-md overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] p-6 sm:p-7 shadow-[0_16px_40px_rgba(31,27,22,0.16)]"
         role="dialog"
         aria-modal="true"
       >

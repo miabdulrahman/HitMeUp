@@ -9,7 +9,7 @@ function Footer() {
           <div>
             <a
               href="#home"
-              className="keep-light-logo inline-flex items-center rounded-lg py-0.5 dark:bg-[#FDFBF7] dark:px-2.5 dark:py-1"
+              className="inline-flex items-center py-0.5"
               aria-label="HitMeUp Home"
             >
               <img

@@ -280,6 +280,79 @@ body:has(.dashboard-page) {
   }
 }
 
+/* ============================================================================
+   iOS App-Opening Spring Animation for All Website Popups, Modals & Drawers
+   Uses Apple's signature spring curve: cubic-bezier(0.32, 0.72, 0, 1)
+   ============================================================================ */
+@keyframes iosBackdropFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes iosAppOpenPopup {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translate3d(0, 22px, 0);
+  }
+  68% {
+    opacity: 1;
+    transform: scale(1.015) translate3d(0, -2px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes iosDrawerSlideLeft {
+  0% {
+    opacity: 0.6;
+    transform: translate3d(100%, 0, 0) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.ios-popup-backdrop,
+div.fixed.inset-0.z-50,
+div.fixed.inset-0.z-\[60\] {
+  animation: iosBackdropFadeIn 240ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  will-change: opacity;
+}
+
+.ios-popup-card,
+div.fixed.inset-0.z-50:not(.justify-end) > div,
+div.fixed.inset-0.z-\[60\] > div {
+  animation: iosAppOpenPopup 380ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
+.ios-drawer-panel,
+div.fixed.inset-0.z-50.justify-end > div {
+  animation: iosDrawerSlideLeft 380ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  transform-origin: right center;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ios-popup-backdrop,
+  .ios-popup-card,
+  .ios-drawer-panel,
+  div.fixed.inset-0.z-50,
+  div.fixed.inset-0.z-\[60\],
+  div.fixed.inset-0.z-50 > div,
+  div.fixed.inset-0.z-\[60\] > div {
+    animation: none !important;
+  }
+}
+
 /* HitMeUp Platform Admin Canvas */
 body:has(.admin-shell) {
   background-color: var(--app-bg);

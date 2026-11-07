@@ -73,23 +73,22 @@ function Navbar() {
     user?.role === "admin"
       ? "/admin"
       : isSeller
-      ? "/seller/dashboard"
-      : "/customer/dashboard";
+        ? "/seller/dashboard"
+        : "/customer/dashboard";
 
   return (
     <>
       <header
-        className={`fixed left-0 right-0 top-0 z-40 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          scrolled
-            ? "border-b border-[#E6E0D6] dark:border-[#272727] bg-[#FDFBF7]/95 dark:bg-[#181818]/95 shadow-[0_2px_12px_rgba(31,27,22,0.05)] backdrop-blur-md"
-            : "border-b border-[#E6E0D6]/80 dark:border-[#272727]/80 bg-[#F7F4EE]/90 dark:bg-[#131209]/90 backdrop-blur-sm"
-        }`}
+        className={`fixed left-0 right-0 top-0 z-40 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${scrolled
+          ? "border-b border-[#E6E0D6] dark:border-[#272727] bg-[#FDFBF7]/95 dark:bg-[#181818]/95 shadow-[0_2px_12px_rgba(31,27,22,0.05)] backdrop-blur-md"
+          : "border-b border-[#E6E0D6]/80 dark:border-[#272727]/80 bg-[#F7F4EE]/90 dark:bg-[#131209]/90 backdrop-blur-sm"
+          }`}
       >
         <nav className="mx-auto flex h-14 lg:h-16 max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-5 xl:gap-7 min-w-0">
             <Link
               to="/"
-              className="keep-light-logo flex shrink-0 items-center group rounded-lg py-0.5 dark:bg-[#FDFBF7] px-1 dark:px-2"
+              className="flex shrink-0 items-center group py-0.5"
               aria-label="HitMeUp Home"
             >
               <img
@@ -102,11 +101,10 @@ function Navbar() {
             <div className="hidden items-center gap-0.5 xl:gap-1 lg:flex">
               {navLinks.map((link) => {
                 const isActive = isHomePage && activeHash === link.hash;
-                const baseClass = `relative whitespace-nowrap shrink-0 rounded-lg px-2.5 xl:px-3 py-1.5 text-[13px] xl:text-sm transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                  isActive
-                    ? "bg-[#EFE9DF] dark:bg-[#272727] font-medium text-[#1F1B16] dark:text-[#FDFBF7]"
-                    : "font-normal text-[#5E554A] dark:text-[#CFC6B8] hover:bg-[#EFE9DF]/60 dark:hover:bg-[#272727]/70 hover:text-[#1F1B16] dark:hover:text-[#FDFBF7]"
-                }`;
+                const baseClass = `relative whitespace-nowrap shrink-0 rounded-lg px-2.5 xl:px-3 py-1.5 text-[13px] xl:text-sm transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isActive
+                  ? "bg-[#EFE9DF] dark:bg-[#272727] font-medium text-[#1F1B16] dark:text-[#FDFBF7]"
+                  : "font-normal text-[#5E554A] dark:text-[#CFC6B8] hover:bg-[#EFE9DF]/60 dark:hover:bg-[#272727]/70 hover:text-[#1F1B16] dark:hover:text-[#FDFBF7]"
+                  }`;
 
                 return link.isRoute ? (
                   <Link key={link.name} to={link.href} className={baseClass}>
@@ -171,7 +169,7 @@ function Navbar() {
                     <img
                       src={user.avatar}
                       alt={user.name || "User"}
-                      className="h-5 w-5 shrink-0 rounded-full object-cover border border-[#E6E0D6]"
+                      className="h-5 w-5 shrink-0 rounded-full object-cover border"
                     />
                   ) : (
                     <LayoutDashboard size={15} strokeWidth={1.5} className="shrink-0 text-[#5E554A] dark:text-[#CFC6B8]" />
@@ -242,16 +240,14 @@ function Navbar() {
               aria-expanded={menuOpen}
             >
               <span
-                className={`absolute transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                  menuOpen ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
-                }`}
+                className={`absolute transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${menuOpen ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
+                  }`}
               >
                 <Menu size={18} strokeWidth={1.5} />
               </span>
               <span
-                className={`absolute transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                  menuOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
-                }`}
+                className={`absolute transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${menuOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
+                  }`}
               >
                 <X size={18} strokeWidth={1.5} />
               </span>
@@ -262,17 +258,15 @@ function Navbar() {
         {/* Mobile Slide-down Menu with smooth CSS grid height and fade animation */}
         <div
           aria-hidden={!menuOpen}
-          className={`grid lg:hidden transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] bg-[#FDFBF7] dark:bg-[#181818] ${
-            menuOpen
-              ? "grid-rows-[1fr] opacity-100 border-t border-[#E6E0D6] dark:border-[#272727] shadow-[0_16px_32px_rgba(0,0,0,0.12)]"
-              : "grid-rows-[0fr] opacity-0 pointer-events-none border-t-0"
-          }`}
+          className={`grid lg:hidden transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] bg-[#FDFBF7] dark:bg-[#181818] ${menuOpen
+            ? "grid-rows-[1fr] opacity-100 border-t border-[#E6E0D6] dark:border-[#272727] shadow-[0_16px_32px_rgba(0,0,0,0.12)]"
+            : "grid-rows-[0fr] opacity-0 pointer-events-none border-t-0"
+            }`}
         >
           <div className="min-h-0 overflow-hidden">
             <div
-              className={`flex flex-col gap-3 px-6 py-5 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                menuOpen ? "translate-y-0" : "-translate-y-2"
-              }`}
+              className={`flex flex-col gap-3 px-6 py-5 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${menuOpen ? "translate-y-0" : "-translate-y-2"
+                }`}
             >
               <button
                 onClick={() => {

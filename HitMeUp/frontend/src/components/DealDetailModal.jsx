@@ -156,11 +156,11 @@ function DealDetailModal({ deal, isOpen, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#1F1B16]/55 p-4 backdrop-blur-xs sm:p-6"
+      className="ios-popup-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#1F1B16]/55 p-4 backdrop-blur-xs sm:p-6"
       onClick={onClose}
     >
       <div
-        className="relative my-8 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_12px_32px_rgba(31,27,22,0.14)]"
+        className="ios-popup-card relative my-8 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_12px_32px_rgba(31,27,22,0.14)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

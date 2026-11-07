@@ -96,12 +96,7 @@ const Login = () => {
   }, []);
 
   const fillDemo = (role) => {
-    if (role === "admin") {
-      setFormData({
-        email: "admin@hitmeup.com",
-        password: "Password123!",
-      });
-    } else if (role === "customer") {
+    if (role === "customer") {
       setFormData({
         email: "customer@hitmeup.com",
         password: "Password123!",
@@ -239,13 +234,6 @@ const Login = () => {
                   className="rounded-md border border-[#E6E0D6] bg-[#FDFBF7] px-2.5 py-1 text-[12px] font-medium text-[#1F1B16] transition-colors hover:border-[#1F1B16]/40 cursor-pointer"
                 >
                   Merchant
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillDemo("admin")}
-                  className="rounded-md border border-[#BFDBFE] bg-[#EFF6FF] px-2.5 py-1 text-[12px] font-medium text-[#1D4ED8] transition-colors hover:border-[#1D4ED8] cursor-pointer"
-                >
-                  Admin
                 </button>
               </div>
             </div>

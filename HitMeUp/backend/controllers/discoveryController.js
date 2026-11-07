@@ -69,6 +69,33 @@ const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
   return Math.round(R * c * 10) / 10;
 };
 
+// Helper: Retrieve IDs of businesses currently active and approved by Super Admin
+const getActiveApprovedBusinessIds = async () => {
+  return await Business.find({
+    status: "active",
+    $or: [
+      { applicationStatus: "approved" },
+      { isVerified: true, applicationStatus: { $ne: "rejected" } }
+    ]
+  }).distinct("_id");
+};
+
+// Helper: Verify if a populated business object is approved and unsuspended
+const isBusinessActiveAndApproved = (business) => {
+  if (!business) return false;
+  if (business.status !== "active") return false;
+  if (business.applicationStatus === "approved") return true;
+  if (
+    business.isVerified &&
+    business.applicationStatus !== "rejected" &&
+    business.applicationStatus !== "pending" &&
+    business.applicationStatus !== "under_review"
+  ) {
+    return true;
+  }
+  return false;
+};
+
 // ----------------------------------------------------------------------
 // 1. Search & Filter Active Deals
 // ----------------------------------------------------------------------
@@ -96,9 +123,13 @@ exports.searchDeals = async (req, res) => {
       { $set: { status: "expired" } }
     ).exec();
 
+    // Retrieve active and approved businesses (excludes suspended or unapproved sellers)
+    const activeApprovedBusinessIds = await getActiveApprovedBusinessIds();
+
     const query = {
       status: "active",
-      endDate: { $gt: now }
+      endDate: { $gt: now },
+      businessId: { $in: activeApprovedBusinessIds }
     };
 
     // Category filter with taxonomy mapping
@@ -127,8 +158,9 @@ exports.searchDeals = async (req, res) => {
 
     // Keyword search across Deal title, description, or matched Business
     if (searchTerm) {
-      // Find businesses matching name or category first
+      // Find businesses matching name or category first (must be active & approved)
       const matchingBusinesses = await Business.find({
+        _id: { $in: activeApprovedBusinessIds },
         $or: [
           { name: { $regex: searchTerm, $options: "i" } },
           { category: { $regex: searchTerm, $options: "i" } },
@@ -138,11 +170,16 @@ exports.searchDeals = async (req, res) => {
 
       const businessIds = matchingBusinesses.map((b) => b._id);
 
-      query.$or = [
-        { title: { $regex: searchTerm, $options: "i" } },
-        { description: { $regex: searchTerm, $options: "i" } },
-        { category: { $regex: searchTerm, $options: "i" } },
-        { businessId: { $in: businessIds } }
+      query.$and = [
+        { businessId: { $in: activeApprovedBusinessIds } },
+        {
+          $or: [
+            { title: { $regex: searchTerm, $options: "i" } },
+            { description: { $regex: searchTerm, $options: "i" } },
+            { category: { $regex: searchTerm, $options: "i" } },
+            { businessId: { $in: businessIds } }
+          ]
+        }
       ];
     }
 
@@ -176,7 +213,7 @@ exports.searchDeals = async (req, res) => {
 
     const [deals, total] = await Promise.all([
       Deal.find(query)
-        .populate("businessId", "name category address location phone logoUrl isVerified")
+        .populate("businessId", "name category address location phone logoUrl isVerified status applicationStatus")
         .sort(sortOptions)
         .skip(skip)
         .limit(limitNum)
@@ -264,14 +301,21 @@ exports.getNearbyDeals = async (req, res) => {
         { status: "active", endDate: { $lte: now } },
         { $set: { status: "expired" } }
       ).exec();
-      const fallbackDealQuery = { status: "active", endDate: { $gt: now } };
+
+      const activeApprovedIds = await getActiveApprovedBusinessIds();
+      const fallbackDealQuery = {
+        status: "active",
+        endDate: { $gt: now },
+        businessId: { $in: activeApprovedIds }
+      };
+
       if (category && category !== "all" && category !== "All") {
         const catRegex = buildCategoryRegex(category);
         if (catRegex) fallbackDealQuery.category = catRegex;
       }
 
       const availableDeals = await Deal.find(fallbackDealQuery)
-        .populate("businessId", "name category address location phone logoUrl isVerified")
+        .populate("businessId", "name category address location phone logoUrl isVerified status applicationStatus")
         .limit(parseInt(limit, 10) || 50)
         .sort({ createdAt: -1 })
         .lean();
@@ -310,9 +354,13 @@ exports.getNearbyDeals = async (req, res) => {
       return enrichedFallback;
     };
 
-    // Find nearby businesses using MongoDB geospatial query on location (2dsphere index)
+    // Find nearby businesses using MongoDB geospatial query on location (strictly active & approved by Super Admin)
     const businessQuery = {
       status: "active",
+      $or: [
+        { applicationStatus: "approved" },
+        { isVerified: true, applicationStatus: { $ne: "rejected" } }
+      ],
       location: {
         $geoWithin: {
           $centerSphere: [[userLng, userLat], radiusRadians]
@@ -454,9 +502,12 @@ exports.getMapBusinesses = async (req, res) => {
       { status: "active", endDate: { $lte: now } },
       { $set: { status: "expired" } }
     ).exec();
+    const activeApprovedBusinessIds = await getActiveApprovedBusinessIds();
+
     const dealQuery = {
       status: "active",
-      endDate: { $gt: now }
+      endDate: { $gt: now },
+      businessId: { $in: activeApprovedBusinessIds }
     };
 
     if (category && category !== "all" && category !== "All") {
@@ -482,7 +533,11 @@ exports.getMapBusinesses = async (req, res) => {
 
     const businessQuery = {
       _id: { $in: activeBusinessIds },
-      status: "active"
+      status: "active",
+      $or: [
+        { applicationStatus: "approved" },
+        { isVerified: true, applicationStatus: { $ne: "rejected" } }
+      ]
     };
 
     if (city && city.trim()) {
@@ -571,13 +626,26 @@ exports.getDealDiscoveryDetails = async (req, res) => {
     const { id } = req.params;
 
     const deal = await Deal.findById(id)
-      .populate("businessId", "name category address location phone email logoUrl isVerified")
+      .populate("businessId", "name category address location phone email logoUrl isVerified status applicationStatus")
       .lean();
 
     if (!deal) {
       return res.status(404).json({
         success: false,
         message: "Deal not found"
+      });
+    }
+
+    const now = new Date();
+    // Verify deal is active and unexpired, and merchant is active and approved by Super Admin
+    if (
+      deal.status !== "active" ||
+      (deal.endDate && new Date(deal.endDate) <= now) ||
+      !isBusinessActiveAndApproved(deal.businessId)
+    ) {
+      return res.status(404).json({
+        success: false,
+        message: "This deal is not currently available or the merchant store is inactive."
       });
     }
 

@@ -215,7 +215,25 @@ const SellerDashboard = () => {
     : 0;
   const savingsAmount = originalPriceNum - calculatedDiscountedPrice;
 
+  const isApproved =
+    businessProfile?.applicationStatus === "approved" ||
+    (businessProfile?.isVerified &&
+      businessProfile?.applicationStatus !== "rejected" &&
+      businessProfile?.applicationStatus !== "pending" &&
+      businessProfile?.applicationStatus !== "under_review");
+
+  const isSuspended =
+    businessProfile?.status === "inactive" || Boolean(businessProfile?.suspensionReason);
+
   const handleOpenCreate = () => {
+    if (isSuspended) {
+      showToast("Your seller account is suspended. Deal publishing is disabled.");
+      return;
+    }
+    if (!isApproved) {
+      showToast("Your store is awaiting Super Admin approval. Deal publishing will unlock once approved.");
+      return;
+    }
     setIsProfileModalOpen(false);
     setEditingDeal(null);
     setFormData({
@@ -325,6 +343,14 @@ const SellerDashboard = () => {
 
   const handleSubmitDeal = async (e) => {
     e.preventDefault();
+    if (isSuspended) {
+      setFormError("Your seller account is currently suspended. Deal creation is disabled.");
+      return;
+    }
+    if (!isApproved) {
+      setFormError("Your store is awaiting Super Admin approval. Deals can only be published once approved.");
+      return;
+    }
     setFormLoading(true);
     setFormError("");
 
@@ -370,13 +396,21 @@ const SellerDashboard = () => {
 
   const handleToggleStatus = async (deal) => {
     const nextStatus = deal.status === "active" ? "draft" : "active";
+    if (nextStatus === "active" && isSuspended) {
+      showToast("Cannot activate deal while account is suspended.");
+      return;
+    }
+    if (nextStatus === "active" && !isApproved) {
+      showToast("Cannot activate deal while awaiting Super Admin approval.");
+      return;
+    }
     try {
       await dealApi.updateDealStatus(deal._id, nextStatus);
       showToast(`Deal switched to ${nextStatus === "active" ? "Live" : "Paused"}.`);
       fetchMyDeals();
     } catch (err) {
       console.error("Toggle status error:", err);
-      showToast("Failed to update status");
+      showToast(err.message || "Failed to update status");
     }
   };
 
@@ -639,7 +673,19 @@ const SellerDashboard = () => {
             <button
               type="button"
               onClick={handleOpenCreate}
-              className="flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-[#D94832] px-3 text-[13px] font-medium text-white transition-colors hover:bg-[#C23B26]"
+              disabled={!isApproved || isSuspended}
+              title={
+                isSuspended
+                  ? "Seller account is suspended"
+                  : !isApproved
+                  ? "Awaiting Super Admin approval"
+                  : "Create new flash deal"
+              }
+              className={`flex h-9 w-full items-center justify-center gap-1.5 rounded-md px-3 text-[13px] font-medium transition-colors ${
+                !isApproved || isSuspended
+                  ? "bg-[#D4D4D8] text-[#71717A] cursor-not-allowed"
+                  : "bg-[#D94832] text-white hover:bg-[#C23B26]"
+              }`}
             >
               <Plus className="h-4 w-4" strokeWidth={1.75} />
               New deal
@@ -787,7 +833,19 @@ const SellerDashboard = () => {
             <button
               type="button"
               onClick={handleOpenCreate}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[#D94832] px-3 text-[12px] font-medium text-white transition-colors hover:bg-[#C23B26]"
+              disabled={!isApproved || isSuspended}
+              title={
+                isSuspended
+                  ? "Seller account is suspended"
+                  : !isApproved
+                  ? "Awaiting Super Admin approval"
+                  : "Create new flash deal"
+              }
+              className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[12px] font-medium transition-colors ${
+                !isApproved || isSuspended
+                  ? "bg-[#D4D4D8] text-[#71717A] cursor-not-allowed"
+                  : "bg-[#D94832] text-white hover:bg-[#C23B26]"
+              }`}
             >
               <Plus className="h-3.5 w-3.5" strokeWidth={1.75} />
               New deal
@@ -822,6 +880,35 @@ const SellerDashboard = () => {
 
         {/* Workspace Canvas */}
         <main className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6">
+          {/* Super Admin Approval & Suspension Alert Banner */}
+          {isSuspended ? (
+            <div className="mb-6 rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 shadow-xs">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm">Merchant Account Suspended</h4>
+                  <p className="mt-1 text-xs leading-relaxed text-red-700">
+                    Your store has been suspended by administration{businessProfile?.suspensionReason ? ` (Reason: "${businessProfile.suspensionReason}")` : ""}. All your deals have been hidden from the buyer discovery feed, and publishing new deals is paused. Please contact Super Admin support to reactivate your store.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : !isApproved ? (
+            <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 shadow-xs">
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm">Store Awaiting Super Admin Approval</h4>
+                  <p className="mt-1 text-xs leading-relaxed text-amber-800">
+                    {businessProfile?.applicationStatus === "rejected"
+                      ? `Your seller application was not approved (${businessProfile.rejectionReason || "Application rejected"}). You cannot publish deals until re-evaluated.`
+                      : "Your merchant account is currently pending review by Super Admin. You can set up your store profile and preview draft deals, but deals will only become visible to buyers once approved."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           {/* Store Identity Bar (Shown on Overview & Store) */}
           {(activeSection === "home" || activeSection === "store") && (
             <div className="mb-6 overflow-hidden rounded-xl border border-[#E4E4E7] bg-white">
@@ -857,10 +944,27 @@ const SellerDashboard = () => {
 
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 rounded border border-[#E4E4E7] bg-[#F4F4F5] px-2 py-0.5 text-[11px] font-medium text-[#525252]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" />
-                        Verified merchant
-                      </span>
+                      {isSuspended ? (
+                        <span className="inline-flex items-center gap-1.5 rounded border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
+                          Account Suspended
+                        </span>
+                      ) : businessProfile?.applicationStatus === "rejected" ? (
+                        <span className="inline-flex items-center gap-1.5 rounded border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
+                          Application Rejected
+                        </span>
+                      ) : !isApproved ? (
+                        <span className="inline-flex items-center gap-1.5 rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          Pending Super Admin Approval
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded border border-[#BBF7D0] bg-[#F0FDF4] px-2 py-0.5 text-[11px] font-medium text-[#16A34A]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" />
+                          Verified Merchant
+                        </span>
+                      )}
                       <span className="rounded border border-[#E4E4E7] bg-[#FAFAFA] px-2 py-0.5 text-[11px] font-medium text-[#525252]">
                         {storeCategory}
                       </span>
@@ -1153,7 +1257,19 @@ const SellerDashboard = () => {
                     <button
                       type="button"
                       onClick={handleOpenCreate}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#D94832] px-4 text-[13px] font-medium text-white hover:bg-[#C23B26]"
+                      disabled={!isApproved || isSuspended}
+                      title={
+                        isSuspended
+                          ? "Seller account is suspended"
+                          : !isApproved
+                          ? "Awaiting Super Admin approval"
+                          : "Create new flash deal"
+                      }
+                      className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-medium transition-colors ${
+                        !isApproved || isSuspended
+                          ? "bg-[#D4D4D8] text-[#71717A] cursor-not-allowed"
+                          : "bg-[#D94832] text-white hover:bg-[#C23B26]"
+                      }`}
                     >
                       <Plus className="h-4 w-4" />
                       Create first deal
@@ -1692,11 +1808,15 @@ const SellerDashboard = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={formLoading}
-                  className="h-9 rounded-lg bg-[#D94832] px-5 text-[13px] font-medium text-white hover:bg-[#C23B26] disabled:opacity-60"
+                  disabled={formLoading || !isApproved || isSuspended}
+                  className="h-9 rounded-lg bg-[#D94832] px-5 text-[13px] font-medium text-white hover:bg-[#C23B26] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {formLoading
                     ? "Saving..."
+                    : !isApproved
+                    ? "Awaiting Super Admin Approval"
+                    : isSuspended
+                    ? "Account Suspended"
                     : editingDeal
                     ? "Save changes"
                     : "Publish deal"}

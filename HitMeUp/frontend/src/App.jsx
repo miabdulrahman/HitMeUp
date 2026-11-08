@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 import { LocationProvider } from "./context/LocationContext.jsx";
 import { ThemeProvider, FloatingThemeToggle } from "./context/ThemeContext.jsx";
 import LocationPromptBanner from "./components/LocationPromptBanner.jsx";
+import IosInstallPrompt from "./components/IosInstallPrompt.jsx";
 import { useAuth } from "./context/useAuth";
 import LandingPage from "./pages/LandingPage";
 import CategoryPage from "./pages/CategoryPage";
@@ -51,6 +52,7 @@ function App() {
           <BrowserRouter>
             <LocationPromptBanner />
             <FloatingThemeToggle />
+            <IosInstallPrompt />
             <Routes>
             {/* Public Storefront Routes */}
             <Route path="/" element={<LandingPage />} />

@@ -1,0 +1,63 @@
+{
+  "id": "/",
+  "name": "HitMeUp — Flash Deals & Passes",
+  "short_name": "HitMeUp",
+  "description": "Neighborhood flash deals across Sri Lanka. Claim vouchers online and redeem in store with a QR pass.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#FDFBF7",
+  "theme_color": "#D94832",
+  "categories": ["shopping", "lifestyle", "food"],
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Browse Deals",
+      "short_name": "Deals",
+      "description": "Explore active flash deals & discounts",
+      "url": "/deals",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Passes",
+      "short_name": "Passes",
+      "description": "View claimed counter passes and QR codes",
+      "url": "/shopper/dashboard",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Street Map",
+      "short_name": "Map",
+      "description": "Find nearby merchant flash sales on the map",
+      "url": "/deals?view=map",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

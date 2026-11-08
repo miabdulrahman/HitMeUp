@@ -11,3 +11,14 @@ createRoot(document.getElementById("root")).render(
     </ErrorBoundary>
   </StrictMode>
 );
+
+// Register PWA Service Worker
+if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
+      .catch((err) => {
+        console.warn("ServiceWorker registration error:", err);
+      });
+  });
+}

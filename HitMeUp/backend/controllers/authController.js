@@ -267,22 +267,30 @@ const register = async (req, res) => {
       });
     }
 
-    // Verify Email OTP if provided
-    let otpVerified = false;
-    if (otp) {
-      const otpRecord = await EmailOtp.findOne({
-        email: normalizedEmail,
-        purpose: "register"
+    // Registration requires a successfully verified registration OTP.
+    if (!otp) {
+      return res.status(400).json({
+        success: false,
+        message: "A verified email code is required to register"
       });
-      if (!otpRecord || (otpRecord.otp !== String(otp).trim() && !otpRecord.verified)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid or expired verification code. Please request a new code."
-        });
-      }
-      otpVerified = true;
-      await EmailOtp.deleteOne({ _id: otpRecord._id });
     }
+
+    const otpRecord = await EmailOtp.findOne({
+      email: normalizedEmail,
+      purpose: "register"
+    });
+    if (
+      !otpRecord ||
+      !otpRecord.verified ||
+      otpRecord.otp !== String(otp).trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification code. Please request a new code."
+      });
+    }
+
+    await EmailOtp.deleteOne({ _id: otpRecord._id });
 
     // Create user
     const user = await User.create({
@@ -291,7 +299,7 @@ const register = async (req, res) => {
       password,
       role: userRole,
       phone: phone || "",
-      isEmailVerified: otpVerified || true
+      isEmailVerified: true
     });
 
     let business = null;

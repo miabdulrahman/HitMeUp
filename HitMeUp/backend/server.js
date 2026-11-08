@@ -3,13 +3,38 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 require("dotenv").config();
 
 const dns = require("dns");
-// Only configure DNS in local development; avoid overriding in cloud environments (Render, Vercel, Docker)
+// In local development, Windows/ISP DNS servers often fail to resolve MongoDB Atlas replica set shard hosts.
+// Route through Google (8.8.8.8) and Cloudflare (1.1.1.1) with fallback for dns.lookup.
 if (process.env.NODE_ENV !== "production" && !process.env.RENDER && !process.env.VERCEL) {
   try {
-    dns.setServers(["8.8.8.8"]);
-    console.log("Local development DNS servers set to 8.8.8.8");
+    dns.setServers(["8.8.8.8", "1.1.1.1"]);
+    const originalLookup = dns.lookup;
+    dns.lookup = (hostname, options, callback) => {
+      let cb = callback;
+      let opts = options;
+      if (typeof options === "function") {
+        cb = options;
+        opts = {};
+      }
+      originalLookup(hostname, opts, (err, address, family) => {
+        if (err && (err.code === "ENOTFOUND" || err.code === "EAI_AGAIN")) {
+          dns.resolve4(hostname, (resErr, addresses) => {
+            if (!resErr && addresses && addresses.length > 0) {
+              if (opts && opts.all) {
+                return cb(null, addresses.map((a) => ({ address: a, family: 4 })));
+              }
+              return cb(null, addresses[0], 4);
+            }
+            return cb(err, address, family);
+          });
+        } else {
+          return cb(err, address, family);
+        }
+      });
+    };
+    console.log("Local development DNS servers set to 8.8.8.8 / 1.1.1.1 with lookup fallback");
   } catch (e) {
-    console.warn("DNS setServers notice:", e.message);
+    console.warn("DNS configuration notice:", e.message);
   }
 }
 

@@ -7,11 +7,8 @@ import {
   Eye,
   EyeOff,
   ArrowLeft,
-  Clock,
-  MapPin,
   AlertCircle,
   CheckCircle2,
-  QrCode,
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
 import { useTheme } from "../../context/ThemeContext";
@@ -114,133 +111,68 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-[#F7F4EE] p-4 text-[#1F1B16] sm:p-6 lg:p-10">
-      <div className="grid w-full max-w-[1000px] grid-cols-1 overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_2px_12px_rgba(31,27,22,0.05)] lg:grid-cols-12">
-        {/* Left Brand Showcase Panel */}
-        <div className="flex flex-col justify-between border-b border-[#E6E0D6] bg-[#1F1B16] p-8 text-[#FDFBF7] sm:p-10 lg:col-span-5 lg:border-b-0 lg:border-r">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="inline-flex items-center rounded-xl bg-white dark:bg-white/10 px-3 py-1.5 shadow-sm transition-transform hover:scale-[1.02]" aria-label="HitMeUp Home">
-              <img
-                src={isDark ? "/logo-dark.png" : "/logo.png"}
-                alt="HitMeUp"
-                className="h-7 w-auto object-contain"
-              />
-            </Link>
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#F7F4EE] dark:bg-[#131209] p-4 text-[#1F1B16] dark:text-[#FDFBF7] sm:p-6 lg:p-10">
+      <div className="w-full max-w-[480px] overflow-hidden rounded-2xl border border-[#E6E0D6] dark:border-[#272727] bg-[#FDFBF7] dark:bg-[#181818] p-6 sm:p-9 shadow-[0_4px_24px_rgba(31,27,22,0.06)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+        {/* Top Header: Logo & Return Home */}
+        <div className="flex items-center justify-between border-b border-[#E6E0D6] dark:border-[#272727] pb-4">
+          <Link
+            to="/"
+            className="inline-flex items-center group py-0.5"
+            aria-label="HitMeUp Home"
+          >
+            <img
+              src={isDark ? "/logo-dark.png" : "/logo.png"}
+              alt="HitMeUp"
+              className="h-7.5 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+            />
+          </Link>
 
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-[12px] font-medium text-[#EFE9DF] transition-colors hover:bg-white/10"
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E6E0D6] dark:border-[#313131] bg-[#F7F4EE] dark:bg-[#1F1F1F] px-3 py-1.5 text-[12px] font-medium text-[#5E554A] dark:text-[#CFC6B8] transition-colors hover:bg-[#EFE9DF] dark:hover:bg-[#272727] hover:text-[#1F1B16] dark:hover:text-[#FDFBF7]"
+          >
+            <ArrowLeft size={13} strokeWidth={1.5} />
+            <span>Home</span>
+          </Link>
+        </div>
+
+        {/* Title Header */}
+        <div className="mt-6 space-y-1">
+          <p className="text-[12px] font-medium text-[#7B7266] dark:text-[#8E867B]">
+            Account access
+          </p>
+          <h1 className="text-[24px] sm:text-[28px] font-medium tracking-[-0.025em] text-[#1F1B16] dark:text-[#FDFBF7]">
+            Sign in to HitMeUp
+          </h1>
+          <p className="text-[14px] text-[#5E554A] dark:text-[#CFC6B8]">
+            Enter your email and password to open your dashboard.
+          </p>
+        </div>
+
+        {/* Quick Demo Pre-fill helper */}
+        <div className="mt-5 flex items-center justify-between gap-2 rounded-lg border border-[#E6E0D6] dark:border-[#313131] bg-[#F7F4EE] dark:bg-[#1F1F1F] p-3">
+          <span className="text-[12px] font-medium text-[#5E554A] dark:text-[#CFC6B8]">
+            Test account autofill
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => fillDemo("customer")}
+              className="rounded-md border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#272727] px-2.5 py-1 text-[12px] font-medium text-[#1F1B16] dark:text-[#FDFBF7] transition-colors hover:border-[#1F1B16]/40 cursor-pointer"
             >
-              <ArrowLeft size={13} strokeWidth={1.5} />
-              <span>Home</span>
-            </Link>
-          </div>
-
-          <div className="my-8 space-y-6 lg:my-0">
-            <div className="space-y-2.5">
-              <p className="text-[12px] font-medium text-[#A89F91]">
-                Neighborhood voucher marketplace
-              </p>
-              <h1 className="text-[26px] sm:text-[30px] font-medium leading-[1.15] tracking-[-0.025em] text-[#FDFBF7]">
-                Access your counter passes and{" "}
-                <span className="serif font-normal text-[#D94832]">
-                  storefront ledger
-                </span>
-              </h1>
-              <p className="max-w-sm text-[14px] leading-[1.6] text-[#A89F91]">
-                Sign in to view claimed QR vouchers, check nearby markdowns, or
-                verify customer passes at your shop register.
-              </p>
-            </div>
-
-            {/* Tactile LKR Voucher Preview Card */}
-            <div className="rounded-xl border border-white/15 bg-white/[0.04] p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <span className="font-mono text-[11px] text-[#A89F91]">
-                    HMU-6412 · Food &amp; drink
-                  </span>
-                  <h2 className="mt-0.5 text-[14px] font-medium text-[#FDFBF7]">
-                    Woodfired Margherita &amp; Iced Tea
-                  </h2>
-                  <p className="mt-1 flex items-center gap-1 text-[12px] text-[#A89F91]">
-                    <MapPin size={12} strokeWidth={1.5} className="text-[#D94832]" />
-                    <span>Park Street, Colombo 02 · 0.6 km</span>
-                  </p>
-                </div>
-                <span className="inline-flex items-center gap-1 rounded-[5px] border border-white/15 bg-white/10 px-2 py-0.5 font-mono text-[11px] text-[#FDFBF7] tabular-nums">
-                  <Clock size={11} strokeWidth={1.5} className="text-[#D94832]" />
-                  45m left
-                </span>
-              </div>
-
-              <div className="mt-4 flex items-center justify-between border-t border-dashed border-white/15 pt-3 font-mono tabular-nums">
-                <div>
-                  <span className="text-[16px] font-medium text-[#FDFBF7]">
-                    Rs. 1,400
-                  </span>
-                  <span className="ml-2 text-[12px] text-[#A89F91] line-through">
-                    Rs. 2,800
-                  </span>
-                  <span className="ml-2 rounded-[5px] bg-[#D94832] px-1.5 py-0.5 text-[10px] font-medium text-white">
-                    50% off
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 font-sans text-[11px] text-[#EFE9DF]">
-                  <QrCode size={13} strokeWidth={1.5} />
-                  <span>QR pass</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between border-t border-white/10 pt-5 text-[12px] text-[#A89F91]">
-            <span>Colombo &amp; islandwide stores</span>
-            <span className="font-mono text-[11px] text-[#EFE9DF]">
-              LKR counter redemption
-            </span>
+              Shopper
+            </button>
+            <button
+              type="button"
+              onClick={() => fillDemo("business")}
+              className="rounded-md border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#272727] px-2.5 py-1 text-[12px] font-medium text-[#1F1B16] dark:text-[#FDFBF7] transition-colors hover:border-[#1F1B16]/40 cursor-pointer"
+            >
+              Merchant
+            </button>
           </div>
         </div>
 
-        {/* Right Form Panel */}
-        <div className="flex flex-col justify-center p-8 sm:p-12 lg:col-span-7">
-          <div className="mx-auto w-full max-w-md">
-            <div className="space-y-1.5">
-              <p className="text-[12px] font-medium text-[#7B7266]">
-                Account access
-              </p>
-              <h2 className="text-[24px] sm:text-[28px] font-medium tracking-[-0.025em] text-[#1F1B16]">
-                Sign in to HitMeUp
-              </h2>
-              <p className="text-[14px] text-[#5E554A]">
-                Enter your email and password to open your dashboard.
-              </p>
-            </div>
-
-            {/* Quick Demo Pre-fill helper */}
-            <div className="mt-5 flex items-center justify-between gap-2 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] p-3">
-              <span className="text-[12px] font-medium text-[#5E554A]">
-                Test account autofill
-              </span>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => fillDemo("customer")}
-                  className="rounded-md border border-[#E6E0D6] bg-[#FDFBF7] px-2.5 py-1 text-[12px] font-medium text-[#1F1B16] transition-colors hover:border-[#1F1B16]/40 cursor-pointer"
-                >
-                  Shopper
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillDemo("business")}
-                  className="rounded-md border border-[#E6E0D6] bg-[#FDFBF7] px-2.5 py-1 text-[12px] font-medium text-[#1F1B16] transition-colors hover:border-[#1F1B16]/40 cursor-pointer"
-                >
-                  Merchant
-                </button>
-              </div>
-            </div>
-
-            {/* Success Alert Banner */}
+        {/* Success Alert Banner */}
             {successMessage && (
               <div
                 className="mt-5 flex items-start gap-2.5 rounded-lg border border-[#166534]/25 bg-[#166534]/5 p-3.5 text-[13px] text-[#166534]"
@@ -382,8 +314,8 @@ const Login = () => {
               disabled={loading || googleLoading}
             />
 
-            <div className="mt-8 border-t border-[#E6E0D6] pt-6 text-center">
-              <p className="text-[13px] text-[#5E554A]">
+            <div className="mt-8 border-t border-[#E6E0D6] dark:border-[#272727] pt-6 text-center">
+              <p className="text-[13px] text-[#5E554A] dark:text-[#CFC6B8]">
                 Don&apos;t have an account yet?{" "}
                 <Link
                   to="/register"
@@ -393,8 +325,6 @@ const Login = () => {
                 </Link>
               </p>
             </div>
-          </div>
-        </div>
       </div>
 
       {/* Forgot Password Modal */}

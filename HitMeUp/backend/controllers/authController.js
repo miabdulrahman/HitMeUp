@@ -366,10 +366,27 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error("Register Error:", error);
+
+    if (error?.name === "ValidationError") {
+      const validationMessage = Object.values(error.errors)
+        .map((entry) => entry.message)
+        .join(" ");
+      return res.status(400).json({
+        success: false,
+        message: validationMessage || "Please check the registration details."
+      });
+    }
+
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "An account with this email already exists."
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: "Server error during registration",
-      error: error.message
     });
   }
 };

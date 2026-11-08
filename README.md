@@ -127,6 +127,10 @@ JWT_SECRET="replace-with-a-long-random-secret"
 
 The simulated payment gateway is enabled by default for local development. Add `NVIDIA_API_KEY`, `GOOGLE_CLIENT_ID`, Cloudinary, or email-provider values only when you need those features. Never commit `.env` or paste real credentials into an issue or pull request.
 
+### OTP email deliverability
+
+Use a sender address from a domain verified with your email provider. For Brevo or Resend, configure the provider's SPF and DKIM DNS records, then publish a DMARC policy for the same domain. Set `BREVO_SENDER_EMAIL` or `RESEND_FROM` to that verified sender; do not send through Brevo or Resend while claiming an unrelated Gmail address. Avoid Resend's `onboarding@resend.dev` sandbox sender for real users. Test the message headers after deployment to confirm SPF, DKIM, and DMARC pass.
+
 ### 3. Install frontend dependencies
 
 Open a second terminal in `HitMeUp/frontend`:

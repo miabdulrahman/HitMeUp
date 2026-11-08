@@ -63,7 +63,6 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
-  const [devOtp, setDevOtp] = useState("");
 
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [isCityOpen, setIsCityOpen] = useState(false);
@@ -211,13 +210,10 @@ const Register = () => {
 
     try {
       // Step 1: Send 6-digit email OTP verification code
-      const otpRes = await authApi.sendOtp({
+      await authApi.sendOtp({
         email: formData.email.trim().toLowerCase(),
         purpose: "register",
       });
-      if (otpRes?.debugOtp) {
-        setDevOtp(otpRes.debugOtp);
-      }
       // Step 2: Open verification dialog
       setIsVerifyModalOpen(true);
     } catch (err) {
@@ -389,11 +385,10 @@ const Register = () => {
               <button
                 type="button"
                 onClick={() => handleRoleSelect("customer")}
-                className={`relative rounded-xl border p-3.5 text-left transition-colors cursor-pointer ${
-                  !isBusiness
-                    ? "border-[#1F1B16] bg-[#F7F4EE]"
-                    : "border-[#E6E0D6] bg-white hover:bg-[#F7F4EE]/60"
-                }`}
+                className={`relative rounded-xl border p-3.5 text-left transition-colors cursor-pointer ${!isBusiness
+                  ? "border-[#1F1B16] bg-[#F7F4EE]"
+                  : "border-[#E6E0D6] bg-white hover:bg-[#F7F4EE]/60"
+                  }`}
               >
                 {!isBusiness && (
                   <span className="absolute right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full bg-[#1F1B16] text-white">
@@ -401,11 +396,10 @@ const Register = () => {
                   </span>
                 )}
                 <div
-                  className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg border ${
-                    !isBusiness
-                      ? "border-[#1F1B16] bg-[#1F1B16] text-white"
-                      : "border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A]"
-                  }`}
+                  className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg border ${!isBusiness
+                    ? "border-[#1F1B16] bg-[#1F1B16] text-white"
+                    : "border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A]"
+                    }`}
                 >
                   <ShoppingBag size={15} strokeWidth={1.5} />
                 </div>
@@ -420,11 +414,10 @@ const Register = () => {
               <button
                 type="button"
                 onClick={() => handleRoleSelect("business")}
-                className={`relative rounded-xl border p-3.5 text-left transition-colors cursor-pointer ${
-                  isBusiness
-                    ? "border-[#1F1B16] bg-[#F7F4EE]"
-                    : "border-[#E6E0D6] bg-white hover:bg-[#F7F4EE]/60"
-                }`}
+                className={`relative rounded-xl border p-3.5 text-left transition-colors cursor-pointer ${isBusiness
+                  ? "border-[#1F1B16] bg-[#F7F4EE]"
+                  : "border-[#E6E0D6] bg-white hover:bg-[#F7F4EE]/60"
+                  }`}
               >
                 {isBusiness && (
                   <span className="absolute right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full bg-[#1F1B16] text-white">
@@ -432,11 +425,10 @@ const Register = () => {
                   </span>
                 )}
                 <div
-                  className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg border ${
-                    isBusiness
-                      ? "border-[#1F1B16] bg-[#1F1B16] text-white"
-                      : "border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A]"
-                  }`}
+                  className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg border ${isBusiness
+                    ? "border-[#1F1B16] bg-[#1F1B16] text-white"
+                    : "border-[#E6E0D6] bg-[#F7F4EE] text-[#5E554A]"
+                    }`}
                 >
                   <Store size={15} strokeWidth={1.5} />
                 </div>
@@ -574,11 +566,10 @@ const Register = () => {
                                 type="button"
                                 onClick={() => handleSelectCity(loc)}
                                 onMouseEnter={() => setActiveSuggestionIndex(idx)}
-                                className={`flex w-full items-center justify-between px-3 py-2 text-left text-[12px] transition-colors cursor-pointer ${
-                                  isHighlighted || isExactSelected
-                                    ? "bg-[#EFE9DF] font-medium text-[#1F1B16]"
-                                    : "text-[#5E554A] hover:bg-[#F7F4EE]"
-                                }`}
+                                className={`flex w-full items-center justify-between px-3 py-2 text-left text-[12px] transition-colors cursor-pointer ${isHighlighted || isExactSelected
+                                  ? "bg-[#EFE9DF] font-medium text-[#1F1B16]"
+                                  : "text-[#5E554A] hover:bg-[#F7F4EE]"
+                                  }`}
                               >
                                 <div className="flex items-center gap-2 truncate">
                                   <MapPin
@@ -732,9 +723,8 @@ const Register = () => {
                     {[1, 2, 3, 4].map((level) => (
                       <div
                         key={level}
-                        className={`h-1 flex-1 rounded-full ${
-                          pwdStrength >= level ? strengthInfo.color : "bg-[#E6E0D6]"
-                        }`}
+                        className={`h-1 flex-1 rounded-full ${pwdStrength >= level ? strengthInfo.color : "bg-[#E6E0D6]"
+                          }`}
                       />
                     ))}
                   </div>
@@ -803,7 +793,6 @@ const Register = () => {
         isOpen={isVerifyModalOpen}
         onClose={() => setIsVerifyModalOpen(false)}
         email={formData.email}
-        initialOtp={devOtp}
         onVerified={handleCompleteRegistrationWithOtp}
         onResend={() =>
           authApi.sendOtp({

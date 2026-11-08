@@ -74,12 +74,7 @@ export default function ForgotPasswordModal({
       });
 
       const baseMsg = res.message || `Verification code sent to ${trimmedEmail}`;
-      setInfoMessage(
-        res.debugOtp ? `${baseMsg} (Test Code: ${res.debugOtp})` : baseMsg
-      );
-      if (res.debugOtp) {
-        setOtp(res.debugOtp);
-      }
+      setInfoMessage(baseMsg);
       setStep(2);
       setCountdown(60);
     } catch (err) {

@@ -27,6 +27,23 @@ export default function AdminLayout() {
   });
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const [pendingCount, setPendingCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [toasts, setToasts] = useState([]);
+
+  const dismissToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const notify = useCallback((message, type = "success") => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4200);
+  }, []);
+
   const refreshGlobalCounts = useCallback(async () => {
     try {
       const res = await adminService.getOverview({ range: "30d" });

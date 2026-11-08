@@ -43,8 +43,10 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
       const senderEmail =
         process.env.BREVO_SENDER_EMAIL ||
         process.env.SMTP_USER ||
-        process.env.EMAIL_USER ||
-        "m.i.abdulrahmanar@gmail.com";
+        process.env.EMAIL_USER;
+      if (!senderEmail) {
+        throw new Error("BREVO_SENDER_EMAIL is required when using the Brevo API");
+      }
       const senderName = process.env.BREVO_SENDER_NAME || "HitMeUp Security";
 
       const res = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -86,7 +88,10 @@ const sendViaHttpApi = async ({ to, subject, htmlContent, textContent }) => {
 const sendViaResend = async ({ to, subject, htmlContent, textContent }) => {
   if (process.env.RESEND_API_KEY) {
     try {
-      const from = process.env.RESEND_FROM || process.env.EMAIL_FROM || "HitMeUp <onboarding@resend.dev>";
+      const from = process.env.RESEND_FROM || process.env.EMAIL_FROM;
+      if (!from) {
+        throw new Error("RESEND_FROM or EMAIL_FROM is required when using Resend");
+      }
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -256,6 +261,7 @@ const sendOtpEmail = async ({ to, otp, purpose }) => {
         const from = process.env.EMAIL_FROM || `"HitMeUp Security" <${smtpUser}>`;
         const info = await transporter.sendMail({
           from,
+          replyTo: process.env.EMAIL_REPLY_TO || smtpUser,
           to,
           subject,
           text: textContent,

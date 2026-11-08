@@ -177,6 +177,7 @@ app.get("/api/health", (req, res) => {
 // Member 1: Auth & Business Endpoints
 app.use("/api/auth", authRoutes);
 app.use("/api/businesses", businessRoutes);
+app.use("/api/business", businessRoutes);
 
 // Image Upload Endpoint (Cloudinary with WebP conversion)
 app.use("/api/upload", uploadRoutes);

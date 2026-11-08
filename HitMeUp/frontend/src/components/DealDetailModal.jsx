@@ -14,6 +14,7 @@ import {
   AlertCircle,
   QrCode,
   CreditCard,
+  Store,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
@@ -21,7 +22,7 @@ import { voucherApi, orderApi } from "../services/api";
 import DealReviewsSection from "./DealReviewsSection";
 import { calculateDealTimer } from "../utils/dealTimer";
 
-function DealDetailModal({ deal, isOpen, onClose }) {
+function DealDetailModal({ deal, isOpen, onClose, onOpenSellerProfile }) {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [copied, setCopied] = useState(false);
@@ -241,7 +242,16 @@ function DealDetailModal({ deal, isOpen, onClose }) {
             {/* Bottom merchant & title */}
             <div className="absolute bottom-5 left-5 right-5 text-[#FDFBF7]">
               <div className="flex flex-wrap items-center gap-2 text-[12px] font-medium text-[#EFE9DF]">
-                <span>{displayBusiness}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const bId = deal.businessId?._id || deal.businessId;
+                    if (onOpenSellerProfile && bId) onOpenSellerProfile(bId);
+                  }}
+                  className="hover:underline hover:text-white transition-colors cursor-pointer text-left font-medium"
+                >
+                  <span>{displayBusiness}</span>
+                </button>
                 <span className="inline-flex items-center gap-1 rounded-[5px] border border-white/20 bg-white/10 px-2 py-0.5 text-[11px] text-[#FDFBF7]">
                   <ShieldCheck size={12} strokeWidth={1.5} />
                   <span>Verified merchant</span>
@@ -402,9 +412,17 @@ function DealDetailModal({ deal, isOpen, onClose }) {
             <div className="rounded-xl border border-[#E6E0D6] bg-[#F7F4EE] p-4.5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h4 className="text-[14px] font-medium text-[#1F1B16]">
-                    {displayBusiness}
-                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const bId = deal.businessId?._id || deal.businessId;
+                      if (onOpenSellerProfile && bId) onOpenSellerProfile(bId);
+                    }}
+                    className="text-[14px] font-medium text-[#1F1B16] hover:text-[#D94832] hover:underline transition-colors text-left cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>{displayBusiness}</span>
+                    <Store size={13} className="text-[#D94832]" />
+                  </button>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#5E554A]">
                     <span className="inline-flex items-center gap-1">
                       <MapPin size={13} strokeWidth={1.5} className="text-[#7B7266]" />
@@ -429,6 +447,20 @@ function DealDetailModal({ deal, isOpen, onClose }) {
                   <span>{deal.terms}</span>
                 </div>
               )}
+
+              <div className="mt-3 border-t border-[#E6E0D6] pt-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const bId = deal.businessId?._id || deal.businessId;
+                    if (onOpenSellerProfile && bId) onOpenSellerProfile(bId);
+                  }}
+                  className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#D94832] hover:underline cursor-pointer"
+                >
+                  <Store size={13} strokeWidth={1.5} />
+                  <span>View Seller Profile &amp; All Customer Reviews &rarr;</span>
+                </button>
+              </div>
             </div>
 
             {/* Deal Description */}

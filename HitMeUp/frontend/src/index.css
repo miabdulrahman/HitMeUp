@@ -213,6 +213,14 @@ img {
   transform: translateY(0);
 }
 
+/* Ensure mobile and touch devices never keep content hidden if intersection observer lags */
+@media (max-width: 1024px) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;

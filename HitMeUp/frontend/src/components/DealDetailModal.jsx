@@ -188,6 +188,17 @@ function DealDetailModal({ deal, isOpen, onClose, onOpenSellerProfile }) {
 
   const isSoldOut = currentStock <= 0;
 
+  const handleOpenSeller = () => {
+    if (!onOpenSellerProfile) return;
+    const bId =
+      typeof deal.businessId === "object" && deal.businessId !== null
+        ? (deal.businessId._id || deal.businessId.id)
+        : (deal.businessId || deal.sellerId || deal.business);
+    if (bId) {
+      onOpenSellerProfile(bId);
+    }
+  };
+
   return (
     <div
       className="ios-popup-backdrop fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-y-auto bg-[#1F1B16]/55 p-0 sm:p-6 backdrop-blur-xs"
@@ -244,10 +255,7 @@ function DealDetailModal({ deal, isOpen, onClose, onOpenSellerProfile }) {
               <div className="flex flex-wrap items-center gap-2 text-[12px] font-medium text-[#EFE9DF]">
                 <button
                   type="button"
-                  onClick={() => {
-                    const bId = deal.businessId?._id || deal.businessId;
-                    if (onOpenSellerProfile && bId) onOpenSellerProfile(bId);
-                  }}
+                  onClick={handleOpenSeller}
                   className="hover:underline hover:text-white transition-colors cursor-pointer text-left font-medium"
                 >
                   <span>{displayBusiness}</span>
@@ -414,10 +422,7 @@ function DealDetailModal({ deal, isOpen, onClose, onOpenSellerProfile }) {
                 <div>
                   <button
                     type="button"
-                    onClick={() => {
-                      const bId = deal.businessId?._id || deal.businessId;
-                      if (onOpenSellerProfile && bId) onOpenSellerProfile(bId);
-                    }}
+                    onClick={handleOpenSeller}
                     className="text-[14px] font-medium text-[#1F1B16] hover:text-[#D94832] hover:underline transition-colors text-left cursor-pointer flex items-center gap-1.5"
                   >
                     <span>{displayBusiness}</span>
@@ -451,10 +456,7 @@ function DealDetailModal({ deal, isOpen, onClose, onOpenSellerProfile }) {
               <div className="mt-3 border-t border-[#E6E0D6] pt-2.5">
                 <button
                   type="button"
-                  onClick={() => {
-                    const bId = deal.businessId?._id || deal.businessId;
-                    if (onOpenSellerProfile && bId) onOpenSellerProfile(bId);
-                  }}
+                  onClick={handleOpenSeller}
                   className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#D94832] hover:underline cursor-pointer"
                 >
                   <Store size={13} strokeWidth={1.5} />

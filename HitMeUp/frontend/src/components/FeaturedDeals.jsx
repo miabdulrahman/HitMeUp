@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { normalizeCategory, getCategorySlug } from "../data/categories";
 import DealCard from "./DealCard";
 import DealDetailModal from "./DealDetailModal";
+import SellerProfileModal from "./SellerProfileModal";
 import MapDiscoveryView from "./MapDiscoveryView";
 import { dealApi, discoveryApi } from "../services/api";
 import { useLocationContext } from "../context/LocationContext";
@@ -32,6 +33,7 @@ function FeaturedDeals({ initialSearch = "" }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [showNearby, setShowNearby] = useState(hasRealLocation);
   const [selectedMapStore, setSelectedMapStore] = useState(null);
+  const [profileModalBusinessId, setProfileModalBusinessId] = useState(null);
 
   // Sync with real location state
   useEffect(() => {
@@ -59,6 +61,16 @@ function FeaturedDeals({ initialSearch = "" }) {
   }, [initialSearch]);
 
   useEffect(() => {
+    // Immediate fallback so content is never invisible if IntersectionObserver is delayed
+    const timer = setTimeout(() => {
+      sectionRef.current?.classList.add("revealed");
+    }, 200);
+
+    if (typeof IntersectionObserver === "undefined") {
+      sectionRef.current?.classList.add("revealed");
+      return () => clearTimeout(timer);
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -68,11 +80,14 @@ function FeaturedDeals({ initialSearch = "" }) {
           }
         });
       },
-      { threshold: 0.05 }
+      { threshold: 0.01, rootMargin: "150px" }
     );
 
     if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -84,17 +99,25 @@ function FeaturedDeals({ initialSearch = "" }) {
 
         // If Show Nearby is active AND client accepted location, fetch nearby deals
         if (showNearby && hasRealLocation && userLocation?.latitude && userLocation?.longitude) {
-          const res = await discoveryApi.getNearbyDeals({
-            lat: userLocation.latitude,
-            lng: userLocation.longitude,
-            radius: radius || 25,
-          });
-          liveDeals = res.deals || [];
-        } else {
-          // If client not accepted or Show Nearby is toggled off: show all top deals across platform
-          const response = await dealApi.getDeals({
+          try {
+            const res = await discoveryApi.getNearbyDeals({
+              lat: userLocation.latitude,
+              lng: userLocation.longitude,
+              radius: radius || 25,
+            });
+            liveDeals = res.deals || [];
+          } catch (nearbyErr) {
+            console.warn("Nearby discovery error, falling back to all active deals:", nearbyErr);
+            liveDeals = [];
+          }
+        }
+
+        // If client not accepted location, Show Nearby is off, or no deals found nearby:
+        // Seamlessly load top active deals across the platform so homepage is NEVER empty
+        if (!liveDeals || liveDeals.length === 0) {
+          const response = await discoveryApi.searchDeals({
             limit: 50,
-            sort: "discount_desc",
+            sortBy: "discount_desc",
           });
           liveDeals = response.deals || response.data || [];
         }
@@ -290,6 +313,66 @@ function FeaturedDeals({ initialSearch = "" }) {
 
     return [];
   }, [selectedMapStore, filteredDeals, dealsList]);
+
+  const sellerModalInitialData = useMemo(() => {
+    if (!profileModalBusinessId) return null;
+    const storeId = String(profileModalBusinessId);
+
+    const dealWithBiz =
+      dealsList.find((d) => {
+        const bId = String(
+          d.businessId?._id || d.businessId?.id || d.businessId || ""
+        );
+        return bId === storeId;
+      }) ||
+      (selectedDeal &&
+      String(
+        selectedDeal.businessId?._id ||
+          selectedDeal.businessId?.id ||
+          selectedDeal.businessId ||
+          ""
+      ) === storeId
+        ? selectedDeal
+        : null);
+
+    const storeDeals = dealsList.filter((d) => {
+      const bId = String(
+        d.businessId?._id || d.businessId?.id || d.businessId || ""
+      );
+      const bName = (
+        d.business ||
+        d.businessId?.name ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
+      const targetName = (
+        dealWithBiz?.business ||
+        dealWithBiz?.businessId?.name ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
+      return bId === storeId || (targetName && bName === targetName);
+    });
+
+    const bizObj =
+      dealWithBiz?.businessId && typeof dealWithBiz.businessId === "object"
+        ? dealWithBiz.businessId
+        : {
+            _id: storeId,
+            id: storeId,
+            name: dealWithBiz?.business || "Merchant",
+          };
+
+    return {
+      ...bizObj,
+      _id: storeId,
+      id: storeId,
+      name: bizObj.name || dealWithBiz?.business,
+      deals: storeDeals.length > 0 ? storeDeals : selectedDeal ? [selectedDeal] : [],
+    };
+  }, [profileModalBusinessId, dealsList, selectedDeal]);
 
   const handleOpenDeal = (deal) => {
     setSelectedDeal(deal);
@@ -635,6 +718,21 @@ function FeaturedDeals({ initialSearch = "" }) {
         deal={selectedDeal}
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
+        onOpenSellerProfile={(bizId) => {
+          setModalOpen(false);
+          setProfileModalBusinessId(bizId);
+        }}
+      />
+
+      <SellerProfileModal
+        businessId={profileModalBusinessId}
+        initialData={sellerModalInitialData}
+        isOpen={Boolean(profileModalBusinessId)}
+        onClose={() => setProfileModalBusinessId(null)}
+        onSelectDeal={(d) => {
+          setProfileModalBusinessId(null);
+          handleOpenDeal(d);
+        }}
       />
     </section>
   );

@@ -42,8 +42,8 @@ function DealDetailModal({ deal, isOpen, onClose }) {
         deal.availableQuantity !== undefined
           ? deal.availableQuantity
           : typeof deal.vouchersLeft === "number"
-          ? deal.vouchersLeft
-          : 30;
+            ? deal.vouchersLeft
+            : 30;
       setCurrentStock(initialStock);
       setIsFavorited(deal.isFavorited || false);
       setTimer(calculateDealTimer(deal));
@@ -156,20 +156,25 @@ function DealDetailModal({ deal, isOpen, onClose }) {
 
   return (
     <div
-      className="ios-popup-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#1F1B16]/55 p-4 backdrop-blur-xs sm:p-6"
+      className="ios-popup-backdrop fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-y-auto bg-[#1F1B16]/55 p-0 sm:p-6 backdrop-blur-xs"
       onClick={onClose}
     >
       <div
-        className="ios-popup-card relative my-8 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_12px_32px_rgba(31,27,22,0.14)]"
+        className="ios-popup-card relative my-0 sm:my-8 flex max-h-[92vh] sm:max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-[26px] rounded-b-none sm:rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_12px_32px_rgba(31,27,22,0.14)]"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Pull Handle Pill */}
+        <div className="flex sm:hidden w-full items-center justify-center pt-2.5 pb-1">
+          <div className="h-1 w-11 rounded-full bg-[#1F1B16]/20" />
+        </div>
+
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg border border-[#E6E0D6] bg-[#FDFBF7]/95 text-[#1F1B16] transition-colors duration-150 hover:bg-[#EFE9DF] cursor-pointer"
+          className="absolute right-3.5 top-3.5 sm:right-4 sm:top-4 z-20 flex h-8.5 w-8.5 sm:h-9 sm:w-9 items-center justify-center rounded-full sm:rounded-lg border border-[#E6E0D6] bg-[#FDFBF7]/95 text-[#1F1B16] shadow-xs transition-colors duration-150 hover:bg-[#EFE9DF] cursor-pointer"
           aria-label="Close dialog"
         >
-          <X size={18} strokeWidth={1.5} />
+          <X size={17} strokeWidth={1.5} />
         </button>
 
         <div className="overflow-y-auto">
@@ -178,9 +183,8 @@ function DealDetailModal({ deal, isOpen, onClose }) {
             <img
               src={deal.image}
               alt={deal.title}
-              className={`h-full w-full object-cover transition-all ${
-                timer.isExpired ? "grayscale-50 contrast-85 opacity-70" : "opacity-90"
-              }`}
+              className={`h-full w-full object-cover transition-all ${timer.isExpired ? "grayscale-50 contrast-85 opacity-70" : "opacity-90"
+                }`}
             />
             <div className="absolute inset-0 bg-[#1F1B16]/45" />
 
@@ -248,13 +252,12 @@ function DealDetailModal({ deal, isOpen, onClose }) {
 
               <div className="flex items-center gap-2 font-mono text-[12px] tabular-nums">
                 <div
-                  className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 ${
-                    timer.isExpired
+                  className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 ${timer.isExpired
                       ? "border-[#B91C1C]/30 bg-[#B91C1C]/10 text-[#B91C1C]"
                       : timer.isUrgent
-                      ? "border-[#D94832]/40 bg-[#D94832]/10 text-[#D94832] font-semibold"
-                      : "border-[#E6E0D6] bg-[#FDFBF7] text-[#5E554A]"
-                  }`}
+                        ? "border-[#D94832]/40 bg-[#D94832]/10 text-[#D94832] font-semibold"
+                        : "border-[#E6E0D6] bg-[#FDFBF7] text-[#5E554A]"
+                    }`}
                 >
                   <Clock
                     size={13}
@@ -263,27 +266,26 @@ function DealDetailModal({ deal, isOpen, onClose }) {
                       timer.isExpired
                         ? "text-[#B91C1C]"
                         : timer.isUrgent
-                        ? "text-[#D94832] animate-pulse"
-                        : "text-[#D94832]"
+                          ? "text-[#D94832] animate-pulse"
+                          : "text-[#D94832]"
                     }
                   />
                   <span>{timer.text}</span>
                 </div>
 
                 <div
-                  className={`rounded-md border px-2.5 py-1 font-medium ${
-                    timer.isExpired
+                  className={`rounded-md border px-2.5 py-1 font-medium ${timer.isExpired
                       ? "border-[#E6E0D6] bg-[#EFE9DF] text-[#7B7266]"
                       : isSoldOut
-                      ? "border-[#B91C1C]/20 bg-[#B91C1C]/10 text-[#B91C1C]"
-                      : "border-[#E6E0D6] bg-[#FDFBF7] text-[#1F1B16]"
-                  }`}
+                        ? "border-[#B91C1C]/20 bg-[#B91C1C]/10 text-[#B91C1C]"
+                        : "border-[#E6E0D6] bg-[#FDFBF7] text-[#1F1B16]"
+                    }`}
                 >
                   {timer.isExpired
                     ? "Closed"
                     : isSoldOut
-                    ? "Sold out"
-                    : `${currentStock} passes left`}
+                      ? "Sold out"
+                      : `${currentStock} passes left`}
                 </div>
               </div>
             </div>
@@ -415,63 +417,64 @@ function DealDetailModal({ deal, isOpen, onClose }) {
 
             {/* Action Buttons */}
             {!claimSuccess && (
-              <div className="flex flex-col items-center gap-2.5 pt-2 sm:flex-row">
-                <button
-                  onClick={handleShare}
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-4 text-[13px] font-medium text-[#1F1B16] transition-colors hover:bg-[#EFE9DF] sm:w-auto cursor-pointer"
-                >
-                  {copied ? (
-                    <Check size={15} strokeWidth={1.5} className="text-[#166534]" />
-                  ) : (
-                    <Share2 size={15} strokeWidth={1.5} />
-                  )}
-                  <span>{copied ? "Link copied" : "Share"}</span>
-                </button>
+              <div className="sticky bottom-0 -mx-6 -mb-6 p-4 sm:mx-0 sm:mb-0 sm:p-0 sm:static bg-[#FDFBF7] border-t border-[#E6E0D6] sm:border-0 z-10 flex flex-col items-center gap-2.5 pt-3 sm:pt-2 sm:flex-row shadow-[0_-6px_20px_rgba(31,27,22,0.08)] sm:shadow-none">
+                <div className="flex w-full items-center gap-2 sm:w-auto">
+                  <button
+                    onClick={handleShare}
+                    className="flex h-11 flex-1 sm:flex-initial items-center justify-center gap-2 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-4 text-[13px] font-medium text-[#1F1B16] transition-colors hover:bg-[#EFE9DF] cursor-pointer"
+                  >
+                    {copied ? (
+                      <Check size={15} strokeWidth={1.5} className="text-[#166534]" />
+                    ) : (
+                      <Share2 size={15} strokeWidth={1.5} />
+                    )}
+                    <span>{copied ? "Copied" : "Share"}</span>
+                  </button>
 
-                <button
-                  onClick={() => setIsFavorited(!isFavorited)}
-                  className={`flex h-11 w-full items-center justify-center gap-2 rounded-lg border px-4 text-[13px] font-medium transition-colors sm:w-auto cursor-pointer ${
-                    isFavorited
-                      ? "border-[#D94832]/30 bg-[#D94832]/10 text-[#D94832]"
-                      : "border-[#E6E0D6] bg-[#F7F4EE] text-[#1F1B16] hover:bg-[#EFE9DF]"
-                  }`}
-                >
-                  <Heart
-                    size={15}
-                    strokeWidth={1.5}
-                    className={isFavorited ? "fill-[#D94832] text-[#D94832]" : ""}
-                  />
-                  <span>{isFavorited ? "Saved" : "Save"}</span>
-                </button>
+                  <button
+                    onClick={() => setIsFavorited(!isFavorited)}
+                    className={`flex h-11 flex-1 sm:flex-initial items-center justify-center gap-2 rounded-lg border px-4 text-[13px] font-medium transition-colors cursor-pointer ${isFavorited
+                        ? "border-[#D94832]/30 bg-[#D94832]/10 text-[#D94832]"
+                        : "border-[#E6E0D6] bg-[#F7F4EE] text-[#1F1B16] hover:bg-[#EFE9DF]"
+                      }`}
+                  >
+                    <Heart
+                      size={15}
+                      strokeWidth={1.5}
+                      className={isFavorited ? "fill-[#D94832] text-[#D94832]" : ""}
+                    />
+                    <span>{isFavorited ? "Saved" : "Save"}</span>
+                  </button>
+                </div>
 
                 {timer.isExpired ? (
-                  <div className="flex h-11 flex-1 items-center justify-center rounded-lg border border-[#E6E0D6] bg-[#EFE9DF] px-6 text-[13px] font-medium text-[#7B7266] cursor-not-allowed">
+                  <div className="flex h-11 w-full flex-1 items-center justify-center rounded-lg border border-[#E6E0D6] bg-[#EFE9DF] px-6 text-[13px] font-medium text-[#7B7266] cursor-not-allowed">
                     <span>Offer expired</span>
                   </div>
                 ) : isSoldOut ? (
-                  <div className="flex h-11 flex-1 items-center justify-center rounded-lg border border-[#E6E0D6] bg-[#EFE9DF] px-6 text-[13px] font-medium text-[#7B7266] cursor-not-allowed">
+                  <div className="flex h-11 w-full flex-1 items-center justify-center rounded-lg border border-[#E6E0D6] bg-[#EFE9DF] px-6 text-[13px] font-medium text-[#7B7266] cursor-not-allowed">
                     <span>Batch sold out</span>
                   </div>
                 ) : (
-                  <div className="flex flex-1 flex-col sm:flex-row gap-2 w-full">
+                  <div className="flex flex-1 flex-row gap-2 w-full">
                     <button
                       onClick={handleBuyWithPay}
                       disabled={claiming}
                       className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#E8503A] px-4 text-[13px] font-semibold text-white transition-all hover:bg-[#d4432f] active:scale-[0.99] disabled:opacity-60 cursor-pointer shadow-xs"
                     >
                       <CreditCard size={15} />
-                      <span>Buy with HitMeUp Pay</span>
-                      <ArrowRight size={14} />
+                      <span className="truncate">Buy with HitMeUp Pay</span>
+                      <ArrowRight size={14} className="shrink-0" />
                     </button>
 
                     <button
                       onClick={handleClaim}
                       disabled={claiming}
-                      className="flex h-11 items-center justify-center gap-1.5 rounded-lg border border-[#E6E0D6] bg-white px-3 text-[12px] font-medium text-[#5E554A] transition-colors hover:bg-[#F7F4EE] disabled:opacity-60 cursor-pointer"
+                      className="flex h-11 items-center justify-center gap-1.5 rounded-lg border border-[#E6E0D6] bg-white px-3.5 text-[12px] font-medium text-[#5E554A] transition-colors hover:bg-[#F7F4EE] disabled:opacity-60 cursor-pointer shrink-0"
                       title="Direct free voucher pass"
                     >
                       <Ticket size={14} />
-                      <span className="hidden sm:inline">Free Claim</span>
+                      <span>Free Claim</span>
                     </button>
                   </div>
                 )}

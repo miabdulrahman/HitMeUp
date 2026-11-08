@@ -320,7 +320,7 @@ function CategoryPage({ defaultView }) {
     <div className="flex min-h-screen flex-col bg-[#F7F4EE]">
       <Navbar />
 
-      <main className="flex-1 pt-16 pb-20">
+      <main className="flex-1 pt-16 pb-28 lg:pb-20">
         {/* Category Header */}
         <section className="border-b border-[#E6E0D6] bg-[#FDFBF7] px-6 py-10">
           <div className="mx-auto max-w-[1200px]">
@@ -397,7 +397,7 @@ function CategoryPage({ defaultView }) {
             </div>
 
             {/* Category Filter Row */}
-            <div className="mt-7 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            <div className="mt-7 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-6 px-6 sm:mx-0 sm:px-0">
               <button
                 onClick={() => {
                   setActiveSlug("all");
@@ -463,7 +463,7 @@ function CategoryPage({ defaultView }) {
                     placeholder={`Filter ${
                       currentCategory ? currentCategory.name.toLowerCase() : "deals"
                     } by store or item...`}
-                    className="h-9 w-full rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] pl-9 pr-14 text-[13px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:bg-white focus:outline-none"
+                    className="h-10 sm:h-9 w-full rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] pl-9 pr-14 text-[16px] sm:text-[13px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:bg-white focus:outline-none"
                   />
                   {searchQuery && (
                     <button
@@ -479,7 +479,7 @@ function CategoryPage({ defaultView }) {
                   <button
                     onClick={handleToggleNearby}
                     disabled={locating}
-                    className={`flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-[12px] font-medium transition-colors cursor-pointer ${
+                    className={`flex h-10 sm:h-9 items-center gap-1.5 rounded-lg px-3.5 text-[12px] font-medium transition-colors cursor-pointer ${
                       nearbyMode
                         ? "bg-[#D94832] text-white"
                         : "border border-[#E6E0D6] bg-[#F7F4EE] text-[#1F1B16] hover:bg-[#EFE9DF]"
@@ -503,7 +503,7 @@ function CategoryPage({ defaultView }) {
                     <select
                       value={nearbyRadius}
                       onChange={(e) => setNearbyRadius(Number(e.target.value))}
-                      className="h-9 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-3 text-[12px] font-medium text-[#1F1B16] focus:border-[#D94832] focus:outline-none cursor-pointer"
+                      className="h-10 sm:h-9 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-3 text-[12px] font-medium text-[#1F1B16] focus:border-[#D94832] focus:outline-none cursor-pointer"
                     >
                       <option value={5}>Within 5 km</option>
                       <option value={15}>Within 15 km</option>
@@ -512,12 +512,12 @@ function CategoryPage({ defaultView }) {
                     </select>
                   )}
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-1 sm:flex-initial">
                     <span className="text-[12px] text-[#7B7266]">Sort by</span>
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="h-9 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-3 text-[12px] font-medium text-[#1F1B16] focus:border-[#D94832] focus:outline-none cursor-pointer"
+                      className="h-10 sm:h-9 flex-1 sm:flex-initial rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-3 text-[12px] font-medium text-[#1F1B16] focus:border-[#D94832] focus:outline-none cursor-pointer"
                     >
                       <option value="recommended">Recommended</option>
                       <option value="discount_desc">Largest discount</option>

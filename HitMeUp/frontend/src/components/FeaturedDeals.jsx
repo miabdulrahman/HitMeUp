@@ -656,7 +656,7 @@ function FeaturedDeals({ initialSearch = "" }) {
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value)}
                     placeholder="Filter by dish or area..."
-                    className="h-8 w-full rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] pl-8 pr-7 text-[12px] text-[#1F1B16] placeholder-[#7B7266] focus:border-[#1F1B16] focus:bg-white focus:outline-none"
+                    className="h-9 sm:h-8 w-full rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] pl-8 pr-7 text-[16px] sm:text-[12px] text-[#1F1B16] placeholder-[#7B7266] focus:border-[#1F1B16] focus:bg-white focus:outline-none"
                   />
                   {searchFilter && (
                     <button
@@ -669,7 +669,7 @@ function FeaturedDeals({ initialSearch = "" }) {
                   )}
                 </div>
 
-                <div className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-2.5">
+                <div className="inline-flex h-9 sm:h-8 items-center gap-1.5 rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-2.5">
                   <SlidersHorizontal
                     size={13}
                     strokeWidth={1.5}

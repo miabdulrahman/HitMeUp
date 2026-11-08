@@ -100,6 +100,17 @@ function CategorySection() {
             );
           })}
         </div>
+
+        {/* Mobile View All Button */}
+        <div className="mt-5 sm:hidden">
+          <button
+            onClick={() => navigate("/categories")}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] py-2.5 text-[13px] font-medium text-[#1F1B16] transition-colors hover:bg-[#EFE9DF] cursor-pointer"
+          >
+            <span>Explore all categories</span>
+            <ArrowRight size={14} strokeWidth={1.5} />
+          </button>
+        </div>
       </div>
     </section>
   );

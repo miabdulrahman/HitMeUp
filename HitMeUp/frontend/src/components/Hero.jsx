@@ -232,20 +232,20 @@ function Hero({ onSearch }) {
           </div>
 
           {/* Heading 1 */}
-          <h1 className="mx-auto max-w-[680px] text-4xl sm:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] [text-wrap:balance]">
+          <h1 className="mx-auto max-w-[680px] text-[30px] sm:text-5xl lg:text-6xl font-semibold leading-[1.18] sm:leading-tight tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] [text-wrap:balance]">
             Flash deals from local shops
             <br />
             around your street corner
           </h1>
 
           {/* Subheading */}
-          <p className="mx-auto mt-6 max-w-[680px] text-base sm:text-lg font-normal leading-relaxed text-white/90 drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)] [text-wrap:pretty]">
+          <p className="mx-auto mt-4 sm:mt-6 max-w-[680px] text-sm sm:text-lg font-normal leading-relaxed text-white/90 drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)] [text-wrap:pretty]">
             Cafes, bakeries, salons, and retail counters release limited quantity passes during quiet hours.
             Claim your voucher online for free and scan your verified QR code at the counter.
           </p>
 
           {/* Interactive Search Bar with Live Suggestions */}
-          <div ref={formRef} className="relative mx-auto mt-8 max-w-[600px]">
+          <div ref={formRef} className="relative mx-auto mt-6 sm:mt-8 max-w-[600px]">
             <form
               onSubmit={handleHeroSearch}
               className="flex flex-col gap-2 rounded-2xl border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#1F1F1F] p-2 shadow-[0_12px_36px_rgba(31,27,22,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:flex-row sm:items-center"
@@ -268,7 +268,7 @@ function Hero({ onSearch }) {
                     setShowDropdown(true);
                   }}
                   placeholder="Search coffee, bakery, salon, or street..."
-                  className="h-11 w-full bg-transparent px-3 text-sm text-[#1F1B16] dark:text-[#FDFBF7] placeholder-[#7B7266] dark:placeholder-[#A89F91] focus:outline-none"
+                  className="h-11 w-full bg-transparent px-3 text-[16px] sm:text-sm text-[#1F1B16] dark:text-[#FDFBF7] placeholder-[#7B7266] dark:placeholder-[#A89F91] focus:outline-none"
                 />
                 {searchText && (
                   <button

@@ -152,15 +152,15 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
 
   return (
     <div
-      className="ios-popup-backdrop fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#1F1B16]/50 p-4 backdrop-blur-xs sm:p-6 md:p-10"
+      className="ios-popup-backdrop fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#1F1B16]/50 p-2 sm:p-6 md:p-10 backdrop-blur-xs"
       onClick={onClose}
     >
       <div
-        className="ios-popup-card relative my-6 flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_12px_32px_rgba(31,27,22,0.14)]"
+        className="ios-popup-card relative my-2 sm:my-6 flex max-h-[94vh] sm:max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] shadow-[0_12px_32px_rgba(31,27,22,0.14)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Header Bar */}
-        <div className="flex items-center gap-3 border-b border-[#E6E0D6] px-5 py-4">
+        <div className="flex items-center gap-3 border-b border-[#E6E0D6] px-4 py-3 sm:px-5 sm:py-4">
           <form onSubmit={handleSearchSubmit} className="flex flex-1 items-center gap-3">
             <Search size={18} strokeWidth={1.5} className="shrink-0 text-[#7B7266]" />
             <input
@@ -169,7 +169,7 @@ function SearchModal({ isOpen, onClose, onSelectDeal }) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search deals, cafes, electronics, services..."
-              className="w-full bg-transparent text-[15px] font-normal text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none"
+              className="w-full bg-transparent text-[16px] sm:text-[15px] font-normal text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none"
             />
           </form>
           {query && (

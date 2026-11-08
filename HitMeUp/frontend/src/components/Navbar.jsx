@@ -1,4 +1,4 @@
-import { Search, Menu, X, User, LogOut, LayoutDashboard, MapPin, Sun, Moon } from "lucide-react";
+import { Search, Menu, X, User, LogOut, LayoutDashboard, MapPin, Sun, Moon, Home, Tag } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
@@ -212,30 +212,46 @@ function Navbar() {
 
           {/* Mobile Right Controls */}
           <div className="flex items-center gap-1 lg:hidden">
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  navigate("/");
+                }}
+                className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#B91C1C]/25 bg-[#B91C1C]/10 px-2 text-[12px] font-medium text-[#B91C1C] dark:text-[#F87171] transition-all duration-150 hover:bg-[#B91C1C]/15 active:scale-95 cursor-pointer mr-0.5"
+                title="Sign out"
+                aria-label="Sign out"
+              >
+                <LogOut size={14} strokeWidth={1.75} />
+                <span>Logout</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={toggleTheme}
               aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#1F1B16] dark:text-[#FDFBF7] transition-colors hover:bg-[#EFE9DF] dark:hover:bg-[#272727] cursor-pointer"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-[#1F1B16] dark:text-[#FDFBF7] transition-all duration-150 hover:bg-[#EFE9DF] dark:hover:bg-[#272727] active:scale-95 cursor-pointer"
             >
               {isDark ? (
-                <Sun size={16} strokeWidth={1.75} className="text-[#FF8A6B]" />
+                <Sun size={17} strokeWidth={1.75} className="text-[#FF8A6B]" />
               ) : (
-                <Moon size={16} strokeWidth={1.75} />
+                <Moon size={17} strokeWidth={1.75} />
               )}
             </button>
 
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#1F1B16] dark:text-[#FDFBF7] transition-colors hover:bg-[#EFE9DF] dark:hover:bg-[#272727] cursor-pointer"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-[#1F1B16] dark:text-[#FDFBF7] transition-all duration-150 hover:bg-[#EFE9DF] dark:hover:bg-[#272727] active:scale-95 cursor-pointer"
               aria-label="Search"
             >
-              <Search size={16} strokeWidth={1.5} />
+              <Search size={17} strokeWidth={1.5} />
             </button>
 
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="relative flex h-8 w-8 items-center justify-center rounded-lg text-[#1F1B16] dark:text-[#FDFBF7] transition-colors hover:bg-[#EFE9DF] dark:hover:bg-[#272727] cursor-pointer"
+              className="relative flex h-9 w-9 items-center justify-center rounded-lg text-[#1F1B16] dark:text-[#FDFBF7] transition-all duration-150 hover:bg-[#EFE9DF] dark:hover:bg-[#272727] active:scale-95 cursor-pointer"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
             >
@@ -243,13 +259,13 @@ function Navbar() {
                 className={`absolute transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${menuOpen ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
                   }`}
               >
-                <Menu size={18} strokeWidth={1.5} />
+                <Menu size={19} strokeWidth={1.5} />
               </span>
               <span
                 className={`absolute transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${menuOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
                   }`}
               >
-                <X size={18} strokeWidth={1.5} />
+                <X size={19} strokeWidth={1.5} />
               </span>
             </button>
           </div>
@@ -365,6 +381,81 @@ function Navbar() {
           </div>
         </div>
       </header>
+
+      {/* App-like Mobile Bottom Navigation Dock */}
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-[#E6E0D6] dark:border-[#272727] bg-[#FDFBF7]/95 dark:bg-[#181818]/95 px-2 pt-1.5 pb-[max(env(safe-area-inset-bottom),0.625rem)] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-lg lg:hidden"
+      >
+        <Link
+          to="/"
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors min-w-0 ${
+            location.pathname === "/"
+              ? "text-[#D94832] dark:text-[#FF7A59]"
+              : "text-[#7B7266] dark:text-[#8E867B] hover:text-[#1F1B16] dark:hover:text-[#FDFBF7]"
+          }`}
+        >
+          <Home size={20} strokeWidth={location.pathname === "/" ? 2 : 1.5} />
+          <span className="mt-1 text-[10px] font-medium tracking-tight">Home</span>
+        </Link>
+
+        <Link
+          to="/deals"
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors min-w-0 ${
+            (location.pathname === "/deals" || location.pathname.startsWith("/category")) && !location.search.includes("view=map")
+              ? "text-[#D94832] dark:text-[#FF7A59]"
+              : "text-[#7B7266] dark:text-[#8E867B] hover:text-[#1F1B16] dark:hover:text-[#FDFBF7]"
+          }`}
+        >
+          <Tag size={20} strokeWidth={(location.pathname === "/deals" || location.pathname.startsWith("/category")) && !location.search.includes("view=map") ? 2 : 1.5} />
+          <span className="mt-1 text-[10px] font-medium tracking-tight">Deals</span>
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => setSearchOpen(true)}
+          className="flex flex-col items-center justify-center flex-1 py-1 transition-colors min-w-0 text-[#7B7266] dark:text-[#8E867B] hover:text-[#1F1B16] dark:hover:text-[#FDFBF7] cursor-pointer"
+        >
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EFE9DF] dark:bg-[#272727] text-[#1F1B16] dark:text-[#FDFBF7]">
+            <Search size={15} strokeWidth={2} />
+          </div>
+          <span className="mt-0.5 text-[10px] font-medium tracking-tight">Search</span>
+        </button>
+
+        <Link
+          to="/deals?view=map"
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors min-w-0 ${
+            location.pathname === "/map" || location.search.includes("view=map")
+              ? "text-[#D94832] dark:text-[#FF7A59]"
+              : "text-[#7B7266] dark:text-[#8E867B] hover:text-[#1F1B16] dark:hover:text-[#FDFBF7]"
+          }`}
+        >
+          <MapPin size={20} strokeWidth={location.pathname === "/map" || location.search.includes("view=map") ? 2 : 1.5} />
+          <span className="mt-1 text-[10px] font-medium tracking-tight">Map</span>
+        </Link>
+
+        <Link
+          to={isAuthenticated ? dashboardPath : "/login"}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors min-w-0 ${
+            location.pathname.startsWith("/customer") || location.pathname.startsWith("/seller") || location.pathname === "/login"
+              ? "text-[#D94832] dark:text-[#FF7A59]"
+              : "text-[#7B7266] dark:text-[#8E867B] hover:text-[#1F1B16] dark:hover:text-[#FDFBF7]"
+          }`}
+        >
+          {isAuthenticated && user?.avatar ? (
+            <img
+              src={user.avatar}
+              alt="Profile"
+              className="h-5 w-5 rounded-full object-cover border border-[#E6E0D6] dark:border-[#313131]"
+            />
+          ) : (
+            <User size={20} strokeWidth={location.pathname.startsWith("/customer") || location.pathname.startsWith("/seller") || location.pathname === "/login" ? 2 : 1.5} />
+          )}
+          <span className="mt-1 text-[10px] font-medium tracking-tight truncate max-w-full px-1">
+            {isAuthenticated ? (user?.name?.split(" ")[0] || "Account") : "Sign in"}
+          </span>
+        </Link>
+      </nav>
 
       <SearchModal
         isOpen={searchOpen}

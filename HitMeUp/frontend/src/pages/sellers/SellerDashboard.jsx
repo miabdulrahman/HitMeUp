@@ -781,8 +781,12 @@ const SellerDashboard = () => {
         {/* Single Top Header (60px) */}
         <header className="sticky top-0 z-30 flex h-[60px] items-center justify-between border-b border-[#E4E4E7] bg-white px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <Link to="/" className="flex h-7 w-7 items-center justify-center rounded-md bg-[#171717] font-mono text-[11px] font-medium text-white lg:hidden">
-              HMU
+            <Link to="/" className="flex items-center md:hidden" aria-label="HitMeUp Home">
+              <img
+                src={isDark ? "/logo-dark.png" : "/logo.png"}
+                alt="HitMeUp"
+                className="h-6 w-auto object-contain"
+              />
             </Link>
             <h1 className="text-[15px] font-semibold text-[#171717]">
               {sectionTitle}
@@ -852,6 +856,17 @@ const SellerDashboard = () => {
               <Plus className="h-3.5 w-3.5" strokeWidth={1.75} />
               New deal
             </button>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white px-2.5 text-[12px] font-medium text-[#DC2626] hover:bg-red-50 transition-colors md:hidden cursor-pointer shrink-0"
+              title="Sign out"
+              aria-label="Sign out"
+            >
+              <LogOut className="h-3.5 w-3.5" strokeWidth={1.75} />
+              <span>Logout</span>
+            </button>
           </div>
         </header>
 
@@ -878,6 +893,14 @@ const SellerDashboard = () => {
               {item.label}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="shrink-0 flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-[#DC2626] hover:bg-red-50 transition-colors cursor-pointer"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span>Sign out</span>
+          </button>
         </div>
 
         {/* Workspace Canvas */}

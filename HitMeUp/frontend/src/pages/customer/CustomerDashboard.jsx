@@ -592,9 +592,16 @@ const CustomerDashboard = () => {
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Single Top Header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-[#E4E4E7] bg-white px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-[#E4E4E7] bg-white px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <h1 className="text-[18px] font-medium tracking-[-0.02em] text-[#171717]">
+            <Link to="/" className="flex items-center md:hidden" aria-label="HitMeUp Home">
+              <img
+                src={isDark ? "/logo-dark.png" : "/logo.png"}
+                alt="HitMeUp"
+                className="h-6.5 w-auto object-contain"
+              />
+            </Link>
+            <h1 className="text-[16px] sm:text-[18px] font-medium tracking-[-0.02em] text-[#171717]">
               {sectionTitles[activeTab]}
             </h1>
           </div>
@@ -656,6 +663,16 @@ const CustomerDashboard = () => {
               <span>Browse deals</span>
               <ArrowRight size={14} strokeWidth={1.5} />
             </Link>
+
+            <button
+              onClick={handleLogout}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-2.5 text-[12px] font-medium text-[#B91C1C] hover:bg-[#B91C1C]/10 transition-colors md:hidden cursor-pointer shrink-0"
+              title="Sign out"
+              aria-label="Sign out"
+            >
+              <LogOut size={15} strokeWidth={1.75} />
+              <span>Logout</span>
+            </button>
           </div>
         </header>
 
@@ -691,6 +708,13 @@ const CustomerDashboard = () => {
             active={activeTab === "profile"}
             onClick={() => setActiveTab("profile")}
           />
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-[12px] font-medium text-[#B91C1C] hover:bg-[#B91C1C]/10 transition-colors shrink-0 cursor-pointer"
+          >
+            <LogOut size={13} strokeWidth={1.75} />
+            <span>Sign out</span>
+          </button>
         </div>
 
         {/* Content Body */}
@@ -1427,6 +1451,23 @@ const CustomerDashboard = () => {
                     {passwordUpdating ? "Updating..." : "Update password"}
                   </button>
                 </form>
+              </div>
+
+              {/* Account Session & Logout */}
+              <div className="overflow-hidden rounded-xl border border-[#E4E4E7] bg-white p-5 lg:col-span-12">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-[#171717]">Account session</h3>
+                    <p className="mt-0.5 text-[13px] text-[#737373]">Signed in as {user?.email} ({user?.role || "customer"})</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex h-10 items-center justify-center gap-2 rounded-lg border border-[#B91C1C]/30 bg-[#B91C1C]/10 px-4 text-[13px] font-medium text-[#B91C1C] hover:bg-[#B91C1C]/15 transition-colors cursor-pointer w-full sm:w-auto"
+                  >
+                    <LogOut size={15} strokeWidth={1.75} />
+                    <span>Sign out of HitMeUp</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

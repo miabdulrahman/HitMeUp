@@ -21,9 +21,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": {
-        "service": "backend"
-      }
+      "destination": "https://hitmeup-backend-lpzc.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",

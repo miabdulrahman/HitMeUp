@@ -212,6 +212,22 @@ function Navbar() {
 
           {/* Mobile Right Controls */}
           <div className="flex items-center gap-1 lg:hidden">
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  navigate("/");
+                }}
+                className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#B91C1C]/25 bg-[#B91C1C]/10 px-2 text-[12px] font-medium text-[#B91C1C] dark:text-[#F87171] transition-all duration-150 hover:bg-[#B91C1C]/15 active:scale-95 cursor-pointer mr-0.5"
+                title="Sign out"
+                aria-label="Sign out"
+              >
+                <LogOut size={14} strokeWidth={1.75} />
+                <span>Logout</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={toggleTheme}

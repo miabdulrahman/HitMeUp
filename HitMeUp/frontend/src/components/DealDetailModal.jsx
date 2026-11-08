@@ -42,8 +42,8 @@ function DealDetailModal({ deal, isOpen, onClose }) {
         deal.availableQuantity !== undefined
           ? deal.availableQuantity
           : typeof deal.vouchersLeft === "number"
-          ? deal.vouchersLeft
-          : 30;
+            ? deal.vouchersLeft
+            : 30;
       setCurrentStock(initialStock);
       setIsFavorited(deal.isFavorited || false);
       setTimer(calculateDealTimer(deal));
@@ -183,9 +183,8 @@ function DealDetailModal({ deal, isOpen, onClose }) {
             <img
               src={deal.image}
               alt={deal.title}
-              className={`h-full w-full object-cover transition-all ${
-                timer.isExpired ? "grayscale-50 contrast-85 opacity-70" : "opacity-90"
-              }`}
+              className={`h-full w-full object-cover transition-all ${timer.isExpired ? "grayscale-50 contrast-85 opacity-70" : "opacity-90"
+                }`}
             />
             <div className="absolute inset-0 bg-[#1F1B16]/45" />
 
@@ -253,13 +252,12 @@ function DealDetailModal({ deal, isOpen, onClose }) {
 
               <div className="flex items-center gap-2 font-mono text-[12px] tabular-nums">
                 <div
-                  className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 ${
-                    timer.isExpired
+                  className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 ${timer.isExpired
                       ? "border-[#B91C1C]/30 bg-[#B91C1C]/10 text-[#B91C1C]"
                       : timer.isUrgent
-                      ? "border-[#D94832]/40 bg-[#D94832]/10 text-[#D94832] font-semibold"
-                      : "border-[#E6E0D6] bg-[#FDFBF7] text-[#5E554A]"
-                  }`}
+                        ? "border-[#D94832]/40 bg-[#D94832]/10 text-[#D94832] font-semibold"
+                        : "border-[#E6E0D6] bg-[#FDFBF7] text-[#5E554A]"
+                    }`}
                 >
                   <Clock
                     size={13}
@@ -268,27 +266,26 @@ function DealDetailModal({ deal, isOpen, onClose }) {
                       timer.isExpired
                         ? "text-[#B91C1C]"
                         : timer.isUrgent
-                        ? "text-[#D94832] animate-pulse"
-                        : "text-[#D94832]"
+                          ? "text-[#D94832] animate-pulse"
+                          : "text-[#D94832]"
                     }
                   />
                   <span>{timer.text}</span>
                 </div>
 
                 <div
-                  className={`rounded-md border px-2.5 py-1 font-medium ${
-                    timer.isExpired
+                  className={`rounded-md border px-2.5 py-1 font-medium ${timer.isExpired
                       ? "border-[#E6E0D6] bg-[#EFE9DF] text-[#7B7266]"
                       : isSoldOut
-                      ? "border-[#B91C1C]/20 bg-[#B91C1C]/10 text-[#B91C1C]"
-                      : "border-[#E6E0D6] bg-[#FDFBF7] text-[#1F1B16]"
-                  }`}
+                        ? "border-[#B91C1C]/20 bg-[#B91C1C]/10 text-[#B91C1C]"
+                        : "border-[#E6E0D6] bg-[#FDFBF7] text-[#1F1B16]"
+                    }`}
                 >
                   {timer.isExpired
                     ? "Closed"
                     : isSoldOut
-                    ? "Sold out"
-                    : `${currentStock} passes left`}
+                      ? "Sold out"
+                      : `${currentStock} passes left`}
                 </div>
               </div>
             </div>
@@ -436,11 +433,10 @@ function DealDetailModal({ deal, isOpen, onClose }) {
 
                   <button
                     onClick={() => setIsFavorited(!isFavorited)}
-                    className={`flex h-11 flex-1 sm:flex-initial items-center justify-center gap-2 rounded-lg border px-4 text-[13px] font-medium transition-colors cursor-pointer ${
-                      isFavorited
+                    className={`flex h-11 flex-1 sm:flex-initial items-center justify-center gap-2 rounded-lg border px-4 text-[13px] font-medium transition-colors cursor-pointer ${isFavorited
                         ? "border-[#D94832]/30 bg-[#D94832]/10 text-[#D94832]"
                         : "border-[#E6E0D6] bg-[#F7F4EE] text-[#1F1B16] hover:bg-[#EFE9DF]"
-                    }`}
+                      }`}
                   >
                     <Heart
                       size={15}

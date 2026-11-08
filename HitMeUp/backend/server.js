@@ -3,11 +3,11 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 require("dotenv").config();
 
 const dns = require("dns");
-// Only configure DNS in local development; avoid overriding in cloud/Vercel serverless environments
-if (!process.env.VERCEL) {
+// Only configure DNS in local development; avoid overriding in cloud environments (Render, Vercel, Docker)
+if (process.env.NODE_ENV !== "production" && !process.env.RENDER && !process.env.VERCEL) {
   try {
     dns.setServers(["8.8.8.8"]);
-    console.log("DNS servers:", dns.getServers());
+    console.log("Local development DNS servers set to 8.8.8.8");
   } catch (e) {
     console.warn("DNS setServers notice:", e.message);
   }
@@ -84,7 +84,24 @@ app.use(async (req, res, next) => {
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Welcome to HitMeUp API"
+    message: "Welcome to HitMeUp API",
+    database: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -116,14 +133,15 @@ app.use("/api/admin", adminRoutes);
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
+  // Bind port first so cloud platforms (Render, Railway, etc.) detect health and don't drop traffic
+  app.listen(PORT, () => {
+    console.log(`HitMeUp running on port : ${PORT}`);
+  });
+
   try {
     await connectDB();
-    app.listen(PORT, () => {
-      console.log(`HitMeUp running on port : ${PORT}`);
-    });
   } catch (error) {
-    console.error("Server startup failed:", error);
-    process.exit(1);
+    console.error("Warning: Initial MongoDB connection failed. Will retry on incoming requests:", error.message);
   }
 };
 

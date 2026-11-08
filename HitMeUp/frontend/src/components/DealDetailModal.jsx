@@ -201,7 +201,7 @@ function DealDetailModal({ deal, isOpen, onClose, onOpenSellerProfile }) {
 
   return (
     <div
-      className="ios-popup-backdrop fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-y-auto bg-[#1F1B16]/55 p-0 sm:p-6 backdrop-blur-xs"
+      className="ios-popup-backdrop fixed inset-0 z-[60] flex items-end sm:items-center justify-center overflow-y-auto bg-[#1F1B16]/55 p-0 sm:p-6 backdrop-blur-xs"
       onClick={onClose}
     >
       <div

@@ -1,4 +1,4 @@
-import { Search, Menu, X, User, LogOut, LayoutDashboard, MapPin, Sun, Moon, Home, Tag } from "lucide-react";
+import { Search, Menu, X, User, LogOut, LayoutDashboard, MapPin, Sun, Moon, Home, Tag, Smartphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
@@ -325,6 +325,18 @@ function Navbar() {
                 <MapPin size={15} strokeWidth={1.5} />
                 <span>Explore full street map</span>
               </Link>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  window.dispatchEvent(new CustomEvent("show-hitmeup-install-prompt"));
+                }}
+                className="inline-flex items-center gap-2 py-1 text-[15px] font-medium text-[#1F1B16] dark:text-[#FDFBF7] hover:text-[#D94832] dark:hover:text-[#FF7A59] text-left cursor-pointer"
+              >
+                <Smartphone size={15} strokeWidth={1.5} className="text-[#D94832]" />
+                <span>Install HitMeUp App</span>
+              </button>
 
               <div className="mt-2 flex flex-col gap-2 border-t border-[#E6E0D6] dark:border-[#313131] pt-4">
                 {isAuthenticated && user ? (

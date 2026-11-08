@@ -3,6 +3,8 @@ const paymentService = require("../services/paymentService");
 const transactionService = require("../services/transactionService");
 const GatewayTransaction = require("../models/GatewayTransaction");
 const Voucher = require("../models/Voucher");
+const Business = require("../models/Business");
+const Order = require("../models/Order");
 require("../models/user");
 
 // POST /api/gateway/checkout - Initialize or retrieve active payment session
@@ -194,14 +196,14 @@ const getTransactionById = async (req, res) => {
     if (req.user.role === "business" || req.user.role === "seller") {
       const orderBusinessId = String(
         transaction.orderId?.businessId?._id ||
-          transaction.orderId?.businessId ||
-          ""
+        transaction.orderId?.businessId ||
+        ""
       );
       const userBusinessId = String(
         req.user.businessId?._id ||
-          req.user.businessId ||
-          req.user._id ||
-          ""
+        req.user.businessId ||
+        req.user._id ||
+        ""
       );
       if (
         orderBusinessId &&
@@ -278,6 +280,35 @@ const resolveTransaction = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Associated payment record not found"
+      });
+    }
+
+    const requesterId = String(req.user._id || req.user.id || "");
+    const customerId = String(payment.customerId || transaction.customerId || "");
+    let authorized = req.user.role === "admin" || requesterId === customerId;
+
+    if (!authorized && (req.user.role === "business" || req.user.role === "seller")) {
+      let businessId = req.user.businessId;
+      if (!businessId) {
+        const business = await Business.findOne({ ownerId: requesterId }).select("_id");
+        businessId = business?._id;
+      }
+
+      const order = await Order.findById(transaction.orderId)
+        .select("businessId dealId")
+        .populate("dealId", "businessId");
+      const orderBusinessId = order?.businessId || order?.dealId?.businessId;
+      authorized = Boolean(
+        businessId &&
+        orderBusinessId &&
+        String(businessId) === String(orderBusinessId)
+      );
+    }
+
+    if (!authorized) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to resolve this transaction"
       });
     }
 

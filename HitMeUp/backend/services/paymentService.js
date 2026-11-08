@@ -389,16 +389,41 @@ async function resolvePendingPayment({ paymentId, user }) {
     throw error;
   }
 
-  // If already resolved, return current state
-  if (payment.status !== PaymentStatus.PENDING && payment.status !== PaymentStatus.PROCESSING) {
-    return { payment, resolved: true, status: payment.status };
-  }
-
-  const order = await Order.findById(payment.orderId);
+  const order = await Order.findById(payment.orderId).populate("dealId", "businessId");
   if (!order) {
     const error = new Error("Linked order not found");
     error.statusCode = 404;
     throw error;
+  }
+
+  const requesterId = String(user?._id || user?.id || "");
+  const customerId = String(payment.customerId || order.customerId || "");
+  let hasAccess = user?.role === "admin" || requesterId === customerId;
+
+  if (!hasAccess && (user?.role === "business" || user?.role === "seller")) {
+    let businessId = user.businessId;
+    if (!businessId) {
+      const business = await Business.findOne({ ownerId: requesterId }).select("_id");
+      businessId = business?._id;
+    }
+
+    const orderBusinessId = order.businessId || order.dealId?.businessId;
+    hasAccess = Boolean(
+      businessId &&
+      orderBusinessId &&
+      String(businessId) === String(orderBusinessId)
+    );
+  }
+
+  if (!hasAccess) {
+    const error = new Error("Unauthorized to resolve this payment");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  // If already resolved, return current state after authorization.
+  if (payment.status !== PaymentStatus.PENDING && payment.status !== PaymentStatus.PROCESSING) {
+    return { payment, resolved: true, status: payment.status };
   }
 
   // In demo simulation, polling a pending payment after creation marks it resolved

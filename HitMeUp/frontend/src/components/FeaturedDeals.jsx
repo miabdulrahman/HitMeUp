@@ -31,6 +31,7 @@ function FeaturedDeals({ initialSearch = "" }) {
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [showNearby, setShowNearby] = useState(hasRealLocation);
+  const [selectedMapStore, setSelectedMapStore] = useState(null);
 
   // Sync with real location state
   useEffect(() => {
@@ -239,6 +240,57 @@ function FeaturedDeals({ initialSearch = "" }) {
     return sorted;
   }, [dealsList, selectedCategory, searchFilter, sortBy]);
 
+  const displayedMapDeals = useMemo(() => {
+    if (!selectedMapStore) return filteredDeals;
+    const storeId = String(selectedMapStore.id || selectedMapStore._id || "");
+    const storeName = (selectedMapStore.name || "").trim().toLowerCase();
+
+    const matched = dealsList.filter((deal) => {
+      const bId = String(
+        deal.businessId?._id || deal.businessId?.id || deal.businessId || ""
+      );
+      const bName = (
+        deal.business || deal.businessId?.name || ""
+      ).trim().toLowerCase();
+      return (storeId && bId === storeId) || (storeName && bName === storeName);
+    });
+
+    if (matched.length > 0) return matched;
+
+    if (Array.isArray(selectedMapStore.deals) && selectedMapStore.deals.length > 0) {
+      return selectedMapStore.deals.map((d) => ({
+        id: d._id || d.id,
+        _id: d._id || d.id,
+        title: d.title,
+        business: selectedMapStore.name,
+        businessId: selectedMapStore.id,
+        category: d.category || "Flash deal",
+        price: `Rs. ${Number(d.discountedPrice || 0).toLocaleString()}`,
+        rawPrice: d.discountedPrice,
+        oldPrice: d.originalPrice ? `Rs. ${Number(d.originalPrice).toLocaleString()}` : "",
+        rawOldPrice: d.originalPrice,
+        discount: `${d.discountPercentage || 0}% off`,
+        discountPercentage: d.discountPercentage || 0,
+        image:
+          d.imageUrl ||
+          d.image ||
+          "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+        endDate: d.endDate,
+        startDate: d.startDate,
+        durationHours: d.durationHours,
+        status: d.status || "active",
+        distance: selectedMapStore.distanceText || "Sri Lanka",
+        location: selectedMapStore.address?.city || "Sri Lanka",
+        rating: 4.8,
+        reviewsCount: 20,
+        vouchersLeft: d.availableQuantity || 10,
+        description: d.description || "",
+      }));
+    }
+
+    return [];
+  }, [selectedMapStore, filteredDeals, dealsList]);
+
   const handleOpenDeal = (deal) => {
     setSelectedDeal(deal);
     setModalOpen(true);
@@ -326,8 +378,78 @@ function FeaturedDeals({ initialSearch = "" }) {
         </div>
 
         {displayMode === "map" ? (
-          <div className="mt-8 overflow-hidden rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] p-3">
-            <MapDiscoveryView onSelectDeal={handleOpenDeal} fullView={true} />
+          <div className="mt-8 space-y-8">
+            <div className="overflow-hidden rounded-xl border border-[#E6E0D6] bg-[#FDFBF7] p-3">
+              <MapDiscoveryView
+                onSelectDeal={handleOpenDeal}
+                onSelectStore={setSelectedMapStore}
+                selectedStoreId={selectedMapStore?.id}
+                fullView={true}
+              />
+            </div>
+
+            {/* Selected Seller Deals Grid Below Map */}
+            <div className="pt-6 border-t border-[#E6E0D6] dark:border-[#313131]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-2 w-2 rounded-full bg-[#166534] animate-pulse" />
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-[#D94832] font-semibold">
+                      {selectedMapStore ? "Selected Merchant Flash Deals" : "Explore Flash Deals"}
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-serif text-[#1F1B16] dark:text-[#FDFBF7] mt-1 flex items-center gap-2.5">
+                    <span>
+                      {selectedMapStore
+                        ? `Flash Deals at ${selectedMapStore.name}`
+                        : "All Available Flash Deals Across Sri Lanka"}
+                    </span>
+                    <span className="rounded-full bg-[#D94832]/10 text-[#D94832] text-xs font-mono font-medium px-2.5 py-0.5">
+                      {displayedMapDeals.length} {displayedMapDeals.length === 1 ? "deal" : "deals"}
+                    </span>
+                  </h3>
+                  <p className="text-xs sm:text-[13px] text-[#5E554A] dark:text-[#CFC6B8] mt-1">
+                    {selectedMapStore
+                      ? `Showing live offers for ${selectedMapStore.name}. Select any pass below to view details and claim.`
+                      : "Select any store pin on the map to view its active flash deals."}
+                  </p>
+                </div>
+                {selectedMapStore && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMapStore(null)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#E6E0D6] dark:border-[#313131] bg-white dark:bg-[#1F1F1F] px-3.5 py-2 text-xs font-medium text-[#1F1B16] dark:text-[#FDFBF7] hover:bg-[#F7F4EE] dark:hover:bg-[#272727] transition shadow-2xs cursor-pointer"
+                  >
+                    <X size={13} />
+                    <span>Show all merchants</span>
+                  </button>
+                )}
+              </div>
+              {displayedMapDeals.length === 0 ? (
+                <div className="rounded-2xl border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#1F1F1F] p-8 text-center">
+                  <p className="text-sm text-[#5E554A] dark:text-[#CFC6B8]">
+                    {selectedMapStore
+                      ? `No active deals currently available for ${selectedMapStore.name}.`
+                      : "No active flash deals found."}
+                  </p>
+                  {selectedMapStore && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMapStore(null)}
+                      className="mt-3 text-xs font-semibold text-[#D94832] hover:underline cursor-pointer"
+                    >
+                      View all available deals
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {displayedMapDeals.map((deal) => (
+                    <DealCard key={deal.id || deal._id} deal={deal} onOpen={handleOpenDeal} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <>

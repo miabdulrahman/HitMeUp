@@ -666,3 +666,4 @@ function SellerProfileModal({
 }
 
 export default SellerProfileModal;
+

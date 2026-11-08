@@ -571,15 +571,53 @@ const getMyDeals = async (req, res) => {
  */
 const getDealsByBusiness = async (req, res) => {
   try {
+    const bId = req.params.businessId;
+    if (!bId) {
+      return res.status(400).json({
+        success: false,
+        message: "Business ID is required",
+        deals: []
+      });
+    }
+
+    const now = new Date();
+
+    // Auto-expire past-due deals
+    await Deal.updateMany(
+      { status: "active", endDate: { $lte: now } },
+      { $set: { status: "expired" } }
+    ).exec();
+
+    const idQueries = [{ businessId: bId }];
+    if (mongoose.Types.ObjectId.isValid(bId)) {
+      idQueries.push({ businessId: new mongoose.Types.ObjectId(bId) });
+
+      // If bId is the seller's user ID, also look up the corresponding Business ID
+      const businessDoc = await Business.findOne({
+        $or: [{ _id: bId }, { userId: bId }]
+      }).select("_id").lean();
+
+      if (businessDoc && businessDoc._id.toString() !== bId) {
+        idQueries.push({ businessId: businessDoc._id });
+      }
+    }
+
     const deals = await Deal.find({
-      businessId: req.params.businessId,
+      $or: idQueries,
       status: "active",
-      $or: [
-        { endDate: { $gt: new Date() } },
-        { endDate: null },
-        { endDate: { $exists: false } }
+      $and: [
+        {
+          $or: [
+            { endDate: { $gt: now } },
+            { endDate: null },
+            { endDate: { $exists: false } }
+          ]
+        }
       ]
-    }).sort({ createdAt: -1 });
+    })
+      .populate("businessId", "name category address location phone openingHours logoUrl coverImageUrl")
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.status(200).json({
       success: true,
@@ -587,10 +625,12 @@ const getDealsByBusiness = async (req, res) => {
       deals
     });
   } catch (error) {
+    console.error("Get Deals By Business Error:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch business deals",
-      error: error.message
+      error: error.message,
+      deals: []
     });
   }
 };

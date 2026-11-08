@@ -6,6 +6,10 @@ import {
   LayoutGrid,
   Navigation,
   Map as MapIcon,
+  X,
+  Store,
+  Ticket,
+  CheckCircle2,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -74,6 +78,7 @@ function CategoryPage({ defaultView }) {
 
   useEffect(() => {
     setActiveSlug(slug || "all");
+    setSelectedMapStore(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [slug]);
 
@@ -314,6 +319,85 @@ function CategoryPage({ defaultView }) {
   }, [dealsList, activeSlug, searchQuery, sortBy, currentCategory]);
 
   const [profileModalBusinessId, setProfileModalBusinessId] = useState(null);
+  const [selectedMapStore, setSelectedMapStore] = useState(null);
+
+  const displayedMapDeals = useMemo(() => {
+    if (!selectedMapStore) {
+      return filteredDeals;
+    }
+    const storeId = String(selectedMapStore.id || selectedMapStore._id || "");
+    const storeName = (selectedMapStore.name || "").trim().toLowerCase();
+
+    // 1. Check matching deals in dealsList
+    const matched = dealsList.filter((deal) => {
+      const bId = String(
+        deal.businessId?._id ||
+        deal.businessId?.id ||
+        deal.businessId ||
+        ""
+      );
+      const bName = (
+        deal.business ||
+        deal.businessId?.name ||
+        ""
+      ).trim().toLowerCase();
+
+      return (storeId && bId === storeId) || (storeName && bName === storeName);
+    });
+
+    if (matched.length > 0) return matched;
+
+    // 2. Fall back to selectedMapStore.deals if any
+    if (Array.isArray(selectedMapStore.deals) && selectedMapStore.deals.length > 0) {
+      return selectedMapStore.deals.map((d) => {
+        const displayCat = normalizeCategory(d.category);
+        const catSlug = getCategorySlug(d.category);
+        const locationCity =
+          selectedMapStore.address?.city ||
+          (typeof selectedMapStore.address === "string"
+            ? selectedMapStore.address
+            : "Colombo, Sri Lanka");
+
+        return {
+          id: d._id || d.id,
+          _id: d._id || d.id,
+          title: d.title,
+          business: selectedMapStore.name,
+          businessId: selectedMapStore.id,
+          category: displayCat,
+          categorySlug: catSlug,
+          price: `Rs. ${Number(d.discountedPrice || 0).toLocaleString()}`,
+          rawPrice: d.discountedPrice,
+          oldPrice: d.originalPrice ? `Rs. ${Number(d.originalPrice).toLocaleString()}` : "",
+          rawOldPrice: d.originalPrice,
+          discount: `${d.discountPercentage || 0}% off`,
+          discountPercentage: d.discountPercentage || 0,
+          image:
+            d.imageUrl ||
+            d.image ||
+            "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+          endDate: d.endDate,
+          startDate: d.startDate,
+          durationHours: d.durationHours,
+          status: d.status || "active",
+          distance: selectedMapStore.distanceText || locationCity,
+          location: locationCity,
+          rating: 4.8,
+          reviewsCount: 20,
+          vouchersLeft: d.availableQuantity || 10,
+          description: d.description || "",
+          highlights: [
+            "Digital QR voucher pass",
+            "Valid for counter redemption",
+            "Verified neighborhood store",
+          ],
+          terms: d.terms || "Present digital voucher code upon arrival.",
+        };
+      });
+    }
+
+    return [];
+  }, [selectedMapStore, filteredDeals, dealsList]);
 
   const handleOpenDeal = (deal) => {
     if (!deal) return;
@@ -525,9 +609,85 @@ function CategoryPage({ defaultView }) {
         {/* Deals Listing & Filter Section */}
         <section className="mx-auto max-w-[1200px] px-6 py-8">
           {viewMode === "map" ? (
-            /* Full Street Map View */
-            <div className="w-full">
-              <MapDiscoveryView onSelectDeal={handleOpenDeal} fullView={true} />
+            /* Full Street Map View + Live Store Deals Section */
+            <div className="w-full space-y-8">
+              <MapDiscoveryView
+                onSelectDeal={handleOpenDeal}
+                onSelectStore={setSelectedMapStore}
+                selectedStoreId={selectedMapStore?.id}
+                fullView={true}
+              />
+
+              {/* Selected Seller Deals Grid Below Map */}
+              <div className="pt-6 border-t border-[#E6E0D6] dark:border-[#313131]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-2 w-2 rounded-full bg-[#166534] animate-pulse" />
+                      <span className="text-[11px] font-mono uppercase tracking-wider text-[#D94832] font-semibold">
+                        {selectedMapStore ? "Selected Merchant Flash Deals" : "Explore All Flash Deals"}
+                      </span>
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-serif text-[#1F1B16] dark:text-[#FDFBF7] mt-1 flex items-center gap-2.5">
+                      <span>
+                        {selectedMapStore
+                          ? `Flash Deals at ${selectedMapStore.name}`
+                          : "All Available Flash Deals Across Sri Lanka"}
+                      </span>
+                      <span className="rounded-full bg-[#D94832]/10 text-[#D94832] text-xs font-mono font-medium px-2.5 py-0.5">
+                        {displayedMapDeals.length} {displayedMapDeals.length === 1 ? "deal" : "deals"}
+                      </span>
+                    </h3>
+                    <p className="text-xs sm:text-[13px] text-[#5E554A] dark:text-[#CFC6B8] mt-1">
+                      {selectedMapStore
+                        ? `Showing all available live deals for ${selectedMapStore.name}. Click any pass to view full details and claim.`
+                        : "Select any merchant pin on the map above to view its live flash deals, or browse all deals below."}
+                    </p>
+                  </div>
+
+                  {selectedMapStore && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMapStore(null)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#E6E0D6] dark:border-[#313131] bg-white dark:bg-[#1F1F1F] px-3.5 py-2 text-xs font-medium text-[#1F1B16] dark:text-[#FDFBF7] hover:bg-[#F7F4EE] dark:hover:bg-[#272727] transition shadow-2xs cursor-pointer"
+                      >
+                        <X size={13} />
+                        <span>Show all merchants</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {displayedMapDeals.length === 0 ? (
+                  <div className="rounded-2xl border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#1F1F1F] p-8 text-center">
+                    <p className="text-sm text-[#5E554A] dark:text-[#CFC6B8]">
+                      {selectedMapStore
+                        ? `No active deals currently available for ${selectedMapStore.name}.`
+                        : "No active flash deals found on the map."}
+                    </p>
+                    {selectedMapStore && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMapStore(null)}
+                        className="mt-3 text-xs font-semibold text-[#D94832] hover:underline cursor-pointer"
+                      >
+                        View all available deals
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {displayedMapDeals.map((deal) => (
+                      <DealCard
+                        key={deal.id || deal._id}
+                        deal={deal}
+                        onOpen={handleOpenDeal}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <>

@@ -170,9 +170,9 @@ const detectFraudController = async (req, res) => {
     });
 
     const validUserId =
-      userId && mongoose.Types.ObjectId.isValid(userId)
+      req.user.role === "admin" && userId && mongoose.Types.ObjectId.isValid(userId)
         ? userId
-        : req.user?._id || null;
+        : req.user._id;
 
     const fraudfalg = await FraudFlag.create({
       userId: validUserId,

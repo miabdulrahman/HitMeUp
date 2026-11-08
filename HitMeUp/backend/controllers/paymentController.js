@@ -84,7 +84,11 @@ const getPaymentById = async (req, res) => {
       });
     }
 
-    const payment = await Payment.findById(req.params.id)
+    const roleFilter = await transactionService.getRoleFilter(req.user);
+    const payment = await Payment.findOne({
+      _id: req.params.id,
+      ...roleFilter
+    })
       .populate("orderId")
       .populate("customerId", "name email phone");
 
@@ -92,19 +96,6 @@ const getPaymentById = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Payment not found"
-      });
-    }
-
-    // Role check: customer must own it, unless seller/admin
-    if (
-      req.user.role !== "admin" &&
-      req.user.role !== "business" &&
-      req.user.role !== "seller" &&
-      String(payment.customerId?._id || payment.customerId) !== String(req.user._id)
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorized to view this payment"
       });
     }
 
@@ -182,11 +173,23 @@ const getReceipt = async (req, res) => {
       });
     }
 
+    const roleFilter = await transactionService.getRoleFilter(req.user);
+    const payment = await Payment.findOne({
+      _id: req.params.id,
+      ...roleFilter
+    });
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: "Receipt not found for this payment"
+      });
+    }
+
     const receipt = await receiptService.getReceiptByPaymentId(req.params.id);
 
     if (!receipt) {
       // If payment was success but receipt not yet generated, attempt to generate it
-      const payment = await Payment.findById(req.params.id);
       if (payment && payment.status === "SUCCESS") {
         const order = await Order.findById(payment.orderId);
         if (order) {
@@ -205,19 +208,6 @@ const getReceipt = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Receipt not found for this payment"
-      });
-    }
-
-    // Role check: customer must own it, unless seller/admin
-    if (
-      req.user.role !== "admin" &&
-      req.user.role !== "business" &&
-      req.user.role !== "seller" &&
-      String(receipt.customerId?._id || receipt.customerId) !== String(req.user._id)
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorized to access this receipt"
       });
     }
 

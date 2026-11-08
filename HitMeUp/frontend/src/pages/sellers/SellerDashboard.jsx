@@ -654,7 +654,7 @@ const SellerDashboard = () => {
       )}
 
       {/* Left Sidebar (240px Desktop App Shell) */}
-      <aside className="hidden w-60 shrink-0 flex-col justify-between border-r border-[#E4E4E7] bg-[#F4F4F5] lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col justify-between border-r border-[#E4E4E7] bg-[#F4F4F5] lg:flex overflow-y-auto">
         <div>
           {/* Brand Header */}
           <div className="flex h-[60px] items-center justify-between border-b border-[#E4E4E7] px-4">
@@ -860,12 +860,12 @@ const SellerDashboard = () => {
             <button
               type="button"
               onClick={handleLogout}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white px-2.5 text-[12px] font-medium text-[#DC2626] hover:bg-red-50 transition-colors md:hidden cursor-pointer shrink-0"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white px-2.5 text-[12px] font-medium text-[#DC2626] hover:bg-red-50 transition-colors cursor-pointer shrink-0"
               title="Sign out"
               aria-label="Sign out"
             >
               <LogOut className="h-3.5 w-3.5" strokeWidth={1.75} />
-              <span>Logout</span>
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
         </header>

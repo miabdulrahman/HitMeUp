@@ -20,6 +20,8 @@ console.log(
 
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const { rateLimit } = require("express-rate-limit");
 const mongoose = require("mongoose");
 
 const airoutes = require("./routes/aiRoutes");
@@ -36,10 +38,52 @@ const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
-app.use(cors());
-// Set JSON limit high enough for image data URLs if uploaded as base64
-app.use(express.json({ limit: "15mb" }));
-app.use(express.urlencoded({ extended: true, limit: "15mb" }));
+app.set("trust proxy", 1);
+app.use(helmet());
+
+const allowedOrigins = new Set(
+  (process.env.CORS_ORIGINS || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
+  methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Idempotency-Key"],
+  optionsSuccessStatus: 204
+}));
+
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip: (req) => ["/", "/health", "/api/health"].includes(req.path),
+  message: {
+    success: false,
+    message: "Too many requests. Please try again later."
+  }
+}));
+
+// Keep normal API payloads small; the upload route adds its own 15 MB JSON parser.
+const isUploadRequest = (req) =>
+  req.path === "/api/upload" || req.path.startsWith("/api/upload/");
+
+app.use((req, res, next) => {
+  if (isUploadRequest(req)) return next();
+  return express.json({ limit: "2mb" })(req, res, next);
+});
+app.use((req, res, next) => {
+  if (isUploadRequest(req)) return next();
+  return express.urlencoded({ extended: true, limit: "2mb" })(req, res, next);
+});
 
 // Reusable MongoDB connection for serverless (Vercel) & traditional servers
 const connectDB = async () => {

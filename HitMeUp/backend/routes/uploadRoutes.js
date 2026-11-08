@@ -5,6 +5,9 @@ const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+// Base64 image uploads need a larger JSON parser than normal API requests.
+router.use(express.json({ limit: "15mb" }));
+
 // Configure Multer for memory storage (file buffer in memory)
 const storage = multer.memoryStorage();
 const upload = multer({

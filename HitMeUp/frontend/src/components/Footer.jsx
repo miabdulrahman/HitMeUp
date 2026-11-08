@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 function Footer() {
+  const { isDark } = useTheme();
   return (
-    <footer className="bg-[#FDFBF7] text-[#1F1B16]">
+    <footer className="bg-[#FDFBF7] dark:bg-[#131209] text-[#1F1B16] dark:text-[#FDFBF7] border-t border-transparent dark:border-[#272727] transition-colors duration-300">
       <div className="mx-auto max-w-[1200px] px-6 py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
           {/* Brand */}
@@ -13,7 +15,7 @@ function Footer() {
               aria-label="HitMeUp Home"
             >
               <img
-                src="/logo.png"
+                src={isDark ? "/logo-dark.png" : "/logo.png"}
                 alt="HitMeUp"
                 className="h-8 w-auto object-contain"
               />

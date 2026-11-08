@@ -14,12 +14,14 @@ import {
   QrCode,
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
+import { useTheme } from "../../context/ThemeContext";
 import GoogleSignInButton from "../../components/GoogleSignInButton";
 import ForgotPasswordModal from "../../components/auth/ForgotPasswordModal";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login, loginWithGoogle } = useAuth();
+  const { isDark } = useTheme();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -117,9 +119,9 @@ const Login = () => {
         {/* Left Brand Showcase Panel */}
         <div className="flex flex-col justify-between border-b border-[#E6E0D6] bg-[#1F1B16] p-8 text-[#FDFBF7] sm:p-10 lg:col-span-5 lg:border-b-0 lg:border-r">
           <div className="flex items-center justify-between">
-            <Link to="/" className="inline-flex items-center rounded-xl bg-white px-3 py-1.5 shadow-sm transition-transform hover:scale-[1.02]" aria-label="HitMeUp Home">
+            <Link to="/" className="inline-flex items-center rounded-xl bg-white dark:bg-white/10 px-3 py-1.5 shadow-sm transition-transform hover:scale-[1.02]" aria-label="HitMeUp Home">
               <img
-                src="/logo.png"
+                src={isDark ? "/logo-dark.png" : "/logo.png"}
                 alt="HitMeUp"
                 className="h-7 w-auto object-contain"
               />

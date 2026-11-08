@@ -26,6 +26,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
+import { useTheme } from "../../context/ThemeContext";
 import {
   voucherApi,
   orderApi,
@@ -39,6 +40,7 @@ import AICommandCenter from "../../components/AICommandCenter";
 
 const CustomerDashboard = () => {
   const navigate = useNavigate();
+  const { isDark } = useTheme();
   const {
     user,
     isAuthenticated,
@@ -479,7 +481,7 @@ const CustomerDashboard = () => {
           <div className="mb-6 flex items-center justify-between px-2 pt-1">
             <Link to="/" className="inline-flex items-center" aria-label="HitMeUp Home">
               <img
-                src="/logo.png"
+                src={isDark ? "/logo-dark.png" : "/logo.png"}
                 alt="HitMeUp"
                 className="h-8 w-auto object-contain"
               />

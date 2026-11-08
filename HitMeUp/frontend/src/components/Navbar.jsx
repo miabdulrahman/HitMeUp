@@ -92,7 +92,7 @@ function Navbar() {
               aria-label="HitMeUp Home"
             >
               <img
-                src="/logo.png"
+                src={isDark ? "/logo-dark.png" : "/logo.png"}
                 alt="HitMeUp"
                 className="h-6.5 lg:h-8 w-auto object-contain transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.02]"
               />

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import { useTheme } from "../../context/ThemeContext";
 import { dealApi, businessApi, voucherApi, uploadApi } from "../../services/api";
 import { convertToWebP } from "../../utils/imageOptimizer";
 import { generateDeals } from "../../services/aiService";
@@ -41,6 +42,7 @@ import {
 const SellerDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isDark } = useTheme();
   const { user: authUser, logout, loading: authLoading } = useAuth();
   const user = location.state?.user || authUser;
 
@@ -658,7 +660,7 @@ const SellerDashboard = () => {
           <div className="flex h-[60px] items-center justify-between border-b border-[#E4E4E7] px-4">
             <Link to="/" className="flex items-center" aria-label="HitMeUp Home">
               <img
-                src="/logo.png"
+                src={isDark ? "/logo-dark.png" : "/logo.png"}
                 alt="HitMeUp"
                 className="h-7 w-auto object-contain"
               />

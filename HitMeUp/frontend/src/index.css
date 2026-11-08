@@ -555,4 +555,20 @@ html.dark textarea::placeholder {
   color: #8E867B !important;
 }
 
+/* Theme-aware logo display helpers */
+.logo-theme-light {
+  display: block;
+}
+.logo-theme-dark {
+  display: none;
+}
+html.dark .logo-theme-light,
+[data-theme="dark"] .logo-theme-light {
+  display: none !important;
+}
+html.dark .logo-theme-dark,
+[data-theme="dark"] .logo-theme-dark {
+  display: block !important;
+}
+
 

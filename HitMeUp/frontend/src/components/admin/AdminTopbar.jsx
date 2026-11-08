@@ -154,29 +154,15 @@ export default function AdminTopbar({
             </kbd>
           </button>
 
-          {/* Data Source Mode Toggle (Live API vs Labelled Demo Sandbox) */}
-          <button
-            type="button"
-            onClick={onToggleDemoMode}
-            title={
-              demoMode
-                ? "Switch back to Live MongoDB API"
-                : "Preview with isolated demo dataset"
-            }
-            className={`hidden sm:inline-flex h-8 items-center gap-1.5 rounded-[8px] border px-2.5 text-[12px] font-medium transition-colors cursor-pointer ${
-              demoMode
-                ? "border-[#FDE68A] bg-[#FFFBEB] text-[#92400E]"
-                : "border-[#E5E7EB] bg-white text-[#374151] hover:bg-[#F9FAFB]"
-            }`}
+          {/* Live Platform Database Badge */}
+          <div
+            title="Connected to Live MongoDB Database"
+            className="hidden sm:inline-flex h-8 items-center gap-1.5 rounded-[8px] border border-[#E5E7EB] bg-white px-2.5 text-[12px] font-medium text-[#374151]"
           >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                demoMode ? "bg-[#F59E0B]" : "bg-[#10B981]"
-              }`}
-            />
+            <span className="h-1.5 w-1.5 rounded-full bg-[#10B981]" />
             <Database size={13} strokeWidth={1.5} className="text-current opacity-75" />
-            <span>{demoMode ? "Demo data" : "Live API"}</span>
-          </button>
+            <span>Live API</span>
+          </div>
 
           {/* Notifications Popover */}
           <div className="relative" ref={notifRef}>
@@ -313,18 +299,6 @@ export default function AdminTopbar({
                     <Settings size={15} strokeWidth={1.5} className="text-[#6B7280]" />
                     <span>Platform settings</span>
                   </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onToggleDemoMode();
-                      setProfileOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-[6px] px-2.5 py-2 text-left text-[13px] text-[#374151] hover:bg-[#F3F4F6] sm:hidden cursor-pointer"
-                  >
-                    <Database size={15} strokeWidth={1.5} className="text-[#6B7280]" />
-                    <span>{demoMode ? "Switch to Live API" : "Enable Demo preview"}</span>
-                  </button>
                 </div>
 
                 <div className="border-t border-[#E5E7EB] p-1.5">

@@ -94,22 +94,6 @@ const Login = () => {
     setSuccessMessage(message);
   }, []);
 
-  const fillDemo = (role) => {
-    if (role === "customer") {
-      setFormData({
-        email: "customer@hitmeup.com",
-        password: "Password123!",
-      });
-    } else {
-      setFormData({
-        email: "business@hitmeup.com",
-        password: "Password123!",
-      });
-    }
-    setError("");
-    setSuccessMessage("");
-  };
-
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-[#F7F4EE] dark:bg-[#131209] p-4 text-[#1F1B16] dark:text-[#FDFBF7] sm:p-6 lg:p-10">
       <div className="w-full max-w-[480px] overflow-hidden rounded-2xl border border-[#E6E0D6] dark:border-[#272727] bg-[#FDFBF7] dark:bg-[#181818] p-6 sm:p-9 shadow-[0_4px_24px_rgba(31,27,22,0.06)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
@@ -147,29 +131,6 @@ const Login = () => {
           <p className="text-[14px] text-[#5E554A] dark:text-[#CFC6B8]">
             Enter your email and password to open your dashboard.
           </p>
-        </div>
-
-        {/* Quick Demo Pre-fill helper */}
-        <div className="mt-5 flex items-center justify-between gap-2 rounded-lg border border-[#E6E0D6] dark:border-[#313131] bg-[#F7F4EE] dark:bg-[#1F1F1F] p-3">
-          <span className="text-[12px] font-medium text-[#5E554A] dark:text-[#CFC6B8]">
-            Test account autofill
-          </span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => fillDemo("customer")}
-              className="rounded-md border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#272727] px-2.5 py-1 text-[12px] font-medium text-[#1F1B16] dark:text-[#FDFBF7] transition-colors hover:border-[#1F1B16]/40 cursor-pointer"
-            >
-              Shopper
-            </button>
-            <button
-              type="button"
-              onClick={() => fillDemo("business")}
-              className="rounded-md border border-[#E6E0D6] dark:border-[#313131] bg-[#FDFBF7] dark:bg-[#272727] px-2.5 py-1 text-[12px] font-medium text-[#1F1B16] dark:text-[#FDFBF7] transition-colors hover:border-[#1F1B16]/40 cursor-pointer"
-            >
-              Merchant
-            </button>
-          </div>
         </div>
 
         {/* Success Alert Banner */}

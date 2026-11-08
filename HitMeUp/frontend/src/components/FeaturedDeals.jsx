@@ -18,234 +18,11 @@ import {
   Navigation,
 } from "lucide-react";
 
-// Helper to generate dynamic endDates for sample passes
-const getFutureDate = (secondsFromNow) =>
-  new Date(Date.now() + secondsFromNow * 1000).toISOString();
-
-const SHOWCASE_DEALS = [
-  {
-    id: "sample-1",
-    title: "Afternoon espresso & sourdough tartlet for two",
-    business: "Commons Roastery & Bakehouse",
-    category: "Food",
-    categorySlug: "food",
-    price: "Rs. 1,950",
-    rawPrice: 1950,
-    oldPrice: "Rs. 3,000",
-    rawOldPrice: 3000,
-    discount: "35% off",
-    discountPercentage: 35,
-    image: "/hero-cover.jpg",
-    endDate: getFutureDate(8078), // ~02h 14m
-    time: "02h 14m left",
-    distance: "Bambalapitiya, Colombo 04",
-    location: "Bambalapitiya, Colombo 04",
-    rating: 4.9,
-    reviewsCount: 42,
-    vouchersLeft: 6,
-    status: "active",
-    description:
-      "Two single-origin flat whites or iced americanos paired with our freshly baked afternoon sourdough fruit tartlet platter.",
-    highlights: ["Digital QR voucher pass", "Verified neighborhood store"],
-    terms: "Valid between 2:30 PM and 6:00 PM. Present QR at counter.",
-  },
-  {
-    id: "sample-2",
-    title: "Artisan sourdough loaf & two iced cinnamon lattes",
-    business: "Galle Road Bakehouse",
-    category: "Food",
-    categorySlug: "food",
-    price: "Rs. 1,260",
-    rawPrice: 1260,
-    oldPrice: "Rs. 1,800",
-    rawOldPrice: 1800,
-    discount: "30% off",
-    discountPercentage: 30,
-    image:
-      "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80",
-    endDate: getFutureDate(5620), // ~01h 33m
-    time: "01h 33m left",
-    distance: "Wellawatte, Colombo 06",
-    location: "Wellawatte, Colombo 06",
-    rating: 4.8,
-    reviewsCount: 29,
-    vouchersLeft: 11,
-    status: "active",
-    description:
-      "Freshly baked country sourdough loaf from our afternoon oven batch plus two house-spiced iced cinnamon lattes.",
-    highlights: ["Digital QR voucher pass", "Walk-in counter pickup"],
-    terms: "Valid until 7:30 PM today.",
-  },
-  {
-    id: "sample-3",
-    title: "45-minute weekday head, neck & shoulder therapy",
-    business: "Ayur Botanica Lounge",
-    category: "Health",
-    categorySlug: "health",
-    price: "Rs. 2,700",
-    rawPrice: 2700,
-    oldPrice: "Rs. 4,500",
-    rawOldPrice: 4500,
-    discount: "40% off",
-    discountPercentage: 40,
-    image:
-      "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=900&q=80",
-    endDate: getFutureDate(11415), // ~03h 10m
-    time: "03h 10m left",
-    distance: "Kollupitiya, Colombo 03",
-    location: "Kollupitiya, Colombo 03",
-    rating: 4.9,
-    reviewsCount: 38,
-    vouchersLeft: 4,
-    status: "active",
-    description:
-      "Relaxing warm herbal oil therapy for neck, shoulder, and upper back tension during quiet mid-afternoon studio hours.",
-    highlights: ["Digital QR voucher pass", "Verified wellness studio"],
-    terms: "Walk-in slot held for 2 hours after claiming pass.",
-  },
-  {
-    id: "sample-4",
-    title: "Handloom linen overshirt & tropical cotton tee bundle",
-    business: "Ceylon Loom & Stitch",
-    category: "Fashion",
-    categorySlug: "fashion",
-    price: "Rs. 4,200",
-    rawPrice: 4200,
-    oldPrice: "Rs. 6,000",
-    rawOldPrice: 6000,
-    discount: "30% off",
-    discountPercentage: 30,
-    image:
-      "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=900&q=80",
-    endDate: getFutureDate(19200), // ~05h 20m
-    time: "05h 20m left",
-    distance: "Havelock Town, Colombo 05",
-    location: "Havelock Town, Colombo 05",
-    rating: 4.7,
-    reviewsCount: 19,
-    vouchersLeft: 8,
-    status: "active",
-    description:
-      "Breathable Sri Lankan handloom linen overshirt paired with a combed cotton everyday tee in stone, olive, or navy.",
-    highlights: ["In-store fitting included", "Digital QR voucher pass"],
-    terms: "Redeemable in store before 8:00 PM.",
-  },
-  {
-    id: "sample-5",
-    title: "65W GaN fast charger & braided USB-C cable kit",
-    business: "Liberty Tech Counter",
-    category: "Electronics",
-    categorySlug: "electronics",
-    price: "Rs. 4,900",
-    rawPrice: 4900,
-    oldPrice: "Rs. 7,000",
-    rawOldPrice: 7000,
-    discount: "30% off",
-    discountPercentage: 30,
-    image:
-      "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=900&q=80",
-    endDate: getFutureDate(21600), // ~06h 00m
-    time: "06h 00m left",
-    distance: "Kollupitiya, Colombo 03",
-    location: "Kollupitiya, Colombo 03",
-    rating: 4.8,
-    reviewsCount: 51,
-    vouchersLeft: 9,
-    status: "active",
-    description:
-      "Dual-port 65W GaN laptop and phone wall adapter bundled with a 100W nylon-braided Type-C cable and 6-month counter warranty.",
-    highlights: ["6-month store warranty", "Tested at counter"],
-    terms: "One pass per shopper.",
-  },
-  {
-    id: "sample-6",
-    title: "Express interior cabin vacuum & exterior foam wash",
-    business: "Park Street Auto Detailers",
-    category: "Services",
-    categorySlug: "services",
-    price: "Rs. 2,200",
-    rawPrice: 2200,
-    oldPrice: "Rs. 3,500",
-    rawOldPrice: 3500,
-    discount: "37% off",
-    discountPercentage: 37,
-    image:
-      "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=900&q=80",
-    endDate: getFutureDate(11700), // ~03h 15m
-    time: "03h 15m left",
-    distance: "Union Place, Colombo 02",
-    location: "Union Place, Colombo 02",
-    rating: 4.8,
-    reviewsCount: 24,
-    vouchersLeft: 5,
-    status: "active",
-    description:
-      "35-minute snow-foam exterior wash, microfiber hand dry, tire dressing, and full interior cabin vacuum during off-peak bay hours.",
-    highlights: ["No booking fee", "QR counter redemption"],
-    terms: "Valid for sedans, hatchbacks, and compact SUVs.",
-  },
-  {
-    id: "sample-7",
-    title: "Off-peak 90-minute indoor badminton court + shuttlecock",
-    business: "ShuttleHaus Arena",
-    category: "Sports",
-    categorySlug: "sports",
-    price: "Rs. 1,600",
-    rawPrice: 1600,
-    oldPrice: "Rs. 2,500",
-    rawOldPrice: 2500,
-    discount: "36% off",
-    discountPercentage: 36,
-    image:
-      "https://images.unsplash.com/photo-1626224583764-84786c71971e?auto=format&fit=crop&w=900&q=80",
-    endDate: getFutureDate(17100), // ~04h 45m
-    time: "04h 45m left",
-    distance: "Nugegoda",
-    location: "Nugegoda",
-    rating: 4.9,
-    reviewsCount: 33,
-    vouchersLeft: 3,
-    status: "active",
-    description:
-      "90-minute BWF-grade synthetic mat court booking for up to 4 players, including one feather shuttlecock tube.",
-    highlights: ["Up to 4 players", "Instant counter check-in"],
-    terms: "Valid until 5:30 PM.",
-  },
-  {
-    id: "sample-8",
-    title: "2-hour PS5 & racing simulator lounge pass for two",
-    business: "Checkpoint Esports Cafe",
-    category: "Games",
-    categorySlug: "games",
-    price: "Rs. 1,500",
-    rawPrice: 1500,
-    oldPrice: "Rs. 2,400",
-    rawOldPrice: 2400,
-    discount: "38% off",
-    discountPercentage: 38,
-    image:
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=900&q=80",
-    endDate: getFutureDate(18000), // ~05h 00m
-    time: "05h 00m left",
-    distance: "Mount Lavinia",
-    location: "Mount Lavinia",
-    rating: 4.8,
-    reviewsCount: 27,
-    vouchersLeft: 7,
-    status: "active",
-    description:
-      "Two-player couch co-op or sim-racing session with two complimentary chilled ginger beers.",
-    highlights: ["Includes 2 drinks", "Digital QR voucher pass"],
-    terms: "Present voucher at front desk.",
-  },
-];
-
 function FeaturedDeals({ initialSearch = "" }) {
   const { userLocation, hasRealLocation, requestLocation, radius } = useLocationContext();
   const sectionRef = useRef(null);
   const navigate = useNavigate();
   const [dealsList, setDealsList] = useState([]);
-  const [isUsingShowcase, setIsUsingShowcase] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchFilter, setSearchFilter] = useState(initialSearch);
   const [sortBy, setSortBy] = useState("discount"); // default to highest discount / top deals
@@ -373,23 +150,15 @@ function FeaturedDeals({ initialSearch = "" }) {
                 };
               });
 
-            if (formattedDeals.length > 0) {
-              setDealsList(formattedDeals);
-              setIsUsingShowcase(false);
-            } else {
-              setDealsList(SHOWCASE_DEALS.filter((d) => !isDealExpired(d)));
-              setIsUsingShowcase(true);
-            }
+            setDealsList(formattedDeals);
           } else {
-            setDealsList(SHOWCASE_DEALS.filter((d) => !isDealExpired(d)));
-            setIsUsingShowcase(true);
+            setDealsList([]);
           }
         }
       } catch (err) {
         console.error("Failed to fetch database deals:", err.message);
         if (isMounted) {
-          setDealsList(SHOWCASE_DEALS.filter((d) => !isDealExpired(d)));
-          setIsUsingShowcase(true);
+          setDealsList([]);
         }
       } finally {
         if (isMounted) setLoading(false);

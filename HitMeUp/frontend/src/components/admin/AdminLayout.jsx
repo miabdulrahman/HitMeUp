@@ -27,34 +27,9 @@ export default function AdminLayout() {
   });
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const [demoMode, setDemoMode] = useState(() => {
-    try {
-      return sessionStorage.getItem("hmu_admin_demo_mode") === "true";
-    } catch {
-      return false;
-    }
-  });
-
-  const [pendingCount, setPendingCount] = useState(0);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [toasts, setToasts] = useState([]);
-
-  const dismissToast = useCallback((id) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
-  const notify = useCallback((message, type = "success") => {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4200);
-  }, []);
-
   const refreshGlobalCounts = useCallback(async () => {
     try {
-      const res = await adminService.getOverview({ range: "30d", demoMode });
+      const res = await adminService.getOverview({ range: "30d" });
       const pCount = res?.kpis?.pendingApplications?.value ?? 0;
       const feed = res?.recentActivity || [];
       setPendingCount(pCount);
@@ -63,7 +38,7 @@ export default function AdminLayout() {
     } catch {
       // Handled individually by active page error state
     }
-  }, [demoMode]);
+  }, []);
 
   useEffect(() => {
     refreshGlobalCounts();
@@ -81,27 +56,8 @@ export default function AdminLayout() {
     });
   };
 
-  const handleToggleDemoMode = () => {
-    setDemoMode((prev) => {
-      const next = !prev;
-      try {
-        sessionStorage.setItem("hmu_admin_demo_mode", String(next));
-      } catch {
-        // ignore
-      }
-      notify(
-        next
-          ? "Switched to isolated Demo dataset for evaluation"
-          : "Connected to Live MongoDB Platform API",
-        "info"
-      );
-      return next;
-    });
-  };
-
   const contextValue = {
-    demoMode,
-    setDemoMode,
+    demoMode: false,
     pendingCount,
     refreshGlobalCounts,
     notify
@@ -125,49 +81,11 @@ export default function AdminLayout() {
         >
           <AdminTopbar
             onOpenMobileMenu={() => setMobileOpen(true)}
-            demoMode={demoMode}
-            onToggleDemoMode={handleToggleDemoMode}
             pendingCount={pendingCount}
             notifications={notifications}
             unreadCount={unreadCount}
             onMarkAllRead={() => setUnreadCount(0)}
           />
-
-          {/* Explicit Demo Dataset Disclosure Banner */}
-          {demoMode && (
-            <div className="border-b border-[#FDE68A] bg-[#FFFBEB] px-4 py-2 sm:px-6">
-              <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-2 text-[12px] text-[#92400E]">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle size={14} strokeWidth={1.5} className="shrink-0 text-[#D97706]" />
-                  <span>
-                    <strong className="font-semibold">Demo dataset active:</strong>{" "}
-                    Displaying clearly labelled sample development records. Changes apply only in memory and do not alter production data.
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      adminService.resetDemoStore();
-                      refreshGlobalCounts();
-                      notify("Demo dataset reset to initial state", "info");
-                    }}
-                    className="inline-flex items-center gap-1 font-medium text-[#92400E] hover:underline cursor-pointer"
-                  >
-                    <RotateCcw size={12} strokeWidth={1.5} />
-                    <span>Reset demo records</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleToggleDemoMode}
-                    className="rounded-[6px] border border-[#F59E0B]/40 bg-white px-2.5 py-0.5 font-medium text-[#92400E] hover:bg-[#FEF3C7] cursor-pointer"
-                  >
-                    Return to Live API
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
             <div className="mx-auto w-full max-w-[1440px]">

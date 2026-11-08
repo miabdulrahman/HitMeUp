@@ -159,12 +159,13 @@ const createUserPinIcon = () => {
   });
 };
 
-function MapDiscoveryView({ onSelectDeal, fullView = false }) {
+function MapDiscoveryView({ onSelectDeal, onSelectStore, selectedStoreId, fullView = false }) {
   const mapContainerRef = useRef(null);
   const leafletMapRef = useRef(null);
   const markersGroupRef = useRef(null);
   const userMarkerRef = useRef(null);
   const activeTileLayerRef = useRef(null);
+  const storeInspectionRef = useRef(null);
 
   const [markers, setMarkers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -179,6 +180,26 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
   const [sellerDeals, setSellerDeals] = useState([]);
   const [loadingSellerDeals, setLoadingSellerDeals] = useState(false);
 
+  const handleSelectMarker = useCallback(
+    (marker) => {
+      setSelectedMarker(marker);
+      if (onSelectStore && marker) {
+        onSelectStore(marker);
+      }
+    },
+    [onSelectStore]
+  );
+
+  // Sync external selectedStoreId
+  useEffect(() => {
+    if (selectedStoreId && markers.length > 0) {
+      const match = markers.find((m) => String(m.id) === String(selectedStoreId));
+      if (match && selectedMarker?.id !== match.id) {
+        setSelectedMarker(match);
+      }
+    }
+  }, [selectedStoreId, markers, selectedMarker?.id]);
+
   // Auto-fetch all active deals for the selected marker
   useEffect(() => {
     if (!selectedMarker?.id) {
@@ -192,7 +213,13 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
       .then((res) => {
         if (!isMounted) return;
         const list = res.deals || res.data || [];
-        setSellerDeals(list);
+        if (list.length > 0) {
+          setSellerDeals(list);
+        } else if (selectedMarker.deals && selectedMarker.deals.length > 0) {
+          setSellerDeals(selectedMarker.deals);
+        } else {
+          setSellerDeals([]);
+        }
       })
       .catch(() => {
         if (isMounted) setSellerDeals(selectedMarker.deals || []);
@@ -204,7 +231,7 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
     return () => {
       isMounted = false;
     };
-  }, [selectedMarker?.id]);
+  }, [selectedMarker?.id, selectedMarker?.deals]);
 
   const displayDeals =
     sellerDeals.length > 0
@@ -221,7 +248,14 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
       const list = res.markers || [];
       setMarkers(list);
       if (list.length > 0) {
-        setSelectedMarker((prev) => (prev ? list.find((m) => m.id === prev.id) || list[0] : list[0]));
+        setSelectedMarker((prev) => {
+          const match = prev ? list.find((m) => m.id === prev.id) : null;
+          const target = match || list[0];
+          if (!prev && onSelectStore) {
+            onSelectStore(target);
+          }
+          return target;
+        });
       }
     } catch (err) {
       console.error("Failed to load map markers:", err);
@@ -229,7 +263,7 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, onSelectStore]);
 
   useEffect(() => {
     fetchMarkers();
@@ -342,11 +376,14 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
 
       // Click on pin selects store and pans smoothly
       leafletMarker.on("click", () => {
-        setSelectedMarker(marker);
+        handleSelectMarker(marker);
         leafletMapRef.current?.panTo([marker.latitude, marker.longitude], {
           animate: true,
           duration: 0.6
         });
+        if (typeof window !== "undefined" && window.innerWidth < 1024 && storeInspectionRef.current) {
+          storeInspectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       });
 
       // Tooltip preview
@@ -427,12 +464,15 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
 
   // Center map on a selected marker
   const handleSelectStore = (marker) => {
-    setSelectedMarker(marker);
+    handleSelectMarker(marker);
     if (leafletMapRef.current && marker.latitude && marker.longitude) {
       leafletMapRef.current.flyTo([marker.latitude, marker.longitude], 16, {
         animate: true,
         duration: 0.8
       });
+    }
+    if (typeof window !== "undefined" && window.innerWidth < 1024 && storeInspectionRef.current) {
+      storeInspectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -670,7 +710,10 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
       </div>
 
       {/* Right Column: Selected Merchant Details & Active Flash Deals */}
-      <div className="w-full lg:w-96 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-gray-100 lg:pl-6 pt-4 lg:pt-0">
+      <div
+        ref={storeInspectionRef}
+        className="w-full lg:w-96 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-gray-100 lg:pl-6 pt-4 lg:pt-0"
+      >
         {selectedMarker ? (
           <div className="flex flex-col h-full">
             <div>
@@ -807,14 +850,33 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
                               onSelectDeal &&
                               onSelectDeal({
                                 ...deal,
+                                id: deal._id || deal.id,
+                                _id: deal._id || deal.id,
                                 business: selectedMarker.name,
                                 businessId: selectedMarker.id,
                                 image: dealImg,
-                                price: `Rs. ${Number(deal.discountedPrice || 0).toLocaleString()}`,
-                                oldPrice: deal.originalPrice
-                                  ? `Rs. ${Number(deal.originalPrice).toLocaleString()}`
-                                  : "",
-                                discount: `${deal.discountPercentage || 0}% off`,
+                                price:
+                                  typeof deal.price === "string"
+                                    ? deal.price
+                                    : `Rs. ${Number(deal.discountedPrice || 0).toLocaleString()}`,
+                                rawPrice: deal.rawPrice ?? deal.discountedPrice,
+                                oldPrice:
+                                  deal.oldPrice ||
+                                  (deal.originalPrice
+                                    ? `Rs. ${Number(deal.originalPrice).toLocaleString()}`
+                                    : ""),
+                                rawOldPrice: deal.rawOldPrice ?? deal.originalPrice,
+                                discount:
+                                  deal.discount ||
+                                  (deal.discountPercentage
+                                    ? `${deal.discountPercentage}% off`
+                                    : ""),
+                                discountPercentage: deal.discountPercentage || 0,
+                                location:
+                                  selectedMarker.address?.city ||
+                                  (typeof selectedMarker.address === "string"
+                                    ? selectedMarker.address
+                                    : "Colombo, Sri Lanka"),
                               })
                             }
                             className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-[#E8503A] px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-[#C23B26] transition shadow-xs cursor-pointer active:scale-95"

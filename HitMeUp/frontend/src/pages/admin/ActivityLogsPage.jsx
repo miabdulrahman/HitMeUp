@@ -103,6 +103,7 @@ export default function ActivityLogsPage() {
 
   const columns = [
     {
+      key: "timestamp",
       header: "Timestamp",
       className: "w-[170px]",
       render: (log) => (
@@ -117,6 +118,7 @@ export default function ActivityLogsPage() {
       )
     },
     {
+      key: "source",
       header: "Source",
       className: "w-[130px]",
       render: (log) => {
@@ -136,6 +138,7 @@ export default function ActivityLogsPage() {
       }
     },
     {
+      key: "action",
       header: "Action",
       className: "w-[170px]",
       render: (log) => (
@@ -145,6 +148,7 @@ export default function ActivityLogsPage() {
       )
     },
     {
+      key: "actor",
       header: "Actor",
       className: "w-[180px]",
       render: (log) => (
@@ -161,6 +165,7 @@ export default function ActivityLogsPage() {
       )
     },
     {
+      key: "target",
       header: "Target / Description",
       render: (log) => (
         <div className="min-w-0">
@@ -179,6 +184,7 @@ export default function ActivityLogsPage() {
       )
     },
     {
+      key: "actions",
       header: "",
       className: "w-[70px] text-right",
       render: (log) => (
@@ -301,7 +307,9 @@ export default function ActivityLogsPage() {
       {/* Main Table */}
       <DataTable
         columns={columns}
+        rows={logs}
         data={logs}
+        rowKey="id"
         loading={loading}
         keyExtractor={(item) => item.id || item._id}
         emptyTitle="No log entries found"
@@ -310,10 +318,12 @@ export default function ActivityLogsPage() {
             ? "No events match the active filter criteria."
             : "No audit or platform events recorded yet."
         }
-        page={page}
-        totalPages={totalPages}
-        total={total}
-        onPageChange={setPage}
+        pagination={{
+          page,
+          totalPages,
+          total,
+          onPageChange: setPage
+        }}
       />
 
       {/* Log Detail Drawer */}

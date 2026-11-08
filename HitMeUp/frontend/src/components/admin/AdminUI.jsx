@@ -480,9 +480,11 @@ export function ErrorState({
  * Reusable Enterprise DataTable with Sorting & Pagination
  */
 export function DataTable({
-  columns,
+  columns = [],
   rows,
+  data,
   rowKey = "_id",
+  keyExtractor,
   loading = false,
   skeletonRows = 6,
   sortBy,
@@ -492,19 +494,32 @@ export function DataTable({
   emptyTitle,
   emptyDescription,
   onResetFilters,
-  pagination
+  pagination,
+  page,
+  totalPages,
+  total,
+  onPageChange
 }) {
+  const tableRows = Array.isArray(rows) ? rows : Array.isArray(data) ? data : [];
+  const safeColumns = Array.isArray(columns) ? columns : [];
+  const activePagination =
+    pagination ||
+    (totalPages !== undefined && page !== undefined
+      ? { page, totalPages, total: total ?? 0, onPageChange }
+      : null);
+
   return (
     <div className="overflow-hidden rounded-[10px] border border-[#E5E7EB] bg-white">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
-              {columns.map((col) => {
+              {safeColumns.map((col, colIdx) => {
+                const colKey = col.key || col.header || `col-${colIdx}`;
                 const isSorted = sortBy === col.key;
                 return (
                   <th
-                    key={col.key}
+                    key={colKey}
                     scope="col"
                     className={`px-4 py-3 text-[12px] font-medium text-[#4B5563] whitespace-nowrap ${
                       col.align === "right" ? "text-right" : "text-left"
@@ -542,16 +557,16 @@ export function DataTable({
             {loading ? (
               Array.from({ length: skeletonRows }).map((_, idx) => (
                 <tr key={`sk-${idx}`}>
-                  {columns.map((col) => (
-                    <td key={col.key} className="px-4 py-3.5">
+                  {safeColumns.map((col, colIdx) => (
+                    <td key={col.key || `sk-cell-${colIdx}`} className="px-4 py-3.5">
                       <div className="h-4 w-3/4 animate-pulse rounded bg-[#F3F4F6]" />
                     </td>
                   ))}
                 </tr>
               ))
-            ) : rows.length === 0 ? (
+            ) : tableRows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length}>
+                <td colSpan={Math.max(1, safeColumns.length)}>
                   <EmptyState
                     title={emptyTitle}
                     description={emptyDescription}
@@ -561,45 +576,50 @@ export function DataTable({
                 </td>
               </tr>
             ) : (
-              rows.map((row, index) => (
-                <tr
-                  key={row[rowKey] || row.id || index}
-                  onClick={onRowClick ? () => onRowClick(row) : undefined}
-                  className={`transition-colors duration-100 ${
-                    onRowClick
-                      ? "hover:bg-[#F8FAFC] cursor-pointer"
-                      : "hover:bg-[#FAFAFA]"
-                  }`}
-                >
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className={`px-4 py-3 align-middle ${
-                        col.align === "right" ? "text-right" : "text-left"
-                      } ${col.cellClassName || ""}`}
-                      onClick={col.stopPropagation ? (e) => e.stopPropagation() : undefined}
-                    >
-                      {col.render ? col.render(row) : row[col.key] ?? "—"}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              tableRows.map((row, index) => {
+                const rowId = keyExtractor
+                  ? keyExtractor(row, index)
+                  : row[rowKey] || row.id || row._id || index;
+                return (
+                  <tr
+                    key={rowId}
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    className={`transition-colors duration-100 ${
+                      onRowClick
+                        ? "hover:bg-[#F8FAFC] cursor-pointer"
+                        : "hover:bg-[#FAFAFA]"
+                    }`}
+                  >
+                    {safeColumns.map((col, colIdx) => (
+                      <td
+                        key={col.key || `cell-${colIdx}`}
+                        className={`px-4 py-3 align-middle ${
+                          col.align === "right" ? "text-right" : "text-left"
+                        } ${col.cellClassName || ""}`}
+                        onClick={col.stopPropagation ? (e) => e.stopPropagation() : undefined}
+                      >
+                        {col.render ? col.render(row) : row[col.key] ?? "—"}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
 
-      {pagination && pagination.total > 0 && (
+      {activePagination && activePagination.total > 0 && (
         <div className="flex flex-col items-center justify-between gap-3 border-t border-[#E5E7EB] bg-[#F9FAFB] px-4 py-2.5 sm:flex-row">
           <p className="font-mono text-[12px] text-[#6B7280] tabular-nums">
-            Page {pagination.page} of {pagination.totalPages} · {pagination.total}{" "}
-            {pagination.total === 1 ? "record" : "records"}
+            Page {activePagination.page} of {activePagination.totalPages} · {activePagination.total}{" "}
+            {activePagination.total === 1 ? "record" : "records"}
           </p>
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              disabled={pagination.page <= 1 || loading}
-              onClick={() => pagination.onPageChange(pagination.page - 1)}
+              disabled={activePagination.page <= 1 || loading}
+              onClick={() => activePagination.onPageChange && activePagination.onPageChange(activePagination.page - 1)}
               className="inline-flex h-7 items-center gap-1 rounded-[6px] border border-[#D1D5DB] bg-white px-2.5 text-[12px] font-medium text-[#374151] transition-colors hover:bg-[#F3F4F6] disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer"
             >
               <ChevronLeft size={14} strokeWidth={1.5} />
@@ -607,8 +627,8 @@ export function DataTable({
             </button>
             <button
               type="button"
-              disabled={pagination.page >= pagination.totalPages || loading}
-              onClick={() => pagination.onPageChange(pagination.page + 1)}
+              disabled={activePagination.page >= activePagination.totalPages || loading}
+              onClick={() => activePagination.onPageChange && activePagination.onPageChange(activePagination.page + 1)}
               className="inline-flex h-7 items-center gap-1 rounded-[6px] border border-[#D1D5DB] bg-white px-2.5 text-[12px] font-medium text-[#374151] transition-colors hover:bg-[#F3F4F6] disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer"
             >
               <span>Next</span>

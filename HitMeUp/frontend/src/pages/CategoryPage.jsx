@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Search,
@@ -42,6 +42,7 @@ function CategoryPage({ defaultView }) {
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const openedDealIdRef = useRef(null);
 
   // Parse viewMode from URL query (?view=map) or /map route or defaultView prop
   const initialView =
@@ -191,16 +192,27 @@ function CategoryPage({ defaultView }) {
     };
   }, [currentCategory, nearbyMode, userLocation, nearbyRadius, sortBy]);
 
-  // Auto-open deal modal if dealId is provided in URL query (?dealId=...)
+  // Auto-open deal modal if dealId is provided in URL query (?dealId=... or ?deal=... or ?id=...)
   useEffect(() => {
-    const targetDealId = searchParams.get("dealId");
-    if (!targetDealId) return;
+    const targetDealId =
+      searchParams.get("dealId") ||
+      searchParams.get("deal") ||
+      searchParams.get("id");
+    if (!targetDealId) {
+      openedDealIdRef.current = null;
+      return;
+    }
+
+    if (openedDealIdRef.current === targetDealId) {
+      return;
+    }
 
     if (dealsList.length > 0) {
       const match = dealsList.find(
         (d) => String(d.id || d._id) === String(targetDealId)
       );
       if (match) {
+        openedDealIdRef.current = targetDealId;
         setSelectedDeal(match);
         setModalOpen(true);
         return;
@@ -211,11 +223,44 @@ function CategoryPage({ defaultView }) {
       .getDealDetails(targetDealId)
       .then((res) => {
         if (res.deal) {
-          setSelectedDeal(res.deal);
+          const raw = res.deal;
+          const formatted = {
+            ...raw,
+            id: raw._id || raw.id,
+            _id: raw._id || raw.id,
+            title: raw.title,
+            description: raw.description,
+            business:
+              raw.businessId?.name || raw.businessName || "Local merchant",
+            businessId: raw.businessId,
+            category: raw.category || "Flash deal",
+            price: `Rs. ${Number(raw.discountedPrice || 0).toLocaleString()}`,
+            rawPrice: raw.discountedPrice,
+            oldPrice: raw.originalPrice
+              ? `Rs. ${Number(raw.originalPrice).toLocaleString()}`
+              : "",
+            rawOldPrice: raw.originalPrice,
+            discount: `${raw.discountPercentage || 0}% off`,
+            discountPercentage: raw.discountPercentage || 0,
+            image:
+              raw.imageUrl ||
+              raw.image ||
+              "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+            location:
+              raw.businessId?.address?.city ||
+              raw.businessId?.address?.street ||
+              "Sri Lanka",
+            availableQuantity: raw.availableQuantity,
+            vouchersLeft: raw.availableQuantity,
+          };
+          openedDealIdRef.current = targetDealId;
+          setSelectedDeal(formatted);
           setModalOpen(true);
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("Could not fetch target deal details:", err);
+      });
   }, [searchParams, dealsList]);
 
   const handleToggleNearby = () => {
@@ -630,7 +675,18 @@ function CategoryPage({ defaultView }) {
       <DealDetailModal
         deal={selectedDeal}
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          openedDealIdRef.current = null;
+          const nextParams = new URLSearchParams(location.search);
+          nextParams.delete("dealId");
+          nextParams.delete("deal");
+          nextParams.delete("id");
+          const nextQuery = nextParams.toString();
+          navigate(nextQuery ? `?${nextQuery}` : location.pathname, {
+            replace: true,
+          });
+        }}
       />
     </div>
   );

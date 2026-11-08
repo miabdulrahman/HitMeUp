@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
-const JWT_SECRET = process.env.JWT_SECRET || "hitmeup_jwt_development_secret_2026";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 /**
  * Protect middleware:

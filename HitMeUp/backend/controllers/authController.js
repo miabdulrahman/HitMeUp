@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Business = require("../models/Business");
@@ -63,13 +64,13 @@ const sendOtp = async (req, res) => {
       });
     }
 
-    // Generate random 6-digit code
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    // Generate an unpredictable 6-digit code.
+    const otp = String(crypto.randomInt(100000, 1000000));
 
     // Store or update in EmailOtp collection
     await EmailOtp.findOneAndUpdate(
       { email: normalizedEmail, purpose },
-      { otp, verified: false, createdAt: new Date() },
+      { otp, verified: false, attempts: 0, createdAt: new Date() },
       { upsert: true, returnDocument: "after" }
     );
 
@@ -83,11 +84,7 @@ const sendOtp = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: `A 6-digit verification code has been sent to ${normalizedEmail}`,
-      ...(emailResult?.provider === "console" && {
-        simulated: true,
-        debugOtp: otp
-      }),
-      ...(process.env.NODE_ENV !== "production" && { debugOtp: otp })
+      ...(emailResult?.provider === "console" && { simulated: true })
     });
   } catch (error) {
     console.error("Send OTP Error:", error);
@@ -116,20 +113,37 @@ const verifyOtp = async (req, res) => {
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    const otpRecord = await EmailOtp.findOne({
-      email: normalizedEmail,
-      purpose
-    });
+    const cleanOtp = String(otp).trim();
+    const otpRecord = await EmailOtp.findOneAndUpdate(
+      {
+        email: normalizedEmail,
+        purpose,
+        otp: cleanOtp,
+        verified: false,
+        attempts: { $lt: 5 },
+        createdAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) }
+      },
+      { $set: { verified: true } },
+      { returnDocument: "after" }
+    );
 
-    if (!otpRecord || otpRecord.otp !== String(otp).trim()) {
+    if (!otpRecord) {
+      await EmailOtp.updateOne(
+        {
+          email: normalizedEmail,
+          purpose,
+          verified: false,
+          attempts: { $lt: 5 },
+          otp: { $ne: cleanOtp },
+          createdAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) }
+        },
+        { $inc: { attempts: 1 } }
+      );
       return res.status(400).json({
         success: false,
         message: "Invalid or expired verification code. Please request a new one."
       });
     }
-
-    otpRecord.verified = true;
-    await otpRecord.save();
 
     return res.status(200).json({
       success: true,
@@ -169,12 +183,26 @@ const resetPassword = async (req, res) => {
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    const otpRecord = await EmailOtp.findOne({
+    const cleanOtp = String(otp).trim();
+    const otpRecord = await EmailOtp.findOneAndDelete({
       email: normalizedEmail,
-      purpose: "forgot_password"
+      purpose: "forgot_password",
+      otp: cleanOtp,
+      attempts: { $lt: 5 },
+      createdAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) }
     });
 
-    if (!otpRecord || otpRecord.otp !== String(otp).trim()) {
+    if (!otpRecord) {
+      await EmailOtp.updateOne(
+        {
+          email: normalizedEmail,
+          purpose: "forgot_password",
+          attempts: { $lt: 5 },
+          otp: { $ne: cleanOtp },
+          createdAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) }
+        },
+        { $inc: { attempts: 1 } }
+      );
       return res.status(400).json({
         success: false,
         message: "Invalid or expired verification code. Please request a new one."
@@ -191,9 +219,6 @@ const resetPassword = async (req, res) => {
 
     user.password = newPassword;
     await user.save();
-
-    // Clean up used OTP
-    await EmailOtp.deleteOne({ _id: otpRecord._id });
 
     return res.status(200).json({
       success: true,
@@ -277,7 +302,8 @@ const register = async (req, res) => {
 
     const otpRecord = await EmailOtp.findOne({
       email: normalizedEmail,
-      purpose: "register"
+      purpose: "register",
+      createdAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) }
     });
     if (
       !otpRecord ||

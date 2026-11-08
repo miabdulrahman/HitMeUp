@@ -10,18 +10,25 @@ const {
   resetPassword
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
+const {
+  loginRateLimit,
+  registerRateLimit,
+  otpSendRateLimit,
+  otpVerifyRateLimit,
+  passwordResetRateLimit
+} = require("../middleware/authRateLimit");
 
 const { googleLogin } = require("../controllers/googleAuthController");
 
 const router = express.Router();
 
 // Public Authentication & OTP Endpoints
-router.post("/register", register);
-router.post("/login", login);
-router.post("/google", googleLogin);
-router.post("/send-otp", sendOtp);
-router.post("/verify-otp", verifyOtp);
-router.post("/reset-password", resetPassword);
+router.post("/register", registerRateLimit, register);
+router.post("/login", loginRateLimit, login);
+router.post("/google", loginRateLimit, googleLogin);
+router.post("/send-otp", otpSendRateLimit, sendOtp);
+router.post("/verify-otp", otpVerifyRateLimit, verifyOtp);
+router.post("/reset-password", passwordResetRateLimit, resetPassword);
 
 // Protected routes (any authenticated user: customer, business, admin)
 router.get("/me", protect, getMe);

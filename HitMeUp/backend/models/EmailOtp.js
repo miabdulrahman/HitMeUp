@@ -22,6 +22,11 @@ const emailOtpSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    attempts: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
     createdAt: {
       type: Date,
       default: Date.now,

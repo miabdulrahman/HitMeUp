@@ -475,7 +475,7 @@ const CustomerDashboard = () => {
       )}
 
       {/* Desktop Left Sidebar (240px aligned navigation) */}
-      <aside className="hidden w-60 shrink-0 flex-col justify-between border-r border-[#E4E4E7] bg-[#F4F4F5] p-4 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col justify-between border-r border-[#E4E4E7] bg-[#F4F4F5] p-4 md:flex overflow-y-auto">
         <div>
           {/* Brand header */}
           <div className="mb-6 flex items-center justify-between px-2 pt-1">
@@ -666,12 +666,12 @@ const CustomerDashboard = () => {
 
             <button
               onClick={handleLogout}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-2.5 text-[12px] font-medium text-[#B91C1C] hover:bg-[#B91C1C]/10 transition-colors md:hidden cursor-pointer shrink-0"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-2.5 text-[12px] font-medium text-[#B91C1C] hover:bg-[#B91C1C]/10 transition-colors cursor-pointer shrink-0"
               title="Sign out"
               aria-label="Sign out"
             >
               <LogOut size={15} strokeWidth={1.75} />
-              <span>Logout</span>
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
         </header>

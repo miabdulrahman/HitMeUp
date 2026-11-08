@@ -17,9 +17,13 @@ import {
   Compass,
   Maximize2,
   Minimize2,
-  Tag
+  Tag,
+  Ticket,
+  Star,
+  Eye
 } from "lucide-react";
-import { discoveryApi } from "../services/api";
+import { discoveryApi, dealApi } from "../services/api";
+import SellerProfileModal from "./SellerProfileModal";
 
 // Google & OpenStreetMap Map Tiles
 const TILE_LAYERS = {
@@ -171,6 +175,41 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
   const [locating, setLocating] = useState(false);
   const [mapType, setMapType] = useState("m"); // 'm' for Roadmap, 'k' for Satellite, 'osm' for OpenStreetMap
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedSellerForProfile, setSelectedSellerForProfile] = useState(null);
+  const [sellerDeals, setSellerDeals] = useState([]);
+  const [loadingSellerDeals, setLoadingSellerDeals] = useState(false);
+
+  // Auto-fetch all active deals for the selected marker
+  useEffect(() => {
+    if (!selectedMarker?.id) {
+      setSellerDeals([]);
+      return;
+    }
+    let isMounted = true;
+    setLoadingSellerDeals(true);
+    dealApi
+      .getDealsByBusiness(selectedMarker.id)
+      .then((res) => {
+        if (!isMounted) return;
+        const list = res.deals || res.data || [];
+        setSellerDeals(list);
+      })
+      .catch(() => {
+        if (isMounted) setSellerDeals(selectedMarker.deals || []);
+      })
+      .finally(() => {
+        if (isMounted) setLoadingSellerDeals(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedMarker?.id]);
+
+  const displayDeals =
+    sellerDeals.length > 0
+      ? sellerDeals
+      : selectedMarker?.deals || [];
 
   // Fetch Markers from Backend API
   const fetchMarkers = useCallback(async () => {
@@ -635,101 +674,174 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
         {selectedMarker ? (
           <div className="flex flex-col h-full">
             <div>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <span className="inline-block rounded-md bg-gray-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#E8503A]">
-                    {selectedMarker.category || "Verified Merchant"}
-                  </span>
-                  <h4 className="mt-1 text-lg font-black text-gray-900 flex items-center gap-1.5">
-                    <span>{selectedMarker.name}</span>
-                    {selectedMarker.isVerified && (
-                      <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+              {/* Seller Cover Image Header */}
+              <div className="relative h-28 w-full overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-200 mb-3 shadow-xs">
+                <img
+                  src={
+                    selectedMarker.coverImageUrl ||
+                    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80"
+                  }
+                  alt={selectedMarker.name}
+                  className="h-full w-full object-cover opacity-85"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+
+                {/* Store Avatar Logo overlay */}
+                <div className="absolute bottom-2.5 left-3 flex items-center gap-2.5">
+                  <div className="h-11 w-11 rounded-xl bg-white p-0.5 shadow-md shrink-0 overflow-hidden border border-white/80">
+                    {selectedMarker.logoUrl ? (
+                      <img
+                        src={selectedMarker.logoUrl}
+                        alt={selectedMarker.name}
+                        className="h-full w-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-[#E8503A]/10 font-bold text-[#E8503A] text-sm">
+                        {selectedMarker.name?.[0]?.toUpperCase() || "S"}
+                      </div>
                     )}
-                  </h4>
-                  <p className="mt-1 text-xs text-gray-500 flex items-center gap-1">
-                    <MapPin size={12} className="text-gray-400 shrink-0" />
-                    <span>
-                      {selectedMarker.address?.city || "Colombo"}, {selectedMarker.address?.street || "Sri Lanka"}
+                  </div>
+                  <div className="text-white min-w-0 pr-2">
+                    <span className="block text-[10px] font-bold text-gray-300 uppercase tracking-wider">
+                      {selectedMarker.category || "Store"}
                     </span>
-                  </p>
-                  {selectedMarker.phone && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                      <Phone size={12} className="text-gray-400 shrink-0" />
-                      <span>{selectedMarker.phone}</span>
-                    </p>
-                  )}
+                    <h4 className="text-sm font-black text-white truncate flex items-center gap-1">
+                      <span>{selectedMarker.name}</span>
+                      {selectedMarker.isVerified && (
+                        <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                      )}
+                    </h4>
+                  </div>
                 </div>
               </div>
 
+              {/* View Seller Profile & Reviews Button */}
+              <button
+                type="button"
+                onClick={() => setSelectedSellerForProfile(selectedMarker)}
+                className="w-full flex items-center justify-between rounded-xl bg-[#172026] text-white px-3.5 py-2.5 text-xs font-bold hover:bg-[#E8503A] transition shadow-xs cursor-pointer group"
+              >
+                <div className="flex items-center gap-2">
+                  <Store size={14} className="text-[#E8503A] group-hover:text-white transition" />
+                  <span>View Seller Profile &amp; All Reviews</span>
+                </div>
+                <ArrowRight size={14} className="group-hover:translate-x-0.5 transition" />
+              </button>
+
+              <div className="mt-3 flex items-center justify-between text-xs text-gray-500 px-0.5">
+                <span className="flex items-center gap-1 text-gray-600 truncate max-w-[210px]">
+                  <MapPin size={12} className="text-gray-400 shrink-0" />
+                  <span>{selectedMarker.address?.city || "Colombo"}, Sri Lanka</span>
+                </span>
+                {selectedMarker.phone && (
+                  <a
+                    href={`tel:${selectedMarker.phone}`}
+                    className="flex items-center gap-1 text-[#E8503A] font-bold hover:underline"
+                  >
+                    <Phone size={11} />
+                    <span>Call</span>
+                  </a>
+                )}
+              </div>
+
               {/* Active Deals on this merchant */}
-              <div className="mt-5">
-                <div className="flex items-center justify-between mb-2.5">
-                  <h5 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h5 className="text-xs font-black uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
                     <Tag size={12} className="text-[#E8503A]" />
-                    <span>Available Flash Deals ({selectedMarker.deals?.length || 0})</span>
+                    <span>Available Flash Deals ({displayDeals.length})</span>
                   </h5>
                   <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                     Live Offers
                   </span>
                 </div>
 
-                <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
-                  {(selectedMarker.deals || []).length === 0 ? (
+                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                  {loadingSellerDeals && displayDeals.length === 0 ? (
+                    <div className="p-4 rounded-xl bg-gray-50 text-center text-xs text-gray-500">
+                      Loading store deals...
+                    </div>
+                  ) : displayDeals.length === 0 ? (
                     <div className="p-4 rounded-xl bg-gray-50 text-center text-xs text-gray-500">
                       No active deals currently for this location.
                     </div>
                   ) : (
-                    (selectedMarker.deals || []).map((deal) => (
-                      <div
-                        key={deal._id || deal.title}
-                        onClick={() => onSelectDeal && onSelectDeal(deal)}
-                        className="group/item flex items-center justify-between gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50/70 hover:bg-[#FFF0ED] hover:border-[#E8503A]/30 transition cursor-pointer shadow-2xs"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-gray-900 group-hover/item:text-[#E8503A] truncate">
-                            {deal.title}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs font-black text-[#E8503A]">
-                              Rs. {deal.discountedPrice?.toLocaleString() || "0"}
-                            </span>
-                            <span className="rounded-md bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-800">
-                              {deal.discountPercentage}% OFF
-                            </span>
+                    displayDeals.map((deal) => {
+                      const dealImg =
+                        deal.imageUrl ||
+                        deal.image ||
+                        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80";
+
+                      return (
+                        <div
+                          key={deal._id || deal.title}
+                          className="group/item flex items-center gap-3 p-2.5 rounded-xl border border-gray-200/80 bg-white hover:border-[#E8503A]/40 hover:bg-[#FFF0ED]/40 transition shadow-2xs"
+                        >
+                          <img
+                            src={dealImg}
+                            alt={deal.title}
+                            className="h-14 w-14 rounded-lg object-cover shrink-0 border border-gray-100"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-gray-900 group-hover/item:text-[#E8503A] truncate">
+                              {deal.title}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs font-black text-[#E8503A]">
+                                Rs. {Number(deal.discountedPrice || 0).toLocaleString()}
+                              </span>
+                              {deal.originalPrice && (
+                                <span className="text-[10px] text-gray-400 line-through">
+                                  Rs. {Number(deal.originalPrice).toLocaleString()}
+                                </span>
+                              )}
+                              <span className="rounded-md bg-emerald-100 px-1.5 py-0.2 text-[9px] font-bold text-emerald-800">
+                                {deal.discountPercentage}% OFF
+                              </span>
+                            </div>
                           </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onSelectDeal &&
+                              onSelectDeal({
+                                ...deal,
+                                business: selectedMarker.name,
+                                businessId: selectedMarker.id,
+                                image: dealImg,
+                                price: `Rs. ${Number(deal.discountedPrice || 0).toLocaleString()}`,
+                                oldPrice: deal.originalPrice
+                                  ? `Rs. ${Number(deal.originalPrice).toLocaleString()}`
+                                  : "",
+                                discount: `${deal.discountPercentage || 0}% off`,
+                              })
+                            }
+                            className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-[#E8503A] px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-[#C23B26] transition shadow-xs cursor-pointer active:scale-95"
+                          >
+                            <Ticket size={12} strokeWidth={2} />
+                            <span>Claim</span>
+                          </button>
                         </div>
-                        <ArrowRight size={14} className="text-gray-400 group-hover/item:text-[#E8503A] group-hover/item:translate-x-0.5 transition" />
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
             </div>
 
             {/* Direct Directions / Google Maps Action Button */}
-            <div className="mt-6 pt-4 border-t border-gray-100 space-y-2">
+            <div className="mt-4 pt-3 border-t border-gray-100 space-y-2">
               <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${selectedMarker.latitude || 6.9271},${selectedMarker.longitude || 79.8612}&destination_place_id=${encodeURIComponent(
                   selectedMarker.name
                 )}`}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#172026] text-white py-2.5 text-xs font-bold hover:bg-[#E8503A] transition shadow-sm"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#172026] text-white py-2 text-xs font-bold hover:bg-[#E8503A] transition shadow-sm"
               >
                 <Compass size={14} />
                 <span>Get Directions on Google Maps</span>
-              </a>
-
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  `${selectedMarker.name} ${selectedMarker.address?.city || "Colombo"}`
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 transition"
-              >
-                <ExternalLink size={13} />
-                <span>Open Store on Google Maps</span>
               </a>
             </div>
           </div>
@@ -740,6 +852,18 @@ function MapDiscoveryView({ onSelectDeal, fullView = false }) {
           </div>
         )}
       </div>
+
+      {/* Seller Profile & Reviews Modal */}
+      <SellerProfileModal
+        businessId={selectedSellerForProfile?.id}
+        initialData={selectedSellerForProfile}
+        isOpen={Boolean(selectedSellerForProfile)}
+        onClose={() => setSelectedSellerForProfile(null)}
+        onSelectDeal={(deal) => {
+          setSelectedSellerForProfile(null);
+          if (onSelectDeal) onSelectDeal(deal);
+        }}
+      />
     </div>
   );
 }

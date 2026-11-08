@@ -574,7 +574,11 @@ const getDealsByBusiness = async (req, res) => {
     const deals = await Deal.find({
       businessId: req.params.businessId,
       status: "active",
-      endDate: { $gt: new Date() }
+      $or: [
+        { endDate: { $gt: new Date() } },
+        { endDate: null },
+        { endDate: { $exists: false } }
+      ]
     }).sort({ createdAt: -1 });
 
     return res.status(200).json({

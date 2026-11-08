@@ -522,7 +522,11 @@ exports.getMapBusinesses = async (req, res) => {
 
     const dealQuery = {
       status: "active",
-      endDate: { $gt: now },
+      $or: [
+        { endDate: { $gt: now } },
+        { endDate: null },
+        { endDate: { $exists: false } }
+      ],
       businessId: { $in: activeApprovedBusinessIds }
     };
 
@@ -532,7 +536,7 @@ exports.getMapBusinesses = async (req, res) => {
     }
 
     const activeDeals = await Deal.find(dealQuery)
-      .select("title discountedPrice discountPercentage category businessId imageUrl")
+      .select("title discountedPrice discountPercentage category businessId imageUrl originalPrice availableQuantity endDate durationHours")
       .lean();
 
     // Group deals by businessId
@@ -561,7 +565,7 @@ exports.getMapBusinesses = async (req, res) => {
     }
 
     const businesses = await Business.find(businessQuery)
-      .select("name category address location phone logoUrl isVerified")
+      .select("name category address location phone email logoUrl coverImageUrl openingHours description isVerified")
       .lean();
 
     // Map markers payload with proximity calculations if coordinates are provided
@@ -592,11 +596,15 @@ exports.getMapBusinesses = async (req, res) => {
         longitude: bLng,
         latitude: bLat,
         phone: business.phone,
-        logoUrl: business.logoUrl,
+        email: business.email || "",
+        logoUrl: business.logoUrl || "",
+        coverImageUrl: business.coverImageUrl || "",
+        description: business.description || "",
+        openingHours: business.openingHours || "09:00 AM - 09:00 PM",
         isVerified: business.isVerified,
         activeDealsCount: deals.length,
         topDeal: deals[0] || null,
-        deals: deals.slice(0, 5),
+        deals: deals.slice(0, 10),
         distanceKm,
         distanceText: distanceKm !== null ? `${distanceKm} km away` : null,
         isNearby
@@ -884,7 +892,8 @@ exports.getBusinessReviews = async (req, res) => {
 
     const [reviews, total] = await Promise.all([
       Review.find({ businessId })
-        .populate("userId", "name")
+        .populate("userId", "name avatar")
+        .populate("dealId", "title")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)

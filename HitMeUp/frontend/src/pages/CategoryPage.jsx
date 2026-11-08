@@ -11,6 +11,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import DealCard from "../components/DealCard";
 import DealDetailModal from "../components/DealDetailModal";
+import SellerProfileModal from "../components/SellerProfileModal";
 import MapDiscoveryView from "../components/MapDiscoveryView";
 import { categories, normalizeCategory, getCategorySlug } from "../data/categories";
 import { discoveryApi } from "../services/api";
@@ -191,9 +192,12 @@ function CategoryPage({ defaultView }) {
     };
   }, [currentCategory, nearbyMode, userLocation, nearbyRadius, sortBy]);
 
-  // Auto-open deal modal if dealId is provided in URL query (?dealId=...)
+  // Auto-open deal modal if dealId is provided in URL query (?dealId=... or ?deal=... or ?id=...)
   useEffect(() => {
-    const targetDealId = searchParams.get("dealId");
+    const targetDealId =
+      searchParams.get("dealId") ||
+      searchParams.get("deal") ||
+      searchParams.get("id");
     if (!targetDealId) return;
 
     if (dealsList.length > 0) {
@@ -309,9 +313,88 @@ function CategoryPage({ defaultView }) {
       });
   }, [dealsList, activeSlug, searchQuery, sortBy, currentCategory]);
 
+  const [profileModalBusinessId, setProfileModalBusinessId] = useState(null);
+
   const handleOpenDeal = (deal) => {
-    setSelectedDeal(deal);
+    if (!deal) return;
+    const dealId = deal._id || deal.id;
+
+    // Immediately format and display the modal
+    const formatted = {
+      ...deal,
+      id: dealId,
+      _id: dealId,
+      title: deal.title,
+      description: deal.description || "",
+      business:
+        typeof deal.business === "string"
+          ? deal.business
+          : deal.businessId?.name || deal.businessName || "Local merchant",
+      businessId: deal.businessId,
+      price:
+        typeof deal.price === "string"
+          ? deal.price
+          : `Rs. ${Number(deal.discountedPrice || 0).toLocaleString()}`,
+      rawPrice: deal.rawPrice ?? deal.discountedPrice,
+      oldPrice:
+        deal.oldPrice ||
+        (deal.originalPrice
+          ? `Rs. ${Number(deal.originalPrice).toLocaleString()}`
+          : ""),
+      rawOldPrice: deal.rawOldPrice ?? deal.originalPrice,
+      discount:
+        deal.discount ||
+        (deal.discountPercentage ? `${deal.discountPercentage}% off` : ""),
+      image:
+        deal.image ||
+        deal.imageUrl ||
+        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+      location:
+        deal.location ||
+        deal.businessId?.address?.city ||
+        deal.businessId?.address?.street ||
+        "Sri Lanka",
+      availableQuantity: deal.availableQuantity,
+      vouchersLeft: deal.availableQuantity,
+    };
+    setSelectedDeal(formatted);
     setModalOpen(true);
+
+    // Fetch complete deal details from API in parallel to enrich terms and reviews
+    if (dealId) {
+      discoveryApi
+        .getDealDetails(dealId)
+        .then((res) => {
+          if (res.deal) {
+            const raw = res.deal;
+            setSelectedDeal((prev) => ({
+              ...prev,
+              ...raw,
+              id: raw._id || raw.id,
+              _id: raw._id || raw.id,
+              business:
+                raw.businessId?.name ||
+                raw.businessName ||
+                prev?.business ||
+                "Local merchant",
+              businessId: raw.businessId,
+              price: `Rs. ${Number(raw.discountedPrice || 0).toLocaleString()}`,
+              rawPrice: raw.discountedPrice,
+              oldPrice: raw.originalPrice
+                ? `Rs. ${Number(raw.originalPrice).toLocaleString()}`
+                : "",
+              rawOldPrice: raw.originalPrice,
+              discount: `${raw.discountPercentage || 0}% off`,
+              image: raw.imageUrl || raw.image || prev?.image,
+              availableQuantity: raw.availableQuantity,
+              vouchersLeft: raw.availableQuantity,
+              terms: raw.terms,
+              description: raw.description,
+            }));
+          }
+        })
+        .catch(() => {});
+    }
   };
 
   const IconComponent = currentCategory ? currentCategory.icon : LayoutGrid;
@@ -630,7 +713,29 @@ function CategoryPage({ defaultView }) {
       <DealDetailModal
         deal={selectedDeal}
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          openedDealIdRef.current = null;
+          const nextParams = new URLSearchParams(location.search);
+          nextParams.delete("dealId");
+          nextParams.delete("deal");
+          nextParams.delete("id");
+          const nextQuery = nextParams.toString();
+          navigate(nextQuery ? `?${nextQuery}` : location.pathname, {
+            replace: true,
+          });
+        }}
+        onOpenSellerProfile={(bizId) => {
+          setModalOpen(false);
+          setProfileModalBusinessId(bizId);
+        }}
+      />
+
+      <SellerProfileModal
+        businessId={profileModalBusinessId}
+        isOpen={Boolean(profileModalBusinessId)}
+        onClose={() => setProfileModalBusinessId(null)}
+        onSelectDeal={handleOpenDeal}
       />
     </div>
   );

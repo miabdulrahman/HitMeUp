@@ -14,6 +14,7 @@ import {
   AlertCircle,
   QrCode,
   CreditCard,
+  Store,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
@@ -21,7 +22,7 @@ import { voucherApi, orderApi } from "../services/api";
 import DealReviewsSection from "./DealReviewsSection";
 import { calculateDealTimer } from "../utils/dealTimer";
 
-function DealDetailModal({ deal, isOpen, onClose }) {
+function DealDetailModal({ deal, isOpen, onClose, onOpenSellerProfile }) {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [copied, setCopied] = useState(false);
@@ -149,8 +150,41 @@ function DealDetailModal({ deal, isOpen, onClose }) {
     }
   };
 
+  const displayImage =
+    deal.image ||
+    deal.imageUrl ||
+    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80";
+  const displayBusiness =
+    typeof deal.business === "string"
+      ? deal.business
+      : deal.businessId?.name || deal.businessName || "Local merchant";
+  const displayPrice =
+    deal.price ||
+    (deal.discountedPrice !== undefined
+      ? `Rs. ${Number(deal.discountedPrice).toLocaleString()}`
+      : "");
+  const displayOldPrice =
+    deal.oldPrice ||
+    (deal.originalPrice !== undefined
+      ? `Rs. ${Number(deal.originalPrice).toLocaleString()}`
+      : "");
+  const displayDiscount =
+    deal.discount ||
+    (deal.discountPercentage !== undefined
+      ? `${deal.discountPercentage}% off`
+      : "");
+  const rawDiscounted =
+    deal.rawPrice !== undefined ? deal.rawPrice : deal.discountedPrice;
+  const rawOriginal =
+    deal.rawOldPrice !== undefined ? deal.rawOldPrice : deal.originalPrice;
   const savings =
-    deal.rawOldPrice && deal.rawPrice ? deal.rawOldPrice - deal.rawPrice : null;
+    rawOriginal && rawDiscounted ? rawOriginal - rawDiscounted : null;
+  const displayLocation =
+    deal.location ||
+    deal.businessId?.address?.city ||
+    deal.businessId?.address?.street ||
+    deal.distance ||
+    "Sri Lanka";
 
   const isSoldOut = currentStock <= 0;
 
@@ -181,7 +215,7 @@ function DealDetailModal({ deal, isOpen, onClose }) {
           {/* Header Image Cover */}
           <div className="relative h-60 w-full overflow-hidden border-b border-[#E6E0D6] bg-[#1F1B16] sm:h-68">
             <img
-              src={deal.image}
+              src={displayImage}
               alt={deal.title}
               className={`h-full w-full object-cover transition-all ${timer.isExpired ? "grayscale-50 contrast-85 opacity-70" : "opacity-90"
                 }`}
@@ -191,7 +225,7 @@ function DealDetailModal({ deal, isOpen, onClose }) {
             {/* Top tags */}
             <div className="absolute left-5 top-5 flex items-center gap-2">
               <span className="inline-flex items-center rounded-md bg-[#D94832] px-2.5 py-1 font-mono text-[12px] font-medium text-white tabular-nums">
-                {deal.discount}
+                {displayDiscount}
               </span>
               {deal.category && (
                 <span className="rounded-md bg-[#1F1B16]/80 px-2.5 py-1 text-[12px] font-normal text-[#FDFBF7]">
@@ -208,7 +242,16 @@ function DealDetailModal({ deal, isOpen, onClose }) {
             {/* Bottom merchant & title */}
             <div className="absolute bottom-5 left-5 right-5 text-[#FDFBF7]">
               <div className="flex flex-wrap items-center gap-2 text-[12px] font-medium text-[#EFE9DF]">
-                <span>{deal.business}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const bId = deal.businessId?._id || deal.businessId;
+                    if (onOpenSellerProfile && bId) onOpenSellerProfile(bId);
+                  }}
+                  className="hover:underline hover:text-white transition-colors cursor-pointer text-left font-medium"
+                >
+                  <span>{displayBusiness}</span>
+                </button>
                 <span className="inline-flex items-center gap-1 rounded-[5px] border border-white/20 bg-white/10 px-2 py-0.5 text-[11px] text-[#FDFBF7]">
                   <ShieldCheck size={12} strokeWidth={1.5} />
                   <span>Verified merchant</span>
@@ -236,11 +279,11 @@ function DealDetailModal({ deal, isOpen, onClose }) {
             <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[#E6E0D6] bg-[#F7F4EE] p-4">
               <div className="flex items-baseline gap-2.5 font-mono tabular-nums">
                 <span className="text-[26px] font-medium text-[#1F1B16]">
-                  {deal.price}
+                  {displayPrice}
                 </span>
-                {deal.oldPrice && (
+                {displayOldPrice && (
                   <span className="text-[14px] text-[#7B7266] line-through">
-                    {deal.oldPrice}
+                    {displayOldPrice}
                   </span>
                 )}
                 {savings && !timer.isExpired && (
@@ -369,13 +412,21 @@ function DealDetailModal({ deal, isOpen, onClose }) {
             <div className="rounded-xl border border-[#E6E0D6] bg-[#F7F4EE] p-4.5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h4 className="text-[14px] font-medium text-[#1F1B16]">
-                    {deal.business}
-                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const bId = deal.businessId?._id || deal.businessId;
+                      if (onOpenSellerProfile && bId) onOpenSellerProfile(bId);
+                    }}
+                    className="text-[14px] font-medium text-[#1F1B16] hover:text-[#D94832] hover:underline transition-colors text-left cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>{displayBusiness}</span>
+                    <Store size={13} className="text-[#D94832]" />
+                  </button>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#5E554A]">
                     <span className="inline-flex items-center gap-1">
                       <MapPin size={13} strokeWidth={1.5} className="text-[#7B7266]" />
-                      <span>{deal.location || deal.distance || "Sri Lanka"}</span>
+                      <span>{displayLocation}</span>
                     </span>
                     {deal.distanceText && (
                       <span className="text-[#7B7266]">· {deal.distanceText}</span>
@@ -396,6 +447,20 @@ function DealDetailModal({ deal, isOpen, onClose }) {
                   <span>{deal.terms}</span>
                 </div>
               )}
+
+              <div className="mt-3 border-t border-[#E6E0D6] pt-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const bId = deal.businessId?._id || deal.businessId;
+                    if (onOpenSellerProfile && bId) onOpenSellerProfile(bId);
+                  }}
+                  className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#D94832] hover:underline cursor-pointer"
+                >
+                  <Store size={13} strokeWidth={1.5} />
+                  <span>View Seller Profile &amp; All Customer Reviews &rarr;</span>
+                </button>
+              </div>
             </div>
 
             {/* Deal Description */}

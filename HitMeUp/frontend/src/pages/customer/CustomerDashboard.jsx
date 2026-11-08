@@ -37,6 +37,7 @@ import {
 } from "../../services/api";
 import { convertToWebP } from "../../utils/imageOptimizer";
 import AICommandCenter from "../../components/AICommandCenter";
+import DealDetailModal from "../../components/DealDetailModal";
 
 const CustomerDashboard = () => {
   const navigate = useNavigate();
@@ -65,6 +66,7 @@ const CustomerDashboard = () => {
   const [voucherSearch, setVoucherSearch] = useState("");
   const [copiedCode, setCopiedCode] = useState(null);
   const [selectedVoucherForQR, setSelectedVoucherForQR] = useState(null);
+  const [selectedDealForModal, setSelectedDealForModal] = useState(null);
 
   const [reviewModalVoucher, setReviewModalVoucher] = useState(null);
   const [reviewRating, setReviewRating] = useState(5);
@@ -320,6 +322,50 @@ const CustomerDashboard = () => {
     } finally {
       setPasswordUpdating(false);
     }
+  };
+
+  const handleOpenDealModal = (deal) => {
+    if (!deal) return;
+    const formatted = {
+      ...deal,
+      id: deal._id || deal.id,
+      _id: deal._id || deal.id,
+      title: deal.title,
+      description: deal.description,
+      business:
+        typeof deal.business === "string"
+          ? deal.business
+          : deal.businessId?.name || deal.businessName || "Local merchant",
+      businessId: deal.businessId,
+      category: deal.category || "Flash deal",
+      price:
+        typeof deal.price === "string"
+          ? deal.price
+          : `Rs. ${Number(deal.discountedPrice || 0).toLocaleString()}`,
+      rawPrice: deal.rawPrice ?? deal.discountedPrice,
+      oldPrice:
+        deal.oldPrice ||
+        (deal.originalPrice
+          ? `Rs. ${Number(deal.originalPrice).toLocaleString()}`
+          : ""),
+      rawOldPrice: deal.rawOldPrice ?? deal.originalPrice,
+      discount:
+        deal.discount ||
+        (deal.discountPercentage ? `${deal.discountPercentage}% off` : ""),
+      discountPercentage: deal.discountPercentage || 0,
+      image:
+        deal.image ||
+        deal.imageUrl ||
+        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+      location:
+        deal.location ||
+        deal.businessId?.address?.city ||
+        deal.businessId?.address?.street ||
+        "Sri Lanka",
+      availableQuantity: deal.availableQuantity,
+      vouchersLeft: deal.availableQuantity,
+    };
+    setSelectedDealForModal(formatted);
   };
 
   const activeVouchers = useMemo(() => {
@@ -735,7 +781,7 @@ const CustomerDashboard = () => {
                   onClick={() => setActiveTab("vouchers")}
                   className="rounded-xl border border-[#E4E4E7] bg-white p-5 transition-colors hover:border-[#171717]/30 cursor-pointer"
                 >
-                  <span className="text-[12px] text-[#737373]">
+                  <span className="text-[12px] font-medium text-[#525252]">
                     Active passes
                   </span>
                   <div className="mt-2 flex items-baseline gap-2">
@@ -749,7 +795,7 @@ const CustomerDashboard = () => {
                       </span>
                     )}
                   </div>
-                  <p className="mt-2 text-[12px] text-[#737373]">
+                  <p className="mt-2 text-[12px] text-[#525252]">
                     Available for counter redemption
                   </p>
                 </div>
@@ -758,23 +804,23 @@ const CustomerDashboard = () => {
                   onClick={() => setActiveTab("favorites")}
                   className="rounded-xl border border-[#E4E4E7] bg-white p-5 transition-colors hover:border-[#171717]/30 cursor-pointer"
                 >
-                  <span className="text-[12px] text-[#737373]">Saved deals</span>
+                  <span className="text-[12px] font-medium text-[#525252]">Saved deals</span>
                   <p className="mt-2 font-mono text-[28px] font-medium leading-none text-[#171717] tabular-nums">
                     {favorites.length}
                   </p>
-                  <p className="mt-2 text-[12px] text-[#737373]">
+                  <p className="mt-2 text-[12px] text-[#525252]">
                     Bookmarked offers
                   </p>
                 </div>
 
                 <div className="rounded-xl border border-[#E4E4E7] bg-white p-5">
-                  <span className="text-[12px] text-[#737373]">
+                  <span className="text-[12px] font-medium text-[#525252]">
                     Calculated savings
                   </span>
                   <p className="mt-2 font-mono text-[28px] font-medium leading-none text-[#171717] tabular-nums">
                     Rs. {totalSavingsLkr.toLocaleString()}
                   </p>
-                  <p className="mt-2 text-[12px] text-[#737373]">
+                  <p className="mt-2 text-[12px] text-[#525252]">
                     Across claimed passes
                   </p>
                 </div>
@@ -783,13 +829,13 @@ const CustomerDashboard = () => {
                   onClick={() => setActiveTab("orders")}
                   className="rounded-xl border border-[#E4E4E7] bg-white p-5 transition-colors hover:border-[#171717]/30 cursor-pointer"
                 >
-                  <span className="text-[12px] text-[#737373]">
+                  <span className="text-[12px] font-medium text-[#525252]">
                     Orders &amp; claims
                   </span>
                   <p className="mt-2 font-mono text-[28px] font-medium leading-none text-[#171717] tabular-nums">
                     {orders.length}
                   </p>
-                  <p className="mt-2 text-[12px] text-[#737373]">
+                  <p className="mt-2 text-[12px] text-[#525252]">
                     Recorded transactions
                   </p>
                 </div>
@@ -802,7 +848,7 @@ const CustomerDashboard = () => {
                     <h2 className="text-[16px] font-medium text-[#171717]">
                       Active QR counter passes
                     </h2>
-                    <p className="mt-0.5 text-[13px] text-[#737373]">
+                    <p className="mt-0.5 text-[13px] text-[#525252]">
                       Select any pass to open the scannable QR code for the
                       cashier
                     </p>
@@ -851,7 +897,7 @@ const CustomerDashboard = () => {
                         ? ` matching "${dashboardSearch}"`
                         : ""}
                     </h2>
-                    <p className="mt-0.5 font-mono text-[12px] text-[#737373] tabular-nums">
+                    <p className="mt-0.5 font-mono text-[12px] font-medium text-[#525252] tabular-nums">
                       {filteredMarketplaceDeals.length} active offer
                       {filteredMarketplaceDeals.length === 1 ? "" : "s"}
                     </p>
@@ -905,6 +951,7 @@ const CustomerDashboard = () => {
                         key={deal._id || deal.id}
                         deal={deal}
                         onRemove={null}
+                        onSelect={handleOpenDealModal}
                       />
                     ))}
                   </div>
@@ -1069,6 +1116,7 @@ const CustomerDashboard = () => {
                       key={deal._id || deal.id}
                       deal={deal}
                       onRemove={handleRemoveFavorite}
+                      onSelect={handleOpenDealModal}
                     />
                   ))}
                 </div>
@@ -1682,6 +1730,17 @@ const CustomerDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Deal Detail & Claim Pass Modal */}
+      <DealDetailModal
+        deal={selectedDealForModal}
+        isOpen={Boolean(selectedDealForModal)}
+        onClose={() => {
+          setSelectedDealForModal(null);
+          // Refresh customer vouchers so newly claimed passes show up immediately
+          fetchData();
+        }}
+      />
     </div>
   );
 };
@@ -1820,12 +1879,15 @@ const VoucherCard = ({
 };
 
 // Sub-component: Saved / Marketplace Deal Card
-const FavoriteCard = ({ deal, onRemove }) => {
+const FavoriteCard = ({ deal, onRemove, onSelect }) => {
   const dealId = deal._id || deal.id;
   const business = deal.businessId || {};
 
   return (
-    <div className="flex flex-col justify-between rounded-xl border border-[#E4E4E7] bg-white p-4 transition-colors duration-150 hover:border-[#171717]/30">
+    <div
+      onClick={() => onSelect && onSelect(deal)}
+      className="flex flex-col justify-between rounded-xl border border-[#E4E4E7] bg-white p-4 transition-all duration-150 hover:border-[#171717]/40 hover:shadow-xs cursor-pointer group"
+    >
       <div>
         <div className="relative mb-3 h-36 w-full overflow-hidden rounded-lg border border-[#E4E4E7] bg-[#F4F4F5]">
           <img
@@ -1835,13 +1897,17 @@ const FavoriteCard = ({ deal, onRemove }) => {
               "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80"
             }
             alt={deal.title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-103"
           />
           {onRemove && (
             <div className="absolute right-2.5 top-2.5">
               <button
-                onClick={(e) => onRemove(dealId, e)}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E4E4E7] bg-white/95 text-[#D94832] cursor-pointer"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove(dealId, e);
+                }}
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E4E4E7] bg-white/95 text-[#D94832] cursor-pointer hover:bg-white shadow-xs"
                 title="Remove from saved"
               >
                 <Heart
@@ -1859,11 +1925,11 @@ const FavoriteCard = ({ deal, onRemove }) => {
           </div>
         </div>
 
-        <h4 className="line-clamp-1 text-[14px] font-medium text-[#171717]">
+        <h4 className="line-clamp-1 text-[14px] font-medium text-[#171717] group-hover:text-[#D94832] transition-colors">
           {deal.title}
         </h4>
         {business.name && (
-          <p className="mt-0.5 text-[12px] text-[#737373]">{business.name}</p>
+          <p className="mt-0.5 text-[12px] text-[#525252]">{business.name}</p>
         )}
 
         <div className="mt-3 flex items-center justify-between font-mono text-[12px] tabular-nums">
@@ -1872,7 +1938,7 @@ const FavoriteCard = ({ deal, onRemove }) => {
               Rs. {Number(deal.discountedPrice || 0).toLocaleString()}
             </span>
             {deal.originalPrice && (
-              <span className="ml-1.5 text-[11px] text-[#737373] line-through">
+              <span className="ml-1.5 text-[11px] text-[#71717A] line-through">
                 Rs. {Number(deal.originalPrice || 0).toLocaleString()}
               </span>
             )}
@@ -1885,8 +1951,15 @@ const FavoriteCard = ({ deal, onRemove }) => {
 
       <div className="mt-3.5 border-t border-[#E4E4E7] pt-3">
         <Link
-          to={`/deals?deal=${dealId}`}
-          className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-[#171717] px-3 text-[12px] font-medium text-white transition-colors hover:bg-[#D94832]"
+          to={`/deals?dealId=${dealId}&deal=${dealId}`}
+          onClick={(e) => {
+            if (onSelect) {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect(deal);
+            }
+          }}
+          className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-[#171717] px-3 text-[12px] font-medium text-white transition-colors hover:bg-[#D94832] cursor-pointer"
         >
           <Ticket size={13} strokeWidth={1.5} />
           <span>View &amp; claim pass</span>
@@ -1902,11 +1975,11 @@ const SidebarBtn = ({ icon, label, badge = null, active = false, onClick }) => (
     className={`flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-[13px] transition-colors duration-150 cursor-pointer ${
       active
         ? "bg-white font-medium text-[#171717] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-        : "font-normal text-[#525252] hover:bg-[#E4E4E7]/60 hover:text-[#171717]"
+        : "font-normal text-[#27272A] hover:bg-[#E4E4E7]/60 hover:text-[#171717]"
     }`}
   >
     <span className="flex items-center gap-2.5 truncate">
-      <span className={active ? "text-[#D94832]" : "text-[#737373]"}>
+      <span className={active ? "text-[#D94832]" : "text-[#525252]"}>
         {icon}
       </span>
       <span className="truncate">{label}</span>
@@ -1916,7 +1989,7 @@ const SidebarBtn = ({ icon, label, badge = null, active = false, onClick }) => (
         className={`rounded-[5px] px-1.5 py-0.5 font-mono text-[11px] tabular-nums ${
           active
             ? "bg-[#D94832]/10 font-medium text-[#D94832]"
-            : "bg-[#E4E4E7] text-[#525252]"
+            : "bg-[#E4E4E7] font-medium text-[#27272A]"
         }`}
       >
         {badge}
@@ -1931,7 +2004,7 @@ const MobileTabBtn = ({ label, active, onClick }) => (
     className={`h-8 whitespace-nowrap rounded-lg px-3 text-[12px] font-medium transition-colors cursor-pointer ${
       active
         ? "bg-[#171717] text-white"
-        : "border border-[#E4E4E7] bg-[#FAFAFA] text-[#525252]"
+        : "border border-[#E4E4E7] bg-[#FAFAFA] text-[#27272A]"
     }`}
   >
     {label}
@@ -1944,7 +2017,7 @@ const EmptyState = ({ title, description, actionLabel, actionHref }) => (
       <Ticket size={18} strokeWidth={1.5} />
     </div>
     <h4 className="text-[14px] font-medium text-[#171717]">{title}</h4>
-    <p className="mx-auto max-w-sm text-[13px] text-[#737373]">{description}</p>
+    <p className="mx-auto max-w-sm text-[13px] text-[#525252]">{description}</p>
     <Link
       to={actionHref}
       className="mt-2 inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#D94832] px-4 text-[13px] font-medium text-white hover:bg-[#C23B26]"

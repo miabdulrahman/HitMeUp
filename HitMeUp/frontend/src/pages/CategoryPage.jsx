@@ -399,6 +399,66 @@ function CategoryPage({ defaultView }) {
     return [];
   }, [selectedMapStore, filteredDeals, dealsList]);
 
+  const sellerModalInitialData = useMemo(() => {
+    if (!profileModalBusinessId) return null;
+    const storeId = String(profileModalBusinessId);
+
+    const dealWithBiz =
+      dealsList.find((d) => {
+        const bId = String(
+          d.businessId?._id || d.businessId?.id || d.businessId || ""
+        );
+        return bId === storeId;
+      }) ||
+      (selectedDeal &&
+      String(
+        selectedDeal.businessId?._id ||
+          selectedDeal.businessId?.id ||
+          selectedDeal.businessId ||
+          ""
+      ) === storeId
+        ? selectedDeal
+        : null);
+
+    const storeDeals = dealsList.filter((d) => {
+      const bId = String(
+        d.businessId?._id || d.businessId?.id || d.businessId || ""
+      );
+      const bName = (
+        d.business ||
+        d.businessId?.name ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
+      const targetName = (
+        dealWithBiz?.business ||
+        dealWithBiz?.businessId?.name ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
+      return bId === storeId || (targetName && bName === targetName);
+    });
+
+    const bizObj =
+      dealWithBiz?.businessId && typeof dealWithBiz.businessId === "object"
+        ? dealWithBiz.businessId
+        : {
+            _id: storeId,
+            id: storeId,
+            name: dealWithBiz?.business || "Merchant",
+          };
+
+    return {
+      ...bizObj,
+      _id: storeId,
+      id: storeId,
+      name: bizObj.name || dealWithBiz?.business,
+      deals: storeDeals.length > 0 ? storeDeals : selectedDeal ? [selectedDeal] : [],
+    };
+  }, [profileModalBusinessId, dealsList, selectedDeal]);
+
   const handleOpenDeal = (deal) => {
     if (!deal) return;
     const dealId = deal._id || deal.id;
@@ -893,6 +953,7 @@ function CategoryPage({ defaultView }) {
 
       <SellerProfileModal
         businessId={profileModalBusinessId}
+        initialData={sellerModalInitialData}
         isOpen={Boolean(profileModalBusinessId)}
         onClose={() => setProfileModalBusinessId(null)}
         onSelectDeal={handleOpenDeal}

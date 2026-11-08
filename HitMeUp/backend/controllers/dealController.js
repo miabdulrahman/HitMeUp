@@ -572,10 +572,10 @@ const getMyDeals = async (req, res) => {
 const getDealsByBusiness = async (req, res) => {
   try {
     const bId = req.params.businessId;
-    if (!bId) {
+    if (!bId || bId === "undefined" || bId === "null" || bId === "[object Object]") {
       return res.status(400).json({
         success: false,
-        message: "Business ID is required",
+        message: "Valid Business ID is required",
         deals: []
       });
     }
@@ -588,24 +588,43 @@ const getDealsByBusiness = async (req, res) => {
       { $set: { status: "expired" } }
     ).exec();
 
-    const idQueries = [{ businessId: bId }];
+    const targetIds = [bId];
     if (mongoose.Types.ObjectId.isValid(bId)) {
-      idQueries.push({ businessId: new mongoose.Types.ObjectId(bId) });
+      targetIds.push(new mongoose.Types.ObjectId(bId));
+    }
 
-      // If bId is the seller's user ID, also look up the corresponding Business ID
-      const businessDoc = await Business.findOne({
+    // Look up associated business doc by _id or userId
+    let businessDoc = null;
+    if (mongoose.Types.ObjectId.isValid(bId)) {
+      businessDoc = await Business.findOne({
         $or: [{ _id: bId }, { userId: bId }]
-      }).select("_id").lean();
+      }).select("_id userId name").lean();
+    } else {
+      businessDoc = await Business.findOne({
+        name: new RegExp(`^${bId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i")
+      }).select("_id userId name").lean();
+    }
 
-      if (businessDoc && businessDoc._id.toString() !== bId) {
-        idQueries.push({ businessId: businessDoc._id });
+    if (businessDoc) {
+      if (businessDoc._id) {
+        targetIds.push(businessDoc._id);
+        targetIds.push(businessDoc._id.toString());
+      }
+      if (businessDoc.userId) {
+        targetIds.push(businessDoc.userId);
+        targetIds.push(businessDoc.userId.toString());
       }
     }
 
-    const deals = await Deal.find({
-      $or: idQueries,
-      status: "active",
+    const orClauses = [{ businessId: { $in: targetIds } }];
+    if (businessDoc?.name) {
+      orClauses.push({ business: businessDoc.name });
+    }
+
+    const query = {
       $and: [
+        { $or: orClauses },
+        { status: "active" },
         {
           $or: [
             { endDate: { $gt: now } },
@@ -614,8 +633,10 @@ const getDealsByBusiness = async (req, res) => {
           ]
         }
       ]
-    })
-      .populate("businessId", "name category address location phone openingHours logoUrl coverImageUrl")
+    };
+
+    const deals = await Deal.find(query)
+      .populate("businessId", "name category address location phone openingHours logoUrl coverImageUrl isVerified")
       .sort({ createdAt: -1 })
       .lean();
 

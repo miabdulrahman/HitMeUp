@@ -30,8 +30,13 @@ function SellerProfileModal({
   onClose,
   onSelectDeal,
 }) {
-  const [business, setBusiness] = useState(initialData);
-  const [deals, setDeals] = useState([]);
+  const cleanBusinessId =
+    typeof businessId === "object" && businessId !== null
+      ? businessId._id || businessId.id || businessId.businessId
+      : businessId;
+
+  const [business, setBusiness] = useState(() => initialData?.business || initialData || null);
+  const [deals, setDeals] = useState(() => initialData?.deals || []);
   const [reviewsData, setReviewsData] = useState({
     reviews: [],
     total: 0,
@@ -43,24 +48,65 @@ function SellerProfileModal({
 
   // Load business profile, active deals, and reviews
   const loadSellerData = useCallback(async () => {
-    if (!businessId) return;
+    if (!cleanBusinessId) return;
     setLoading(true);
 
     try {
       const [bizRes, dealsRes, reviewsRes] = await Promise.allSettled([
-        businessApi.getById(businessId),
-        dealApi.getDealsByBusiness(businessId),
-        discoveryApi.getBusinessReviews(businessId, { limit: 20 }),
+        businessApi.getById(cleanBusinessId),
+        dealApi.getDealsByBusiness(cleanBusinessId),
+        discoveryApi.getBusinessReviews(cleanBusinessId, { limit: 20 }),
       ]);
 
+      let resolvedBusiness = null;
       if (bizRes.status === "fulfilled" && bizRes.value?.business) {
-        setBusiness(bizRes.value.business);
+        resolvedBusiness = bizRes.value.business;
+        setBusiness(resolvedBusiness);
       } else if (initialData) {
-        setBusiness(initialData);
+        resolvedBusiness = initialData.business || initialData;
+        setBusiness(resolvedBusiness);
       }
 
-      if (dealsRes.status === "fulfilled") {
-        setDeals(dealsRes.value?.deals || dealsRes.value?.data || []);
+      let fetchedDeals =
+        dealsRes.status === "fulfilled"
+          ? dealsRes.value?.deals || dealsRes.value?.data || []
+          : [];
+
+      // If deals endpoint returned 0, try searching by the store name as secondary fallback
+      const storeNameToQuery = resolvedBusiness?.name || initialData?.name || initialData?.business?.name;
+      if (fetchedDeals.length === 0 && storeNameToQuery) {
+        try {
+          const searchFallback = await discoveryApi.searchDeals({
+            q: storeNameToQuery,
+            limit: 30,
+          });
+          const candidateDeals = searchFallback.deals || [];
+          const matched = candidateDeals.filter((d) => {
+            const bId = String(
+              d.businessId?._id || d.businessId?.id || d.businessId || ""
+            );
+            const bName = (
+              d.business ||
+              d.businessId?.name ||
+              ""
+            )
+              .trim()
+              .toLowerCase();
+            return (
+              bId === String(cleanBusinessId) ||
+              bName === storeNameToQuery.trim().toLowerCase()
+            );
+          });
+          if (matched.length > 0) fetchedDeals = matched;
+        } catch (_) {}
+      }
+
+      if (fetchedDeals.length > 0) {
+        setDeals(fetchedDeals);
+      } else if (initialData?.deals && initialData.deals.length > 0) {
+        setDeals(initialData.deals);
+      } else {
+        setDeals([]);
       }
 
       if (reviewsRes.status === "fulfilled") {
@@ -72,20 +118,26 @@ function SellerProfileModal({
       }
     } catch (err) {
       console.error("Failed to load seller profile data:", err);
+      if (initialData?.deals && initialData.deals.length > 0) {
+        setDeals(initialData.deals);
+      }
     } finally {
       setLoading(false);
     }
-  }, [businessId, initialData]);
+  }, [cleanBusinessId, initialData]);
 
   useEffect(() => {
-    if (isOpen && businessId) {
+    if (isOpen && cleanBusinessId) {
       if (initialData) {
-        setBusiness(initialData);
+        setBusiness(initialData.business || initialData);
+        if (Array.isArray(initialData.deals) && initialData.deals.length > 0) {
+          setDeals(initialData.deals);
+        }
       }
       loadSellerData();
       setActiveTab("deals");
     }
-  }, [isOpen, businessId, initialData, loadSellerData]);
+  }, [isOpen, cleanBusinessId, initialData, loadSellerData]);
 
   if (!isOpen) return null;
 

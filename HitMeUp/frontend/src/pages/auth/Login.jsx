@@ -284,7 +284,7 @@ const Login = () => {
                     placeholder="name@example.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className="h-11 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-4 text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
+                    className="h-11 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-4 text-[16px] sm:text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
                   />
                 </div>
               </div>
@@ -322,7 +322,7 @@ const Login = () => {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
-                    className="h-11 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-10 text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
+                    className="h-11 w-full rounded-lg border border-[#E6E0D6] bg-white pl-10 pr-10 text-[16px] sm:text-[14px] text-[#1F1B16] placeholder:text-[#7B7266] focus:border-[#D94832] focus:outline-none"
                   />
                   <button
                     type="button"

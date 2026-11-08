@@ -781,8 +781,12 @@ const SellerDashboard = () => {
         {/* Single Top Header (60px) */}
         <header className="sticky top-0 z-30 flex h-[60px] items-center justify-between border-b border-[#E4E4E7] bg-white px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <Link to="/" className="flex h-7 w-7 items-center justify-center rounded-md bg-[#171717] font-mono text-[11px] font-medium text-white lg:hidden">
-              HMU
+            <Link to="/" className="flex items-center md:hidden" aria-label="HitMeUp Home">
+              <img
+                src={isDark ? "/logo-dark.png" : "/logo.png"}
+                alt="HitMeUp"
+                className="h-6 w-auto object-contain"
+              />
             </Link>
             <h1 className="text-[15px] font-semibold text-[#171717]">
               {sectionTitle}

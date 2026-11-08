@@ -592,9 +592,16 @@ const CustomerDashboard = () => {
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Single Top Header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-[#E4E4E7] bg-white px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-[#E4E4E7] bg-white px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <h1 className="text-[18px] font-medium tracking-[-0.02em] text-[#171717]">
+            <Link to="/" className="flex items-center md:hidden" aria-label="HitMeUp Home">
+              <img
+                src={isDark ? "/logo-dark.png" : "/logo.png"}
+                alt="HitMeUp"
+                className="h-6.5 w-auto object-contain"
+              />
+            </Link>
+            <h1 className="text-[16px] sm:text-[18px] font-medium tracking-[-0.02em] text-[#171717]">
               {sectionTitles[activeTab]}
             </h1>
           </div>

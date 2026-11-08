@@ -956,7 +956,10 @@ function CategoryPage({ defaultView }) {
         initialData={sellerModalInitialData}
         isOpen={Boolean(profileModalBusinessId)}
         onClose={() => setProfileModalBusinessId(null)}
-        onSelectDeal={handleOpenDeal}
+        onSelectDeal={(deal) => {
+          setProfileModalBusinessId(null);
+          handleOpenDeal(deal);
+        }}
       />
     </div>
   );

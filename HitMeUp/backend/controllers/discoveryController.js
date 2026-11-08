@@ -4,6 +4,13 @@ const Favorite = require("../models/Favorite");
 const Review = require("../models/Review");
 
 /**
+ * Escapes regex special characters to prevent ReDoS and invalid regular expression crashes
+ */
+const escapeRegex = (string) => {
+  return String(string || "").replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+};
+
+/**
  * Discovery Controller - Member 3 (Deal Discovery & Location)
  * Handles deal searching, category filtering, proximity/geospatial discovery,
  * interactive map data, favorites, and customer reviews.
@@ -104,6 +111,8 @@ exports.searchDeals = async (req, res) => {
     const {
       q,
       keyword,
+      search,
+      query: queryString,
       category,
       minPrice,
       maxPrice,
@@ -111,10 +120,10 @@ exports.searchDeals = async (req, res) => {
       city,
       sortBy = "recommended",
       page = 1,
-      limit = 20
+      limit = 100
     } = req.query;
 
-    const searchTerm = (q || keyword || "").trim();
+    const searchTerm = (q || keyword || search || queryString || "").trim();
     const now = new Date();
 
     // Auto-expire deals that have passed their end date
@@ -156,15 +165,21 @@ exports.searchDeals = async (req, res) => {
       query.discountPercentage = { $gte: Number(minDiscount) };
     }
 
-    // Keyword search across Deal title, description, or matched Business
+    // Keyword search across Deal title, description, category, tags, or matched Business
     if (searchTerm) {
-      // Find businesses matching name or category first (must be active & approved)
+      const safeSearch = escapeRegex(searchTerm);
+      const searchRegex = new RegExp(safeSearch, "i");
+
+      // Find businesses matching name, description, category, or location
       const matchingBusinesses = await Business.find({
         _id: { $in: activeApprovedBusinessIds },
         $or: [
-          { name: { $regex: searchTerm, $options: "i" } },
-          { category: { $regex: searchTerm, $options: "i" } },
-          { "address.city": { $regex: searchTerm, $options: "i" } }
+          { name: { $regex: safeSearch, $options: "i" } },
+          { category: { $regex: safeSearch, $options: "i" } },
+          { description: { $regex: safeSearch, $options: "i" } },
+          { "address.city": { $regex: safeSearch, $options: "i" } },
+          { "address.street": { $regex: safeSearch, $options: "i" } },
+          { "address.state": { $regex: safeSearch, $options: "i" } }
         ]
       }).select("_id");
 
@@ -174,9 +189,10 @@ exports.searchDeals = async (req, res) => {
         { businessId: { $in: activeApprovedBusinessIds } },
         {
           $or: [
-            { title: { $regex: searchTerm, $options: "i" } },
-            { description: { $regex: searchTerm, $options: "i" } },
-            { category: { $regex: searchTerm, $options: "i" } },
+            { title: searchRegex },
+            { description: searchRegex },
+            { category: searchRegex },
+            { tags: searchRegex },
             { businessId: { $in: businessIds } }
           ]
         }
@@ -208,7 +224,7 @@ exports.searchDeals = async (req, res) => {
     }
 
     const pageNum = Math.max(1, parseInt(page, 10));
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
+    const limitNum = Math.min(200, Math.max(1, parseInt(limit, 10)));
     const skip = (pageNum - 1) * limitNum;
 
     const [deals, total] = await Promise.all([

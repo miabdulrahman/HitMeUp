@@ -106,7 +106,7 @@ function CategoryPage({ defaultView }) {
           }
         } else {
           setNearbyFallback(null);
-          const searchParamsObj = { sortBy };
+          const searchParamsObj = { sortBy, limit: 100 };
           if (catName) searchParamsObj.category = catName;
           const response = await discoveryApi.searchDeals(searchParamsObj);
           liveDeals = response.deals || [];
@@ -191,6 +191,33 @@ function CategoryPage({ defaultView }) {
     };
   }, [currentCategory, nearbyMode, userLocation, nearbyRadius, sortBy]);
 
+  // Auto-open deal modal if dealId is provided in URL query (?dealId=...)
+  useEffect(() => {
+    const targetDealId = searchParams.get("dealId");
+    if (!targetDealId) return;
+
+    if (dealsList.length > 0) {
+      const match = dealsList.find(
+        (d) => String(d.id || d._id) === String(targetDealId)
+      );
+      if (match) {
+        setSelectedDeal(match);
+        setModalOpen(true);
+        return;
+      }
+    }
+
+    discoveryApi
+      .getDealDetails(targetDealId)
+      .then((res) => {
+        if (res.deal) {
+          setSelectedDeal(res.deal);
+          setModalOpen(true);
+        }
+      })
+      .catch(() => {});
+  }, [searchParams, dealsList]);
+
   const handleToggleNearby = () => {
     if (nearbyMode && hasRealLocation) {
       setNearbyMode(false);
@@ -218,7 +245,22 @@ function CategoryPage({ defaultView }) {
     navigate(nextSearch ? `?${nextSearch}` : location.pathname, { replace: true });
   };
 
+  const handleSearchInput = (val) => {
+    setSearchQuery(val);
+    const params = new URLSearchParams(window.location.search);
+    if (val.trim()) {
+      params.set("q", val.trim());
+    } else {
+      params.delete("q");
+      params.delete("search");
+    }
+    const newSearch = params.toString();
+    const nextUrl = newSearch ? `${window.location.pathname}?${newSearch}` : window.location.pathname;
+    window.history.replaceState(null, "", nextUrl);
+  };
+
   const filteredDeals = useMemo(() => {
+    const qLower = searchQuery.trim().toLowerCase();
     return dealsList
       .filter((deal) => {
         // Enforce strictly active/unexpired
@@ -237,11 +279,16 @@ function CategoryPage({ defaultView }) {
                 currentCategory.slug.toLowerCase()));
 
         const matchesQuery =
-          !searchQuery.trim() ||
-          deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          deal.business.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          deal.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          deal.description?.toLowerCase().includes(searchQuery.toLowerCase());
+          !qLower ||
+          deal.title?.toLowerCase().includes(qLower) ||
+          deal.business?.toLowerCase().includes(qLower) ||
+          deal.category?.toLowerCase().includes(qLower) ||
+          deal.description?.toLowerCase().includes(qLower) ||
+          deal.location?.toLowerCase().includes(qLower) ||
+          deal.distance?.toLowerCase().includes(qLower) ||
+          deal.businessId?.name?.toLowerCase().includes(qLower) ||
+          deal.businessId?.address?.city?.toLowerCase().includes(qLower) ||
+          deal.businessId?.address?.street?.toLowerCase().includes(qLower);
 
         return matchesCategory && matchesQuery;
       })
@@ -412,7 +459,7 @@ function CategoryPage({ defaultView }) {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleSearchInput(e.target.value)}
                     placeholder={`Filter ${
                       currentCategory ? currentCategory.name.toLowerCase() : "deals"
                     } by store or item...`}
@@ -420,7 +467,7 @@ function CategoryPage({ defaultView }) {
                   />
                   {searchQuery && (
                     <button
-                      onClick={() => setSearchQuery("")}
+                      onClick={() => handleSearchInput("")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-medium text-[#7B7266] hover:text-[#1F1B16] cursor-pointer"
                     >
                       Clear
@@ -555,7 +602,7 @@ function CategoryPage({ defaultView }) {
                     )}
                     {searchQuery && (
                       <button
-                        onClick={() => setSearchQuery("")}
+                        onClick={() => handleSearchInput("")}
                         className="rounded-lg border border-[#E6E0D6] bg-[#F7F4EE] px-3.5 py-2 text-[12px] font-medium text-[#1F1B16] hover:bg-[#EFE9DF]"
                       >
                         Clear search

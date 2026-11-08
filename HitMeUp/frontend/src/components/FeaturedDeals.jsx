@@ -453,7 +453,8 @@ function FeaturedDeals({ initialSearch = "" }) {
             d.title?.toLowerCase().includes(query) ||
             d.business?.toLowerCase().includes(query) ||
             d.location?.toLowerCase().includes(query) ||
-            d.category?.toLowerCase().includes(query)
+            d.category?.toLowerCase().includes(query) ||
+            d.description?.toLowerCase().includes(query)
         );
 
     const sorted = [...bySearch];

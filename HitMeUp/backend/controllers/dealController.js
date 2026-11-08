@@ -1,7 +1,10 @@
 const Deal = require("../models/Deal");
 const Business = require("../models/Business");
-
 const User = require("../models/user");
+
+const escapeRegex = (string) => {
+  return String(string || "").replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+};
 
 // Taxonomy mappings between platform categories and merchant business types
 const CATEGORY_MAP = {
@@ -288,14 +291,18 @@ const getDeals = async (req, res) => {
     const {
       category,
       search,
+      q,
+      keyword,
       status,
       businessId,
       minDiscount,
       maxPrice,
       sort,
-      limit = 50,
+      limit = 100,
       page = 1
     } = req.query;
+
+    const searchTerm = (search || q || keyword || "").trim();
 
     const query = {};
     const now = new Date();
@@ -361,9 +368,29 @@ const getDeals = async (req, res) => {
       query.discountedPrice = { $lte: Number(maxPrice) };
     }
 
-    if (search) {
-      const searchRegex = new RegExp(search.trim(), "i");
-      query.$or = [{ title: searchRegex }, { description: searchRegex }, { category: searchRegex }];
+    if (searchTerm) {
+      const safeSearch = escapeRegex(searchTerm);
+      const searchRegex = new RegExp(safeSearch, "i");
+
+      const matchingBusinesses = await Business.find({
+        $or: [
+          { name: { $regex: safeSearch, $options: "i" } },
+          { category: { $regex: safeSearch, $options: "i" } },
+          { description: { $regex: safeSearch, $options: "i" } },
+          { "address.city": { $regex: safeSearch, $options: "i" } },
+          { "address.street": { $regex: safeSearch, $options: "i" } },
+          { "address.state": { $regex: safeSearch, $options: "i" } }
+        ]
+      }).select("_id");
+      const matchedBizIds = matchingBusinesses.map((b) => b._id);
+
+      query.$or = [
+        { title: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex },
+        { tags: searchRegex },
+        { businessId: { $in: matchedBizIds } }
+      ];
     }
 
     // Determine Sort Order

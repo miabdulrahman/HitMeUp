@@ -5,6 +5,9 @@ const Order = require("../models/Order");
 const Deal = require("../models/Deal");
 const Business = require("../models/Business");
 
+const MAX_SEARCH_LENGTH = 100;
+const escapeRegex = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /**
  * Record immutable gateway transaction record
  */
@@ -92,8 +95,11 @@ async function getTransactions({
     filter.paymentMethod = method.toUpperCase();
   }
 
-  if (search && search.trim()) {
-    const regex = new RegExp(search.trim(), "i");
+  const safeSearch = typeof search === "string"
+    ? search.trim().slice(0, MAX_SEARCH_LENGTH)
+    : "";
+  if (safeSearch) {
+    const regex = new RegExp(escapeRegex(safeSearch), "i");
     filter.$or = [
       { transactionId: regex },
       { paymentReference: regex },
@@ -111,8 +117,9 @@ async function getTransactions({
     }
   }
 
-  const skip = (Math.max(1, Number(page)) - 1) * Math.max(1, Number(limit));
-  const parsedLimit = Math.min(100, Math.max(1, Number(limit)));
+  const pageNum = Math.min(10000, Math.max(1, Number.parseInt(page, 10) || 1));
+  const parsedLimit = Math.min(100, Math.max(1, Number.parseInt(limit, 10) || 10));
+  const skip = (pageNum - 1) * parsedLimit;
 
   const [transactions, totalCount] = await Promise.all([
     GatewayTransaction.find(filter)
@@ -128,7 +135,7 @@ async function getTransactions({
     transactions,
     totalCount,
     totalPages: Math.ceil(totalCount / parsedLimit),
-    currentPage: Number(page),
+    currentPage: pageNum,
     limit: parsedLimit
   };
 }

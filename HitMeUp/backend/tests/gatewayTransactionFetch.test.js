@@ -86,21 +86,21 @@ test("Gateway Transaction Persistence & Retrieval Tests", async (t) => {
     customerUser = await User.create({
       name: `Customer Test ${timestamp}`,
       email: `customer_${timestamp}@test.com`,
-      password: "Password123!",
+      password: "REPLACE_WITH_TEST_PASSWORD",
       role: "customer"
     });
 
     otherCustomer = await User.create({
       name: `Other Customer ${timestamp}`,
       email: `other_${timestamp}@test.com`,
-      password: "Password123!",
+      password: "REPLACE_WITH_TEST_PASSWORD",
       role: "customer"
     });
 
     merchantUser = await User.create({
       name: `Merchant Test ${timestamp}`,
       email: `merchant_${timestamp}@test.com`,
-      password: "Password123!",
+      password: "REPLACE_WITH_TEST_PASSWORD",
       role: "business"
     });
 

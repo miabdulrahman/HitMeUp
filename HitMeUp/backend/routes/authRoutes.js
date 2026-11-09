@@ -7,7 +7,8 @@ const {
   changePassword,
   sendOtp,
   verifyOtp,
-  resetPassword
+  resetPassword,
+  logout
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 const {
@@ -29,6 +30,7 @@ router.post("/google", loginRateLimit, googleLogin);
 router.post("/send-otp", otpSendRateLimit, sendOtp);
 router.post("/verify-otp", otpVerifyRateLimit, verifyOtp);
 router.post("/reset-password", passwordResetRateLimit, resetPassword);
+router.post("/logout", logout);
 
 // Protected routes (any authenticated user: customer, business, admin)
 router.get("/me", protect, getMe);

@@ -2,20 +2,32 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const AUTH_COOKIE_NAME = "hitmeup_session";
+const CSRF_COOKIE_NAME = "hitmeup_csrf";
+
+const getCookie = (req, name) => {
+  const cookies = req.headers.cookie?.split(";") || [];
+  const cookie = cookies.find((entry) => entry.trim().startsWith(`${name}=`));
+  return cookie ? decodeURIComponent(cookie.trim().slice(name.length + 1)) : null;
+};
 
 /**
  * Protect middleware:
- * Requires a valid Bearer token in the Authorization header.
+ * Requires a valid browser session cookie or Bearer token.
  * Attaches authenticated user object to `req.user`.
  */
 const protect = async (req, res, next) => {
   let token;
+  let isCookieAuth = false;
 
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer ")
   ) {
     token = req.headers.authorization.split(" ")[1];
+  } else {
+    token = getCookie(req, AUTH_COOKIE_NAME);
+    isCookieAuth = Boolean(token);
   }
 
   if (!token) {
@@ -26,6 +38,17 @@ const protect = async (req, res, next) => {
   }
 
   try {
+    if (isCookieAuth && !["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+      const csrfCookie = getCookie(req, CSRF_COOKIE_NAME);
+      const csrfHeader = req.get("X-CSRF-Token");
+      if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+        return res.status(403).json({
+          success: false,
+          message: "Invalid CSRF token."
+        });
+      }
+    }
+
     const decoded = jwt.verify(token, JWT_SECRET);
 
     const user = await User.findById(decoded.id).select("-password");
@@ -105,6 +128,8 @@ const optionalAuth = async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer ")
   ) {
     token = req.headers.authorization.split(" ")[1];
+  } else {
+    token = getCookie(req, AUTH_COOKIE_NAME);
   }
 
   if (!token) {

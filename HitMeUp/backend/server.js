@@ -81,7 +81,8 @@ app.use(cors({
     return callback(null, false);
   },
   methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Idempotency-Key"],
+  allowedHeaders: ["Content-Type", "Authorization", "Idempotency-Key", "X-CSRF-Token"],
+  credentials: true,
   optionsSuccessStatus: 204
 }));
 

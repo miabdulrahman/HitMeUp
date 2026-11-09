@@ -7,6 +7,28 @@ const { createBusinessRecord } = require("./businessController");
 const { JWT_SECRET } = require("../middleware/authMiddleware");
 const { sendOtpEmail } = require("../services/emailService");
 
+const AUTH_COOKIE_NAME = "hitmeup_session";
+const CSRF_COOKIE_NAME = "hitmeup_csrf";
+const AUTH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+const getCookieOptions = (httpOnly) => ({
+  httpOnly,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.COOKIE_SAME_SITE || (process.env.NODE_ENV === "production" ? "none" : "lax"),
+  ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
+  maxAge: AUTH_COOKIE_MAX_AGE
+});
+
+const setAuthCookies = (res, token) => {
+  res.cookie(AUTH_COOKIE_NAME, token, getCookieOptions(true));
+  res.cookie(CSRF_COOKIE_NAME, crypto.randomBytes(32).toString("hex"), getCookieOptions(false));
+};
+
+const clearAuthCookies = (res) => {
+  res.clearCookie(AUTH_COOKIE_NAME, { ...getCookieOptions(true), maxAge: undefined });
+  res.clearCookie(CSRF_COOKIE_NAME, { ...getCookieOptions(false), maxAge: undefined });
+};
+
 // Helper to generate signed JWT
 const generateToken = (user) => {
   return jwt.sign(
@@ -354,13 +376,13 @@ const register = async (req, res) => {
     }
 
     const token = generateToken(user);
+    setAuthCookies(res, token);
 
     return res.status(201).json({
       success: true,
       message: (userRole === "business" || userRole === "seller")
         ? "Merchant account and storefront registered successfully"
         : "User account registered successfully",
-      token,
       user: user.toSafeObject(),
       business: business || undefined
     });
@@ -443,11 +465,11 @@ const login = async (req, res) => {
     }
 
     const token = generateToken(user);
+    setAuthCookies(res, token);
 
     return res.status(200).json({
       success: true,
       message: "Login successful",
-      token,
       user: user.toSafeObject()
     });
   } catch (error) {
@@ -568,6 +590,11 @@ const changePassword = async (req, res) => {
   }
 };
 
+const logout = (req, res) => {
+  clearAuthCookies(res);
+  return res.status(204).send();
+};
+
 module.exports = {
   register,
   login,
@@ -577,5 +604,7 @@ module.exports = {
   sendOtp,
   verifyOtp,
   resetPassword,
+  logout,
+  setAuthCookies,
   generateToken
 };

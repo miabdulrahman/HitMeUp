@@ -225,7 +225,7 @@ const createBusinessProfile = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to create business profile",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -271,7 +271,7 @@ const getMyBusiness = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch business profile",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -340,7 +340,7 @@ const updateMyBusiness = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update business profile",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -379,7 +379,7 @@ const getBusinessById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve business",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -438,7 +438,7 @@ const getAllBusinesses = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve businesses",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };

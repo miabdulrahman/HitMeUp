@@ -139,7 +139,7 @@ const refundPayment = async (req, res) => {
     console.error("Refund Payment Error:", error);
     return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.message || "Failed to process refund"
+      message: "Failed to process refund"
     });
   }
 };
@@ -249,7 +249,7 @@ const createPayment = async (req, res) => {
   } catch (error) {
     return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.message || "Failed to create payment"
+      message: "Failed to create payment"
     });
   }
 };

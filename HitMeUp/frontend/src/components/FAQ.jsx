@@ -61,13 +61,8 @@ export default function FAQ() {
     <section id="faq" className="border-b border-[#E6E0D6] bg-[#F7F4EE] py-20">
       <div ref={sectionRef} className="reveal mx-auto max-w-[820px] px-6">
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E0D6] bg-[#FDFBF7] px-3 py-1 text-xs font-medium text-[#7B7266]">
-            <HelpCircle size={14} className="text-[#D94832]" />
-            <span>Questions and answers</span>
-          </div>
-
-          {/* Heading 4: text-3xl, Semibold (Rule B1) */}
-          <h2 className="mt-4 text-2xl sm:text-3xl font-semibold tracking-tight text-[#1F1B16] [text-wrap:balance]">
+          {/* Heading 4 */}
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#1F1B16] [text-wrap:balance]">
             Everything you need to know about HitMeUp
           </h2>
 

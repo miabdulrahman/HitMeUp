@@ -388,33 +388,19 @@ function FeaturedDeals({ initialSearch = "" }) {
         {/* Section Header */}
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
-            <div className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-[#7B7266]">
-              {showNearby && hasRealLocation ? (
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-[#BBF7D0] bg-[#F0FDF4] px-2.5 py-0.5 text-[11px] font-mono font-medium text-[#166534]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A] animate-pulse" />
-                  <span>Showing deals near your location (within {radius}km)</span>
-                </div>
-              ) : (
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-[#FED7AA] bg-[#FFF7ED] px-2.5 py-0.5 text-[11px] font-medium text-[#C2410C]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#EA580C]" />
-                    <span>Showing all top deals</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleToggleNearby}
-                    className="inline-flex items-center gap-1 rounded-md border border-[#E6E0D6] bg-white px-2 py-0.5 text-[11px] font-medium text-[#D94832] transition-colors hover:bg-[#EFE9DF] cursor-pointer"
-                  >
-                    <Navigation size={11} strokeWidth={1.5} />
-                    <span>Show nearby</span>
-                  </button>
-                </div>
-              )}
+            <div className="flex items-center gap-3">
+              <h2 className="text-[28px] sm:text-[32px] font-medium tracking-[-0.025em] text-[#1F1B16]">
+                {showNearby && hasRealLocation ? "Deals near you" : "All Top Deals"}
+              </h2>
+              <button
+                type="button"
+                onClick={handleToggleNearby}
+                className="inline-flex items-center gap-1 rounded-md border border-[#E6E0D6] bg-white px-2.5 py-1 text-[11px] font-medium text-[#D94832] transition-colors hover:bg-[#EFE9DF] cursor-pointer"
+              >
+                <Navigation size={11} strokeWidth={1.5} />
+                <span>{showNearby && hasRealLocation ? "Show all" : "Show nearby"}</span>
+              </button>
             </div>
-
-            <h2 className="mt-1.5 text-[28px] sm:text-[32px] font-medium tracking-[-0.025em] text-[#1F1B16]">
-              {showNearby && hasRealLocation ? "Deals near you" : "All Top Deals"}
-            </h2>
             <p className="mt-1.5 max-w-[54ch] text-[15px] text-[#5E554A]">
               {showNearby && hasRealLocation
                 ? `Filter active markdowns by category, sort by discount, or open the full street map to explore pinned stores within ${radius}km.`

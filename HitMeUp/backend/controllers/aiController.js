@@ -75,7 +75,7 @@ const generateDealController = async (req, res) => {
 
     res.status(error.status >= 400 && error.status < 600 ? error.status : 502).json({
       success: false,
-      message: error.message || "Failed to generate deal",
+      message: "Failed to generate deal",
     });
   }
 };
@@ -285,7 +285,6 @@ const detectFoodSafetyController = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Food safety detection failed",
-      error: error.message,
     });
   }
 };
@@ -349,7 +348,6 @@ const generateTargetingController = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Targeting generation failed",
-      error: error.message,
     });
   }
 };

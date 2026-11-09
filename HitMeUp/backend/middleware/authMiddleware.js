@@ -73,8 +73,7 @@ const protect = async (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Invalid or expired authentication token.",
-      error: error.message
+      message: "Invalid or expired authentication token."
     });
   }
 };

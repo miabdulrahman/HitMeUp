@@ -185,7 +185,7 @@ const claimVoucher = async (req, res) => {
 
     return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.message || "Failed to claim voucher"
+      message: "Failed to claim voucher"
     });
   }
 };
@@ -512,7 +512,7 @@ const redeemVoucher = async (req, res) => {
     console.error("Redeem Voucher Error:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || "Failed to redeem voucher"
+      message: "Failed to redeem voucher"
     });
   }
 };

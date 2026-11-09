@@ -112,8 +112,7 @@ const sendOtp = async (req, res) => {
     console.error("Send OTP Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to send verification code. Please try again.",
-      error: error.message
+      message: "Failed to send verification code. Please try again."
     });
   }
 };
@@ -175,8 +174,7 @@ const verifyOtp = async (req, res) => {
     console.error("Verify OTP Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to verify code",
-      error: error.message
+      message: "Failed to verify code"
     });
   }
 };
@@ -250,8 +248,7 @@ const resetPassword = async (req, res) => {
     console.error("Reset Password Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to reset password",
-      error: error.message
+      message: "Failed to reset password"
     });
   }
 };
@@ -477,7 +474,7 @@ const login = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error during login",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -501,8 +498,7 @@ const getMe = async (req, res) => {
     console.error("GetMe Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to retrieve user profile",
-      error: error.message
+      message: "Failed to retrieve user profile"
     });
   }
 };
@@ -534,8 +530,7 @@ const updateProfile = async (req, res) => {
     console.error("Update Profile Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to update profile",
-      error: error.message
+      message: "Failed to update profile"
     });
   }
 };
@@ -584,8 +579,7 @@ const changePassword = async (req, res) => {
     console.error("Change Password Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to change password",
-      error: error.message
+      message: "Failed to change password"
     });
   }
 };

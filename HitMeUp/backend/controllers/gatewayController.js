@@ -35,7 +35,7 @@ const checkoutSession = async (req, res) => {
     console.error("Gateway Checkout Error:", error);
     return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.message || "Failed to initialize checkout session"
+      message: "Failed to initialize checkout session"
     });
   }
 };
@@ -93,7 +93,7 @@ const processPayment = async (req, res) => {
     console.error("Gateway Process Error:", error);
     return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.message || "Payment processing failed"
+      message: "Payment processing failed"
     });
   }
 };
@@ -241,7 +241,7 @@ const getTransactionById = async (req, res) => {
     console.error("Get Transaction By ID Error:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || "Failed to retrieve transaction"
+      message: "Failed to retrieve transaction"
     });
   }
 };
@@ -325,7 +325,7 @@ const resolveTransaction = async (req, res) => {
     console.error("Resolve Transaction Error:", error);
     return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.message || "Failed to resolve transaction"
+      message: "Failed to resolve transaction"
     });
   }
 };

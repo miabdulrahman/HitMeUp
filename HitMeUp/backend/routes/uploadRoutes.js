@@ -110,7 +110,7 @@ router.post("/", protect, authorizeRoles("seller", "admin"), (req, res, next) =>
     if (err) {
       return res.status(400).json({
         success: false,
-        message: err.message || "Failed to process uploaded file"
+        message: "Invalid upload request."
       });
     }
 
@@ -161,7 +161,9 @@ router.post("/", protect, authorizeRoles("seller", "admin"), (req, res, next) =>
       console.error("Cloudinary upload controller error:", uploadError);
       return res.status(uploadError.statusCode || 500).json({
         success: false,
-        message: uploadError.message || "Failed to upload image"
+        message: uploadError.statusCode === 400
+          ? "The uploaded image is invalid."
+          : "Failed to upload image."
       });
     }
   });

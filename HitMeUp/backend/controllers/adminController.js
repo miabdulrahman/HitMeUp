@@ -549,7 +549,7 @@ const getOverview = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to load platform overview",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -665,7 +665,7 @@ const getSellerApplications = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve seller applications",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -708,7 +708,7 @@ const getSellerApplicationById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to load application details",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -757,7 +757,7 @@ const markApplicationUnderReview = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update application status",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -811,7 +811,7 @@ const approveSellerApplication = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to approve seller application",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -880,7 +880,7 @@ const rejectSellerApplication = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to reject seller application",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1004,7 +1004,7 @@ const getSellers = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve sellers",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1045,8 +1045,8 @@ const getSellerById = async (req, res) => {
     const averageRating =
       reviews.length > 0
         ? Number(
-            (reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / reviews.length).toFixed(1)
-          )
+          (reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / reviews.length).toFixed(1)
+        )
         : null;
 
     return res.status(200).json({
@@ -1072,7 +1072,7 @@ const getSellerById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve seller details",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1122,7 +1122,7 @@ const suspendSeller = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to suspend seller",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1162,7 +1162,7 @@ const reactivateSeller = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to reactivate seller",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1276,7 +1276,7 @@ const getCustomers = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve customers",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1327,7 +1327,7 @@ const getCustomerById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve customer details",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1379,7 +1379,7 @@ const updateCustomerStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update customer account status",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1479,7 +1479,7 @@ const getAdminDeals = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve deals",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1517,7 +1517,7 @@ const getAdminDealById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve deal details",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1575,7 +1575,7 @@ const updateAdminDealStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update deal status",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1615,8 +1615,8 @@ const getAdminOrders = async (req, res) => {
         (o.status === "PAID" || o.status === "COMPLETED"
           ? "SUCCESS"
           : o.status === "FAILED"
-          ? "FAILED"
-          : "PENDING");
+            ? "FAILED"
+            : "PENDING");
 
       return {
         _id: o._id,
@@ -1629,10 +1629,10 @@ const getAdminOrders = async (req, res) => {
           : { title: "Deleted or unavailable deal" },
         business: o.dealId?.businessId
           ? {
-              _id: o.dealId.businessId._id,
-              name: o.dealId.businessId.name,
-              category: o.dealId.businessId.category
-            }
+            _id: o.dealId.businessId._id,
+            name: o.dealId.businessId.name,
+            category: o.dealId.businessId.category
+          }
           : { name: "Merchant", category: "" },
         amount: Number(o.amount || 0),
         currency: o.currency || "LKR",
@@ -1712,7 +1712,7 @@ const getAdminOrders = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve marketplace orders",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1893,7 +1893,7 @@ const getAdminAnalytics = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to load marketplace analytics",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -1978,7 +1978,7 @@ const getActivityLogs = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve activity logs",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -2006,7 +2006,7 @@ const getPlatformSettings = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve platform settings",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -2057,7 +2057,7 @@ const updatePlatformSettings = async (req, res) => {
     console.error("Update Platform Settings Error:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || "Failed to update platform settings"
+      message: "Failed to update platform settings"
     });
   }
 };

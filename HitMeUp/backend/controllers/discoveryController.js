@@ -69,9 +69,9 @@ const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Math.round(R * c * 10) / 10;
 };
@@ -277,7 +277,7 @@ exports.searchDeals = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to search deals",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -495,7 +495,7 @@ exports.getNearbyDeals = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve nearby deals",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -637,7 +637,7 @@ exports.getMapBusinesses = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to load map data",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -684,8 +684,8 @@ exports.getDealDiscoveryDetails = async (req, res) => {
     const avgRating =
       totalReviews > 0
         ? Math.round(
-            (reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews) * 10
-          ) / 10
+          (reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews) * 10
+        ) / 10
         : 5.0;
 
     // Fetch other active deals from this merchant
@@ -726,7 +726,7 @@ exports.getDealDiscoveryDetails = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to get deal details",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -774,7 +774,7 @@ exports.toggleFavorite = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update favorites",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -817,7 +817,7 @@ exports.getMyFavorites = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve favorites",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -873,7 +873,7 @@ exports.addReview = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to submit review",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -922,7 +922,7 @@ exports.getBusinessReviews = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve reviews",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -955,7 +955,7 @@ exports.getRecentPlatformReviews = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve recent platform reviews",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };

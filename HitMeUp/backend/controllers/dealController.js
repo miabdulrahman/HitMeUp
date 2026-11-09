@@ -42,20 +42,20 @@ const getCategoryFallbackImage = (category) => {
 const buildCategoryRegex = (catInput) => {
   if (!catInput || catInput.toLowerCase() === "all") return null;
   const lower = catInput.trim().toLowerCase();
-  
+
   const matchedTerms = new Set([lower]);
-  
+
   if (CATEGORY_MAP[lower]) {
     CATEGORY_MAP[lower].forEach((t) => matchedTerms.add(t));
   }
-  
+
   for (const [mainCat, synonyms] of Object.entries(CATEGORY_MAP)) {
     if (synonyms.some((s) => lower.includes(s) || s.includes(lower))) {
       matchedTerms.add(mainCat);
       synonyms.forEach((t) => matchedTerms.add(t));
     }
   }
-  
+
   const pattern = Array.from(matchedTerms)
     .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
     .join("|");
@@ -218,7 +218,7 @@ const createDeal = async (req, res) => {
     } catch (pricingErr) {
       return res.status(400).json({
         success: false,
-        message: pricingErr.message
+        message: "Invalid pricing details."
       });
     }
 
@@ -276,7 +276,7 @@ const createDeal = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to create deal",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -429,7 +429,7 @@ const getDeals = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch deals",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -495,7 +495,7 @@ const getDealById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch deal",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -559,7 +559,7 @@ const getMyDeals = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch business deals",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -650,7 +650,7 @@ const getDealsByBusiness = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch business deals",
-      error: error.message,
+      error: "Internal server error",
       deals: []
     });
   }
@@ -737,7 +737,7 @@ const updateDeal = async (req, res) => {
         deal.discountPercentage = pricing.discountPercentage;
         deal.discountedPrice = pricing.discountedPrice;
       } catch (pErr) {
-        return res.status(400).json({ success: false, message: pErr.message });
+        return res.status(400).json({ success: false, message: "Invalid pricing details." });
       }
     }
 
@@ -774,7 +774,7 @@ const updateDeal = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update deal",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -824,7 +824,7 @@ const updateDealStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update deal status",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };
@@ -864,7 +864,7 @@ const deleteDeal = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to delete deal",
-      error: error.message
+      error: "Internal server error"
     });
   }
 };

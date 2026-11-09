@@ -1,8 +1,8 @@
 const express = require("express");
 const multer = require("multer");
-const { fromBuffer } = require("file-type");
 const cloudinary = require("../config/cloudinary");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
+const fileTypeModule = import("file-type");
 
 const router = express.Router();
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -72,7 +72,8 @@ const validateImageBuffer = async (buffer) => {
     throw error;
   }
 
-  const detectedType = await fromBuffer(buffer);
+  const { fileTypeFromBuffer } = await fileTypeModule;
+  const detectedType = await fileTypeFromBuffer(buffer);
   if (!detectedType || !ALLOWED_MIME_TYPES.has(detectedType.mime)) {
     const error = new Error("Only valid JPEG, PNG, WebP, or GIF images are allowed");
     error.statusCode = 400;

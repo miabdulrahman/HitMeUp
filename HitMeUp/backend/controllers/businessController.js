@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 const Business = require("../models/Business");
 const User = require("../models/user");
 
+const MAX_FILTER_LENGTH = 100;
+const escapeRegex = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // Standard supported business category enums
 const VALID_BUSINESS_CATEGORIES = [
   "Restaurant",
@@ -392,6 +395,11 @@ const getBusinessById = async (req, res) => {
 const getAllBusinesses = async (req, res) => {
   try {
     const { category, search, city, status = "active", page = 1, limit = 20 } = req.query;
+    const safeCategory = typeof category === "string" ? category.trim().slice(0, MAX_FILTER_LENGTH) : "";
+    const safeSearch = typeof search === "string" ? search.trim().slice(0, MAX_FILTER_LENGTH) : "";
+    const safeCity = typeof city === "string" ? city.trim().slice(0, MAX_FILTER_LENGTH) : "";
+    const pageNum = Math.min(10000, Math.max(1, Number.parseInt(page, 10) || 1));
+    const limitNum = Math.min(100, Math.max(1, Number.parseInt(limit, 10) || 20));
 
     const query = {};
 
@@ -399,28 +407,28 @@ const getAllBusinesses = async (req, res) => {
       query.status = status;
     }
 
-    if (category) {
-      query.category = new RegExp(`^${category}$`, "i");
+    if (safeCategory) {
+      query.category = new RegExp(`^${escapeRegex(safeCategory)}$`, "i");
     }
 
-    if (city) {
-      query["address.city"] = new RegExp(city, "i");
+    if (safeCity) {
+      query["address.city"] = new RegExp(escapeRegex(safeCity), "i");
     }
 
-    if (search) {
+    if (safeSearch) {
       query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { category: { $regex: search, $options: "i" } }
+        { name: { $regex: escapeRegex(safeSearch), $options: "i" } },
+        { description: { $regex: escapeRegex(safeSearch), $options: "i" } },
+        { category: { $regex: escapeRegex(safeSearch), $options: "i" } }
       ];
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
+    const skip = (pageNum - 1) * limitNum;
 
     const businesses = await Business.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(Number(limit))
+      .limit(limitNum)
       .select("-__v");
 
     const total = await Business.countDocuments(query);
@@ -429,8 +437,8 @@ const getAllBusinesses = async (req, res) => {
       success: true,
       count: businesses.length,
       total,
-      page: Number(page),
-      pages: Math.ceil(total / Number(limit)),
+      page: pageNum,
+      pages: Math.ceil(total / limitNum),
       businesses
     });
   } catch (error) {

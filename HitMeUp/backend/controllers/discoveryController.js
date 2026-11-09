@@ -26,6 +26,7 @@ const CATEGORY_MAP = {
   services: ["services", "automotive", "repair", "cleaning", "maintenance", "consulting", "photography", "salon", "service"],
   games: ["games", "gaming", "arcade", "entertainment", "esports", "board game"]
 };
+const MAX_FILTER_LENGTH = 100;
 
 const buildCategoryRegex = (catInput) => {
   if (
@@ -123,7 +124,12 @@ exports.searchDeals = async (req, res) => {
       limit = 100
     } = req.query;
 
-    const searchTerm = (q || keyword || search || queryString || "").trim();
+    const searchTerm = String(q || keyword || search || queryString || "")
+      .trim()
+      .slice(0, MAX_FILTER_LENGTH);
+    const safeCity = typeof city === "string"
+      ? city.trim().slice(0, MAX_FILTER_LENGTH)
+      : "";
     const now = new Date();
 
     // Auto-expire deals that have passed their end date
@@ -223,8 +229,8 @@ exports.searchDeals = async (req, res) => {
         break;
     }
 
-    const pageNum = Math.max(1, parseInt(page, 10));
-    const limitNum = Math.min(200, Math.max(1, parseInt(limit, 10)));
+    const pageNum = Math.min(10000, Math.max(1, parseInt(page, 10) || 1));
+    const limitNum = Math.min(200, Math.max(1, parseInt(limit, 10) || 100));
     const skip = (pageNum - 1) * limitNum;
 
     const [deals, total] = await Promise.all([
@@ -239,8 +245,8 @@ exports.searchDeals = async (req, res) => {
 
     // Filter by city if specified
     let filteredDeals = deals;
-    if (city && city.trim()) {
-      const cityRegex = new RegExp(city.trim(), "i");
+    if (safeCity) {
+      const cityRegex = new RegExp(escapeRegex(safeCity), "i");
       filteredDeals = deals.filter(
         (deal) =>
           deal.businessId?.address?.city &&
@@ -506,6 +512,12 @@ exports.getNearbyDeals = async (req, res) => {
 exports.getMapBusinesses = async (req, res) => {
   try {
     const { category, city, lat, lng, latitude, longitude, radius } = req.query;
+    const safeCategory = typeof category === "string"
+      ? category.trim().slice(0, MAX_FILTER_LENGTH)
+      : "";
+    const safeCity = typeof city === "string"
+      ? city.trim().slice(0, MAX_FILTER_LENGTH)
+      : "";
 
     const userLat = parseFloat(lat || latitude);
     const userLng = parseFloat(lng || longitude);
@@ -530,8 +542,8 @@ exports.getMapBusinesses = async (req, res) => {
       businessId: { $in: activeApprovedBusinessIds }
     };
 
-    if (category && category !== "all" && category !== "All") {
-      const catRegex = buildCategoryRegex(category);
+    if (safeCategory && safeCategory !== "all" && safeCategory !== "All") {
+      const catRegex = buildCategoryRegex(safeCategory);
       if (catRegex) dealQuery.category = catRegex;
     }
 
@@ -560,8 +572,8 @@ exports.getMapBusinesses = async (req, res) => {
       ]
     };
 
-    if (city && city.trim()) {
-      businessQuery["address.city"] = new RegExp(city.trim(), "i");
+    if (safeCity) {
+      businessQuery["address.city"] = new RegExp(escapeRegex(safeCity), "i");
     }
 
     const businesses = await Business.find(businessQuery)

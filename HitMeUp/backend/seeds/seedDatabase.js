@@ -396,8 +396,11 @@ async function seedDatabase() {
 
   // 1. Precompute bcrypt hashes for ultra-fast generation
   console.log("\nGenerating precomputed bcrypt password hashes...");
-  const vendorPassword = "Vendor2026!";
-  const clientPassword = "Customer2026!";
+  const vendorPassword = process.env.SEED_VENDOR_PASSWORD;
+  const clientPassword = process.env.SEED_CLIENT_PASSWORD;
+  if (!vendorPassword || !clientPassword || vendorPassword.length < 12 || clientPassword.length < 12) {
+    throw new Error("SEED_VENDOR_PASSWORD and SEED_CLIENT_PASSWORD must be provided and contain at least 12 characters.");
+  }
   const [vendorHash, clientHash] = await Promise.all([
     bcrypt.hash(vendorPassword, 10),
     bcrypt.hash(clientPassword, 10)

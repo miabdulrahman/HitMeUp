@@ -40,7 +40,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"customer@example.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"customer\",\n  \"phone\": \"+94771234567\"\n}"
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"customer@example.com\",\n  \"password\": \"REPLACE_WITH_TEST_PASSWORD\",\n  \"role\": \"customer\",\n  \"phone\": \"+94771234567\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -58,7 +58,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Alice Baker\",\n  \"email\": \"business@example.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"business\",\n  \"phone\": \"+94719876543\"\n}"
+              "raw": "{\n  \"name\": \"Alice Baker\",\n  \"email\": \"business@example.com\",\n  \"password\": \"REPLACE_WITH_TEST_PASSWORD\",\n  \"role\": \"business\",\n  \"phone\": \"+94719876543\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -76,7 +76,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Password123!\"\n}"
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"REPLACE_WITH_TEST_PASSWORD\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
@@ -94,7 +94,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"business@example.com\",\n  \"password\": \"Password123!\"\n}"
+              "raw": "{\n  \"email\": \"business@example.com\",\n  \"password\": \"REPLACE_WITH_TEST_PASSWORD\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
@@ -146,7 +146,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"Password123!\",\n  \"newPassword\": \"NewSecurePass456!\"\n}"
+              "raw": "{\n  \"currentPassword\": \"REPLACE_WITH_TEST_PASSWORD\",\n  \"newPassword\": \"NewSecurePass456!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/change-password",

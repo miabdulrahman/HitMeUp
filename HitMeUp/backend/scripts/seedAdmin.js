@@ -13,13 +13,17 @@ const mongoose = require("mongoose");
 const User = require("../models/user");
 
 const seedAdmin = async () => {
-  const email = (process.env.ADMIN_EMAIL || "admin@hitmeup.com").toLowerCase().trim();
-  const password = process.env.ADMIN_PASSWORD || "Password123!";
-  const name = process.env.ADMIN_NAME || "Platform Administrator";
-
   if (!process.env.MONGO_URI) {
     console.error("MONGO_URI is required in backend/.env to seed an admin account.");
     process.exit(1);
+  }
+
+  const email = (process.env.ADMIN_EMAIL || "admin@hitmeup.com").toLowerCase().trim();
+  const password = process.env.ADMIN_PASSWORD;
+  const name = process.env.ADMIN_NAME || "Platform Administrator";
+
+  if (!password || password.length < 12) {
+    throw new Error("ADMIN_PASSWORD must be provided and contain at least 12 characters.");
   }
 
   await mongoose.connect(process.env.MONGO_URI, {

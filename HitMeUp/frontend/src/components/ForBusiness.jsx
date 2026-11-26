@@ -81,7 +81,7 @@ function ForBusiness() {
       id="for-business"
       className="border-b border-[#E6E0D6] bg-[#F7F4EE] py-20"
     >
-      <div ref={sectionRef} className="reveal mx-auto max-w-[1200px] px-6">
+      <div ref={sectionRef} className="reveal revealed mx-auto max-w-[1200px] px-6">
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-12">
           {/* Left — content */}
           <div className="lg:col-span-6">

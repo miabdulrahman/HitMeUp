@@ -503,6 +503,7 @@ function SellerProfileModal({
                                     discount: `${deal.discountPercentage || 0}% off`,
                                   });
                                 }
+                                if (onClose) onClose();
                               }}
                               className="inline-flex h-8.5 w-full items-center justify-center gap-1.5 rounded-lg bg-[#1F1B16] px-3 text-[12px] font-medium text-white transition-colors hover:bg-[#D94832] cursor-pointer"
                             >

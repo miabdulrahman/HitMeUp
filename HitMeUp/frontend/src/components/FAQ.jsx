@@ -59,7 +59,7 @@ export default function FAQ() {
 
   return (
     <section id="faq" className="border-b border-[#E6E0D6] bg-[#F7F4EE] py-20">
-      <div ref={sectionRef} className="reveal mx-auto max-w-[820px] px-6">
+      <div ref={sectionRef} className="reveal revealed mx-auto max-w-[820px] px-6">
         <div className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E0D6] bg-[#FDFBF7] px-3 py-1 text-xs font-medium text-[#7B7266]">
             <HelpCircle size={14} className="text-[#D94832]" />

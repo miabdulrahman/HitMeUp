@@ -111,7 +111,7 @@ function Testimonials() {
 
   return (
     <section className="border-b border-[#E6E0D6] dark:border-[#272727] bg-[#FDFBF7] dark:bg-[#181818] py-20 transition-colors duration-300">
-      <div ref={sectionRef} className="reveal mx-auto max-w-[1200px] px-6">
+      <div ref={sectionRef} className="reveal revealed mx-auto max-w-[1200px] px-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <div className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-[#7B7266] dark:text-[#A89F91]">

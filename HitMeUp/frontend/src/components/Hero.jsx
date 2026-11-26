@@ -224,7 +224,7 @@ function Hero({ onSearch }) {
 
       {/* Main Centered Hero Content */}
       <div className="relative z-10 mx-auto w-full max-w-[1200px] px-6">
-        <div ref={addRef} className="reveal mx-auto max-w-[680px] text-center">
+        <div ref={addRef} className="reveal revealed mx-auto max-w-[680px] text-center">
           {/* Location Signal Pill */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#E6E0D6] dark:border-white/15 bg-[#FDFBF7]/90 dark:bg-[#1F1F1F]/80 px-4 py-1.5 text-xs font-medium text-[#1F1B16] dark:text-[#FDFBF7] backdrop-blur-md">
             <MapPin size={13} strokeWidth={1.5} className="text-[#D94832] dark:text-[#FF7A59]" />

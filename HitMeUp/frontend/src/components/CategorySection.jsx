@@ -42,7 +42,7 @@ function CategorySection() {
     >
       <div
         ref={sectionRef}
-        className="reveal mx-auto max-w-[1200px] px-6"
+        className="reveal revealed mx-auto max-w-[1200px] px-6"
       >
         <div className="flex items-end justify-between gap-4">
           <div>

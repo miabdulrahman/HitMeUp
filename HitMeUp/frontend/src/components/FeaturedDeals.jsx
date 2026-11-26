@@ -115,11 +115,25 @@ function FeaturedDeals({ initialSearch = "" }) {
         // If client not accepted location, Show Nearby is off, or no deals found nearby:
         // Seamlessly load top active deals across the platform so homepage is NEVER empty
         if (!liveDeals || liveDeals.length === 0) {
-          const response = await discoveryApi.searchDeals({
-            limit: 50,
-            sortBy: "discount_desc",
-          });
-          liveDeals = response.deals || response.data || [];
+          try {
+            const response = await discoveryApi.searchDeals({
+              limit: 50,
+              sortBy: "discount_desc",
+            });
+            liveDeals = response.deals || response.data || [];
+          } catch (searchErr) {
+            console.warn("Search deals error, trying dealApi fallback:", searchErr);
+          }
+        }
+
+        // Secondary fallback to primary dealApi if discoveryApi returned empty
+        if (!liveDeals || liveDeals.length === 0) {
+          try {
+            const fallbackRes = await dealApi.getDeals({ limit: 50 });
+            liveDeals = fallbackRes.deals || fallbackRes.data || [];
+          } catch (dealErr) {
+            console.warn("dealApi fallback notice:", dealErr);
+          }
         }
 
         if (isMounted) {
@@ -384,7 +398,7 @@ function FeaturedDeals({ initialSearch = "" }) {
       id="deals"
       className="border-b border-[#E6E0D6] bg-[#F7F4EE] py-20"
     >
-      <div ref={sectionRef} className="reveal mx-auto max-w-[1200px] px-6">
+      <div ref={sectionRef} className="reveal revealed mx-auto max-w-[1200px] px-6">
         {/* Section Header */}
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>

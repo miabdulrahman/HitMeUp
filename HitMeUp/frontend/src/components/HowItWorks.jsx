@@ -59,7 +59,7 @@ function HowItWorks() {
       id="how-it-works"
       className="border-b border-[#E6E0D6] dark:border-[#272727] bg-[#F7F4EE] dark:bg-[#181818] py-20 text-[#1F1B16] dark:text-[#FDFBF7] transition-colors duration-300"
     >
-      <div ref={sectionRef} className="reveal mx-auto max-w-[1200px] px-6">
+      <div ref={sectionRef} className="reveal revealed mx-auto max-w-[1200px] px-6">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-[540px]">
             <span className="font-mono text-xs uppercase tracking-wider text-[#7B7266] dark:text-[#A89F91]">

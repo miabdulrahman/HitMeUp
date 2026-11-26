@@ -60,7 +60,7 @@ function WhyHitMeUp() {
     >
       <div
         ref={sectionRef}
-        className="reveal mx-auto max-w-[1200px] px-6"
+        className="reveal revealed mx-auto max-w-[1200px] px-6"
       >
         <div className="grid gap-12 lg:grid-cols-[1fr_1.5fr] lg:gap-16">
           {/* Left: sticky heading */}

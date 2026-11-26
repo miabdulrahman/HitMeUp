@@ -9,6 +9,7 @@ const { sendOtpEmail } = require("../services/emailService");
 
 const AUTH_COOKIE_NAME = "hitmeup_session";
 const CSRF_COOKIE_NAME = "hitmeup_csrf";
+const LEGACY_AUTH_COOKIE_PATH = "/api/auth";
 const AUTH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 const getCookieOptions = (httpOnly) => ({
@@ -20,14 +21,28 @@ const getCookieOptions = (httpOnly) => ({
   maxAge: AUTH_COOKIE_MAX_AGE
 });
 
+const clearAuthCookiesAtPath = (res, path) => {
+  res.clearCookie(AUTH_COOKIE_NAME, {
+    ...getCookieOptions(true),
+    path,
+    maxAge: undefined
+  });
+  res.clearCookie(CSRF_COOKIE_NAME, {
+    ...getCookieOptions(false),
+    path,
+    maxAge: undefined
+  });
+};
+
 const setAuthCookies = (res, token) => {
+  clearAuthCookiesAtPath(res, LEGACY_AUTH_COOKIE_PATH);
   res.cookie(AUTH_COOKIE_NAME, token, getCookieOptions(true));
   res.cookie(CSRF_COOKIE_NAME, crypto.randomBytes(32).toString("hex"), getCookieOptions(false));
 };
 
 const clearAuthCookies = (res) => {
-  res.clearCookie(AUTH_COOKIE_NAME, { ...getCookieOptions(true), maxAge: undefined });
-  res.clearCookie(CSRF_COOKIE_NAME, { ...getCookieOptions(false), maxAge: undefined });
+  clearAuthCookiesAtPath(res, "/");
+  clearAuthCookiesAtPath(res, LEGACY_AUTH_COOKIE_PATH);
 };
 
 // Helper to generate signed JWT

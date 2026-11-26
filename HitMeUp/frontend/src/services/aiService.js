@@ -5,18 +5,14 @@ const API_BASE_URL = trimmedBaseUrl.endsWith("/api")
     : `${trimmedBaseUrl}/api`;
 
 const requestAI = async (endpoint, body) => {
-    const token = localStorage.getItem("token");
     const headers = {
         "Content-Type": "application/json",
     };
 
-    if (token) {
-        headers.Authorization = `Bearer ${token}`;
-    }
-
     const response = await fetch(`${API_BASE_URL}/ai/${endpoint}`, {
         method: "POST",
         headers,
+        credentials: "include",
         body: JSON.stringify(body),
     });
 
@@ -46,9 +42,7 @@ export const generateTargeting = (dealData) =>
 export const generateInsights = () => requestAI("insights", {});
 
 export const getAIAnalytics = async () => {
-    const token = localStorage.getItem("token");
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const response = await fetch(`${API_BASE_URL}/ai/analytics`, { headers });
+    const response = await fetch(`${API_BASE_URL}/ai/analytics`, { credentials: "include" });
     const result = await response.json();
 
     if (!response.ok) {

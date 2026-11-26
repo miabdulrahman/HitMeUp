@@ -76,6 +76,7 @@ const googleLogin = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Google login successful",
+            token,
             user: user.toSafeObject()
         })
     } catch (error) {

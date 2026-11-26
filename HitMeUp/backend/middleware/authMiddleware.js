@@ -20,14 +20,21 @@ const protect = async (req, res, next) => {
   let token;
   let isCookieAuth = false;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer ")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  } else {
-    token = getCookie(req, AUTH_COOKIE_NAME);
-    isCookieAuth = Boolean(token);
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const rawToken = authHeader.slice(7).trim();
+    if (rawToken && rawToken !== "undefined" && rawToken !== "null") {
+      token = rawToken;
+      isCookieAuth = false;
+    }
+  }
+
+  if (!token) {
+    const cookieToken = getCookie(req, AUTH_COOKIE_NAME);
+    if (cookieToken && cookieToken !== "undefined" && cookieToken !== "null") {
+      token = cookieToken;
+      isCookieAuth = true;
+    }
   }
 
   if (!token) {
@@ -40,12 +47,34 @@ const protect = async (req, res, next) => {
   try {
     if (isCookieAuth && !["GET", "HEAD", "OPTIONS"].includes(req.method)) {
       const csrfCookie = getCookie(req, CSRF_COOKIE_NAME);
-      const csrfHeader = req.get("X-CSRF-Token");
-      if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
-        return res.status(403).json({
-          success: false,
-          message: "Invalid CSRF token."
-        });
+      const csrfHeader = req.get("X-CSRF-Token") || req.get("x-csrf-token");
+      const origin = req.get("Origin") || req.get("Referer");
+      const host = req.get("Host");
+
+      // Check 1: If CSRF header is provided, it must match the CSRF cookie
+      if (csrfHeader && csrfCookie) {
+        if (csrfHeader !== csrfCookie) {
+          return res.status(403).json({
+            success: false,
+            message: "Invalid CSRF token."
+          });
+        }
+      } else if (!csrfHeader) {
+        // Check 2: If CSRF header is omitted, verify request origin against trusted domain / host
+        const isTrustedOrigin =
+          !origin ||
+          (host && origin.includes(host)) ||
+          origin.includes("vercel.app") ||
+          origin.includes("onrender.com") ||
+          origin.includes("localhost") ||
+          origin.includes("127.0.0.1");
+
+        if (!isTrustedOrigin) {
+          return res.status(403).json({
+            success: false,
+            message: "Invalid CSRF token."
+          });
+        }
       }
     }
 

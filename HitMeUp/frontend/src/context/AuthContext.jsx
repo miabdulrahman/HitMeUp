@@ -3,8 +3,19 @@ import { authApi } from "../services/api";
 import AuthContext from "./context";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [token, setToken] = useState(() => {
+    const stored = localStorage.getItem("token");
+    return stored && stored !== "undefined" && stored !== "null" ? stored : null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -13,6 +24,19 @@ export const AuthProvider = ({ children }) => {
     let isMounted = true;
 
     const verifyToken = async () => {
+      const storedToken = localStorage.getItem("token");
+      if (!storedToken || storedToken === "undefined" || storedToken === "null") {
+        try {
+          const response = await authApi.getMe();
+          if (isMounted && response?.user) {
+            setUser(response.user);
+            localStorage.setItem("user", JSON.stringify(response.user));
+          }
+        } catch (_) {}
+        if (isMounted) setLoading(false);
+        return;
+      }
+
       try {
         const response = await authApi.getMe();
         if (isMounted && response?.user) {
@@ -41,9 +65,16 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authApi.login({ email, password });
-      const { user: receivedUser } = response;
-      setToken(true);
-      setUser(receivedUser);
+      const { token: receivedToken, user: receivedUser } = response;
+
+      if (receivedToken && receivedToken !== "undefined" && receivedToken !== "null") {
+        localStorage.setItem("token", receivedToken);
+        setToken(receivedToken);
+      }
+      if (receivedUser) {
+        localStorage.setItem("user", JSON.stringify(receivedUser));
+        setUser(receivedUser);
+      }
 
       return receivedUser;
     } catch (err) {
@@ -56,9 +87,16 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authApi.googleLogin(credential);
-      const { user: receivedUser } = response;
-      setToken(true);
-      setUser(receivedUser);
+      const { token: receivedToken, user: receivedUser } = response;
+
+      if (receivedToken && receivedToken !== "undefined" && receivedToken !== "null") {
+        localStorage.setItem("token", receivedToken);
+        setToken(receivedToken);
+      }
+      if (receivedUser) {
+        localStorage.setItem("user", JSON.stringify(receivedUser));
+        setUser(receivedUser);
+      }
 
       return receivedUser;
     } catch (err) {
@@ -71,9 +109,16 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authApi.register(userData);
-      const { user: receivedUser } = response;
-      setToken(true);
-      setUser(receivedUser);
+      const { token: receivedToken, user: receivedUser } = response;
+
+      if (receivedToken && receivedToken !== "undefined" && receivedToken !== "null") {
+        localStorage.setItem("token", receivedToken);
+        setToken(receivedToken);
+      }
+      if (receivedUser) {
+        localStorage.setItem("user", JSON.stringify(receivedUser));
+        setUser(receivedUser);
+      }
 
       return receivedUser;
     } catch (err) {

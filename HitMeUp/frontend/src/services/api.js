@@ -15,6 +15,12 @@ export const toQueryString = (params = {}) => {
   return q ? `?${q}` : "";
 };
 
+export const getCsrfToken = () => {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)hitmeup_csrf=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
 /**
  * Universal API Client with automatic JSON parsing and cookie credentials.
  */
@@ -24,13 +30,13 @@ export async function apiRequest(endpoint, { method = "GET", body = null, header
     ...headers,
   };
 
-  const csrfToken = document.cookie
-    .split(";")
-    .map((cookie) => cookie.trim())
-    .find((cookie) => cookie.startsWith("hitmeup_csrf="))
-    ?.split("=")[1];
-  if (csrfToken && !["GET", "HEAD", "OPTIONS"].includes(method)) {
-    finalHeaders["X-CSRF-Token"] = decodeURIComponent(csrfToken);
+  if (token && token !== "undefined" && token !== "null") {
+    finalHeaders["Authorization"] = `Bearer ${token}`;
+  }
+
+  const csrfToken = getCsrfToken();
+  if (csrfToken) {
+    finalHeaders["X-CSRF-Token"] = csrfToken;
   }
 
   const config = {
@@ -381,6 +387,13 @@ export const uploadApi = {
     formData.append("folder", folder);
 
     const headers = {};
+    if (token && token !== "undefined" && token !== "null") {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
 
     const cleanEndpoint = "/upload";
     const url = `${API_BASE_URL}${cleanEndpoint}`;
@@ -390,6 +403,7 @@ export const uploadApi = {
       headers,
       credentials: "include",
       body: formData,
+      credentials: "include",
     });
 
     const data = await response.json().catch(() => ({}));

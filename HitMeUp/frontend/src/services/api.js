@@ -15,6 +15,12 @@ export const toQueryString = (params = {}) => {
   return q ? `?${q}` : "";
 };
 
+export const getCsrfToken = () => {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)hitmeup_csrf=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
 /**
  * Universal API Client with automatic JSON parsing and JWT token injection
  */
@@ -26,13 +32,19 @@ export async function apiRequest(endpoint, { method = "GET", body = null, header
     ...headers,
   };
 
-  if (token) {
+  if (token && token !== "undefined" && token !== "null") {
     finalHeaders["Authorization"] = `Bearer ${token}`;
+  }
+
+  const csrfToken = getCsrfToken();
+  if (csrfToken) {
+    finalHeaders["X-CSRF-Token"] = csrfToken;
   }
 
   const config = {
     method,
     headers: finalHeaders,
+    credentials: "include",
   };
 
   if (body) {
@@ -376,8 +388,12 @@ export const uploadApi = {
 
     const token = localStorage.getItem("token");
     const headers = {};
-    if (token) {
+    if (token && token !== "undefined" && token !== "null") {
       headers["Authorization"] = `Bearer ${token}`;
+    }
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
     }
 
     const cleanEndpoint = "/upload";
@@ -387,6 +403,7 @@ export const uploadApi = {
       method: "POST",
       headers,
       body: formData,
+      credentials: "include",
     });
 
     const data = await response.json().catch(() => ({}));

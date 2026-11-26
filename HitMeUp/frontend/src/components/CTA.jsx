@@ -12,12 +12,13 @@ function CTA() {
           {/* Shopper Card */}
           <div className="flex flex-col justify-between rounded-2xl border border-[#E6E0D6] bg-[#FDFBF7] p-8 sm:p-10 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:shadow-sm">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wider text-[#D94832]">
-                For shoppers
-              </p>
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E0D6] bg-[#F7F4EE] px-3 py-1 text-xs font-medium text-[#5E554A]">
+                <Ticket size={14} strokeWidth={1.5} className="text-[#D94832]" />
+                <span>For shoppers</span>
+              </div>
 
               {/* Heading 5: text-2xl sm:text-3xl, Semibold (Rule B1) */}
-              <h2 className="mt-3 text-2xl sm:text-3xl font-semibold leading-tight tracking-tight text-[#1F1B16] [text-wrap:balance]">
+              <h2 className="mt-4 text-2xl sm:text-3xl font-semibold leading-tight tracking-tight text-[#1F1B16] [text-wrap:balance]">
                 Claim a free counter pass
                 <br />
                 on your street corner
@@ -52,12 +53,13 @@ function CTA() {
           {/* Merchant Card (Rule B4 flat dark theme background: #181818) */}
           <div className="flex flex-col justify-between rounded-2xl border border-[#272727] bg-[#181818] p-8 text-[#FDFBF7] sm:p-10 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:shadow-sm">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wider text-[#D94832]">
-                For merchants
-              </p>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-[#A89F91]">
+                <Store size={14} strokeWidth={1.5} className="text-[#D94832]" />
+                <span>For merchants</span>
+              </div>
 
               {/* Heading 5: text-2xl sm:text-3xl, Semibold (Rule B1) */}
-              <h2 className="mt-3 text-2xl sm:text-3xl font-semibold leading-tight tracking-tight text-[#FDFBF7] [text-wrap:balance]">
+              <h2 className="mt-4 text-2xl sm:text-3xl font-semibold leading-tight tracking-tight text-[#FDFBF7] [text-wrap:balance]">
                 Publish timed batches and
                 <br />
                 verify at the register

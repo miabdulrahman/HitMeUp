@@ -444,7 +444,7 @@ const getDealById = async (req, res) => {
   try {
     const deal = await Deal.findById(req.params.id).populate(
       "businessId",
-      "name category address location phone email logoUrl isVerified status applicationStatus ownerId"
+      "name category address location phone logoUrl isVerified status applicationStatus ownerId"
     );
 
     if (!deal) {
@@ -487,9 +487,15 @@ const getDealById = async (req, res) => {
       await Deal.updateOne({ _id: deal._id }, { status: "expired" });
     }
 
+    const responseDeal = deal.toObject();
+    if (responseDeal.businessId) {
+      delete responseDeal.businessId.email;
+      delete responseDeal.businessId.ownerId;
+    }
+
     return res.status(200).json({
       success: true,
-      deal
+      deal: responseDeal
     });
   } catch (error) {
     console.error("Get Deal By ID Error:", error);

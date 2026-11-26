@@ -41,13 +41,11 @@ export const AuthProvider = ({ children }) => {
         const response = await authApi.getMe();
         if (isMounted && response?.user) {
           setUser(response.user);
-          localStorage.setItem("user", JSON.stringify(response.user));
+          setToken(true);
         }
       } catch (err) {
         console.warn("Session expired or invalid token:", err.message);
         if (isMounted) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
           setToken(null);
           setUser(null);
         }
@@ -129,9 +127,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const logout = useCallback(async () => {
+    await authApi.logout().catch(() => undefined);
     setToken(null);
     setUser(null);
     setError(null);
@@ -141,7 +138,6 @@ export const AuthProvider = ({ children }) => {
     const response = await authApi.updateProfile(data);
     if (response?.user) {
       setUser(response.user);
-      localStorage.setItem("user", JSON.stringify(response.user));
     }
     return response;
   }, []);

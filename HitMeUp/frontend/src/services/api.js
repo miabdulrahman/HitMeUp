@@ -22,11 +22,9 @@ export const getCsrfToken = () => {
 };
 
 /**
- * Universal API Client with automatic JSON parsing and JWT token injection
+ * Universal API Client with automatic JSON parsing and cookie credentials.
  */
 export async function apiRequest(endpoint, { method = "GET", body = null, headers = {} } = {}) {
-  const token = localStorage.getItem("token");
-
   const finalHeaders = {
     "Content-Type": "application/json",
     ...headers,
@@ -90,6 +88,8 @@ export const authApi = {
       method: "POST",
       body: { credential },
     }),
+
+  logout: () => apiRequest("/auth/logout", { method: "POST" }),
 
   getMe: () => apiRequest("/auth/me"),
 
@@ -386,7 +386,6 @@ export const uploadApi = {
     formData.append("image", fileOrDataUrl);
     formData.append("folder", folder);
 
-    const token = localStorage.getItem("token");
     const headers = {};
     if (token && token !== "undefined" && token !== "null") {
       headers["Authorization"] = `Bearer ${token}`;
@@ -402,6 +401,7 @@ export const uploadApi = {
     const response = await fetch(url, {
       method: "POST",
       headers,
+      credentials: "include",
       body: formData,
       credentials: "include",
     });

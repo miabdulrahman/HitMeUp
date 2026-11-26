@@ -15,22 +15,30 @@ export const toQueryString = (params = {}) => {
   return q ? `?${q}` : "";
 };
 
+export const getCsrfToken = () => {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)hitmeup_csrf=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
 /**
  * Universal API Client with automatic JSON parsing and cookie credentials.
  */
 export async function apiRequest(endpoint, { method = "GET", body = null, headers = {} } = {}) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
   const finalHeaders = {
     "Content-Type": "application/json",
     ...headers,
   };
 
-  const csrfToken = document.cookie
-    .split(";")
-    .map((cookie) => cookie.trim())
-    .find((cookie) => cookie.startsWith("hitmeup_csrf="))
-    ?.split("=")[1];
+  if (token && token !== "undefined" && token !== "null") {
+    finalHeaders["Authorization"] = `Bearer ${token}`;
+  }
+
+  const csrfToken = getCsrfToken();
   if (csrfToken && !["GET", "HEAD", "OPTIONS"].includes(method)) {
-    finalHeaders["X-CSRF-Token"] = decodeURIComponent(csrfToken);
+    finalHeaders["X-CSRF-Token"] = csrfToken;
   }
 
   const config = {
@@ -380,7 +388,15 @@ export const uploadApi = {
     formData.append("image", fileOrDataUrl);
     formData.append("folder", folder);
 
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     const headers = {};
+    if (token && token !== "undefined" && token !== "null") {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
 
     const cleanEndpoint = "/upload";
     const url = `${API_BASE_URL}${cleanEndpoint}`;
@@ -388,8 +404,8 @@ export const uploadApi = {
     const response = await fetch(url, {
       method: "POST",
       headers,
-      credentials: "include",
       body: formData,
+      credentials: "include",
     });
 
     const data = await response.json().catch(() => ({}));

@@ -13,6 +13,7 @@ const AUTH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 const getCookieOptions = (httpOnly) => ({
   httpOnly,
+  path: "/",
   secure: process.env.NODE_ENV === "production",
   sameSite: process.env.COOKIE_SAME_SITE || (process.env.NODE_ENV === "production" ? "none" : "lax"),
   ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),

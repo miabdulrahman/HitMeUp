@@ -3,16 +3,8 @@ import { authApi } from "../services/api";
 import AuthContext from "./context";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    try {
-      const stored = localStorage.getItem("user");
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [token, setToken] = useState(() => localStorage.getItem("token") || null);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -21,23 +13,15 @@ export const AuthProvider = ({ children }) => {
     let isMounted = true;
 
     const verifyToken = async () => {
-      const storedToken = localStorage.getItem("token");
-      if (!storedToken) {
-        if (isMounted) setLoading(false);
-        return;
-      }
-
       try {
         const response = await authApi.getMe();
         if (isMounted && response?.user) {
           setUser(response.user);
-          localStorage.setItem("user", JSON.stringify(response.user));
+          setToken(true);
         }
       } catch (err) {
         console.warn("Session expired or invalid token:", err.message);
         if (isMounted) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
           setToken(null);
           setUser(null);
         }
@@ -57,12 +41,8 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authApi.login({ email, password });
-      const { token: receivedToken, user: receivedUser } = response;
-
-      localStorage.setItem("token", receivedToken);
-      localStorage.setItem("user", JSON.stringify(receivedUser));
-
-      setToken(receivedToken);
+      const { user: receivedUser } = response;
+      setToken(true);
       setUser(receivedUser);
 
       return receivedUser;
@@ -76,12 +56,8 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authApi.googleLogin(credential);
-      const { token: receivedToken, user: receivedUser } = response;
-
-      localStorage.setItem("token", receivedToken);
-      localStorage.setItem("user", JSON.stringify(receivedUser));
-
-      setToken(receivedToken);
+      const { user: receivedUser } = response;
+      setToken(true);
       setUser(receivedUser);
 
       return receivedUser;
@@ -95,12 +71,8 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authApi.register(userData);
-      const { token: receivedToken, user: receivedUser } = response;
-
-      localStorage.setItem("token", receivedToken);
-      localStorage.setItem("user", JSON.stringify(receivedUser));
-
-      setToken(receivedToken);
+      const { user: receivedUser } = response;
+      setToken(true);
       setUser(receivedUser);
 
       return receivedUser;
@@ -110,9 +82,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const logout = useCallback(async () => {
+    await authApi.logout().catch(() => undefined);
     setToken(null);
     setUser(null);
     setError(null);
@@ -122,7 +93,6 @@ export const AuthProvider = ({ children }) => {
     const response = await authApi.updateProfile(data);
     if (response?.user) {
       setUser(response.user);
-      localStorage.setItem("user", JSON.stringify(response.user));
     }
     return response;
   }, []);
